@@ -3,6 +3,7 @@
 namespace Modules\Aegis\Http\Controllers;
 
 use App\Http\Controllers\HooksController as Hooks;
+use Modules\Aegis\Models\CompetencySupplier;
 use Modules\Aegis\Models\Supplier;
 
 class HooksController extends \App\Http\Controllers\Controller
@@ -21,6 +22,12 @@ class HooksController extends \App\Http\Controllers\Controller
                 'suppliers'
             )
         );
+    }
+    public static function collect_hr__add_competency($args){
+        $competency_supplier               =new CompetencySupplier;
+        $competency_supplier->competency_id=$args['competency']->id;
+        $competency_supplier->supplier_id  =$args['request']   ->aegis['supplier'];
+        $competency_supplier->save();
     }
     public static function collect_set_up($args){
         return view('aegis::hooks.set-up-page');
