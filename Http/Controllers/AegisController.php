@@ -4,77 +4,22 @@ namespace Modules\Aegis\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
 
-class AegisController extends Controller
+class AegisController extends \App\Http\Controllers\Controller
 {
-    /**
-     * Display a listing of the resource.
-     * @return Response
-     */
-    public function index()
-    {
-        return view('aegis::index');
-    }
+    // Ajax
+    public function ajax_load(Request $request){
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Response
-     */
-    public function add()
-    {
-        return view('aegis::add');
     }
+    // Autocomplete
+    public function ajax_autocomplete(Request $request){
 
-    /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Response
-     */
-     // Replace form_name with the value of the "form_field" form field
-    public function _post_form_name(Request $request)
-    {
-        //
     }
-
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Response
-     */
-    public function show($id)
-    {
-        return view('aegis::show');
+    // Form Storage
+    public function store_add(Request $request){
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     * @param int $id
-     * @return Response
-     */
-    public function edit($id)
-    {
-        return view('aegis::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
-     * @return Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     * @param int $id
-     * @return Response
-     */
-    public function destroy($id)
-    {
-        //
+    // Views
+    public function add(){
+        return parent::view();
     }
 }
