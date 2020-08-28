@@ -1,0 +1,23 @@
+{
+    "name": "formation-media/aegis",
+    "description": "",
+    "authors": [
+        {
+            "name": "Formation Media",
+            "email": "hello@glowt.co.uk"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Aegis\\": ""
+        }
+    }
+}
