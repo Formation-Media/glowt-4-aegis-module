@@ -18,7 +18,7 @@ class SuppliersController extends Controller
         $supplier->save();
         return $supplier;
     }
-    public function ajax_load(Request $request){
+    public function ajax_suppliers_table(Request $request){
         $row_structure=array(
             'data'=>array(
                 'Name'=>array(

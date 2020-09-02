@@ -23,7 +23,7 @@
 )
 
 @section('content')
-    <x-table selects api="suppliers" module="Aegis" />
+    <x-table selects api="suppliers" method="suppliers" module="Aegis" />
     <x-modal id="add-competency-supplier" title="Add Competency Supplier" save-style="success" save-text="Add">
         <x-form name="supplier">
             <x-field
