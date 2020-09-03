@@ -2,7 +2,6 @@
 
 namespace Modules\Aegis\Http\Controllers;
 
-use App\Helpers\Forms;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Aegis\Models\Supplier;
@@ -11,10 +10,9 @@ class SuppliersController extends Controller
 {
     // Ajax
     public function ajax_add_supplier(Request $request){
-        $fields               =Forms::strip_default_fields($request->all());
-        $supplier             =new Supplier();
-        $supplier->name       =$fields['name'];
-        $supplier->status     =$fields['status']??0;
+        $supplier        =new Supplier();
+        $supplier->name  =$request->name;
+        $supplier->status=$request->status??0;
         $supplier->save();
         return $supplier;
     }
