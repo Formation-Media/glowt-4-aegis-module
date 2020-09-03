@@ -13,7 +13,7 @@ var suppliers={
                     data,
                     function(json){
                         modal.hide();
-                        app.load_table_data(document.querySelector('[data-api="suppliers"]'));
+                        tables.load_table_data(document.querySelector('[data-api="suppliers"]'));
                     },
                     function(json){
                         console.log(json);
