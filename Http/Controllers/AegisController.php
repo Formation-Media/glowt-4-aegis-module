@@ -22,4 +22,11 @@ class AegisController extends \App\Http\Controllers\Controller
     public function add(){
         return parent::view();
     }
+    // Helpers
+    public static function user_types(){
+        return array(
+            1=>'Associate',
+            2=>'Employee'
+        );
+    }
 }

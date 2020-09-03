@@ -2,11 +2,10 @@
 
 namespace Modules\Aegis\Http\Controllers;
 
-use App\Http\Controllers\HooksController as Hooks;
 use Modules\Aegis\Models\CompetencySupplier;
 use Modules\Aegis\Models\Supplier;
 
-class HooksController extends \App\Http\Controllers\Controller
+class HooksController extends AegisController
 {
     const dashboard_charts=array(
         'Competencies by Supplier'=>array(
@@ -36,7 +35,7 @@ class HooksController extends \App\Http\Controllers\Controller
             'type' =>'donut'
         );
     }
-    public static function collect_add_competency_fields($args){
+    public static function collect_view_add_competency_fields($args){
         $supplier_data=Supplier::all();
         $suppliers    =array();
         if(sizeof($supplier_data)){
@@ -51,7 +50,24 @@ class HooksController extends \App\Http\Controllers\Controller
             )
         );
     }
-    public static function collect_competency_fields($args){
+    public static function collect_add_user($args){
+        $user=$args['user'];
+        $user->setMeta([
+            'aegis.discipline'=>$args['request']->aegis['discipline'],
+            'aegis.grade'     =>$args['request']->aegis['grade'],
+            'aegis.type'      =>$args['request']->aegis['type']
+        ]);
+        $user->save();
+    }
+    public static function collect_view_add_user($data,$module){
+        return view(
+            'aegis::hooks.add-user',
+            array(
+                'types'=>self::user_types()
+            )
+        )->render();
+    }
+    public static function collect_view_competency_fields($args){
         $supplier_data=Supplier::all();
         $suppliers    =array();
         $value        =CompetencySupplier::where('competency_id',$args->id)->first()->supplier_id;
@@ -77,7 +93,7 @@ class HooksController extends \App\Http\Controllers\Controller
         $competency_supplier->supplier_id  =$args['request']   ->aegis['supplier'];
         $competency_supplier->save();
     }
-    public static function collect_set_up($args){
+    public static function collect_view_set_up($args){
         return view('aegis::hooks.set-up-page');
     }
 }
