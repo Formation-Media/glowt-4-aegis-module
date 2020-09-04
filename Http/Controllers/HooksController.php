@@ -70,7 +70,10 @@ class HooksController extends AegisController
     public static function collect_view_competency_fields($args){
         $supplier_data=Supplier::all();
         $suppliers    =array();
-        $value        =CompetencySupplier::where('competency_id',$args->id)->first()->supplier_id;
+        $value        =CompetencySupplier::where('competency_id',$args->id)->first();
+        if($value){
+            $value=$value->supplier_id;
+        }
         if(sizeof($supplier_data)){
             foreach($supplier_data as $supplier){
                 $suppliers[$supplier->id]=$supplier->name;
