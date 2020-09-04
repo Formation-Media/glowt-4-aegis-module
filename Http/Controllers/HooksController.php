@@ -67,10 +67,10 @@ class HooksController extends AegisController
             )
         )->render();
     }
-    public static function collect_view_competency_fields($args){
+    public static function collect_view_competency_fields($competency){
         $supplier_data=Supplier::all();
         $suppliers    =array();
-        $value        =CompetencySupplier::where('competency_id',$args->id)->first();
+        $value        =CompetencySupplier::where('competency_id',$competency->id)->first();
         if($value){
             $value=$value->supplier_id;
         }
@@ -82,6 +82,7 @@ class HooksController extends AegisController
         return view(
             'aegis::hooks.add-competency-fields',
             compact(
+                'competency',
                 'suppliers',
                 'value'
             )
