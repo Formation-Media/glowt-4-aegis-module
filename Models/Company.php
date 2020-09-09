@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\Aegis\Models;
+namespace Modules\AEGIS\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Supplier extends Model
+class Company extends Model
 {
     use \App\Models\Base_Model;
     protected $fillable = [];
-    protected $table = 'm_aegis_suppliers';
+    protected $table = 'm_aegis_companies';
 }

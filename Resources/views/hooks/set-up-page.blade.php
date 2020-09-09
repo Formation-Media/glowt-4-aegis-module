@@ -1,6 +1,6 @@
-<x-card title="{{ __('Competency Suppliers') }}">
-    <p>Manage competency suppliers.</p>
+<x-card title="{{ __('Competency Companies') }}">
+    <p>Manage competency companies.</p>
     <x-slot name="footer">
-        <x-link href="/a/m/Aegis/suppliers" style="primary" title="Suppliers"/>
+        <x-link href="/a/m/AEGIS/companies" style="primary" title="Companies"/>
     </x-slot>
 </x-card>
