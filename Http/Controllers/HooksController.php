@@ -1,52 +1,52 @@
 <?php
 
-namespace Modules\Aegis\Http\Controllers;
+namespace Modules\AEGIS\Http\Controllers;
 
-use Modules\Aegis\Models\CompetencySupplier;
-use Modules\Aegis\Models\Supplier;
+use Modules\AEGIS\Models\CompetencyCompany;
+use Modules\AEGIS\Models\Company;
 
-class HooksController extends AegisController
+class HooksController extends AEGISController
 {
     const dashboard_charts=array(
-        'Competencies by Supplier'=>array(
-            'method'=>'chart_competencies_by_supplier'
+        'Competencies by Company'=>array(
+            'method'=>'chart_competencies_by_company'
         )
     );
-    public static function chart_competencies_by_supplier($settings){
+    public static function chart_competencies_by_company($settings){
         $data=array();
-        $suppliers=CompetencySupplier::select([
-                                        \DB::raw('count(m_aegis_suppliers.status) as count,m_aegis_suppliers.name')
-                                     ])
-                                     ->join('m_aegis_suppliers','m_aegis_competency_supplier.supplier_id','=','m_aegis_suppliers.id')
-                                     ->groupBy('name')
-                                     ->orderBy('status')
-                                     ->get();
-        if($suppliers){
-            foreach($suppliers as $supplier){
+        $companies=CompetencyCompany::select([
+                                        \DB::raw('count(m_aegis_companies.status) as count,m_aegis_companies.name')
+                                    ])
+                                    ->join('m_aegis_companies','m_aegis_competency_company.company_id','=','m_aegis_companies.id')
+                                    ->groupBy('name')
+                                    ->orderBy('status')
+                                    ->get();
+        if($companies){
+            foreach($companies as $company){
                 $data[]=array(
-                    'count'=>$supplier->count,
-                    'name' =>$supplier->name
+                    'count'=>$company->count,
+                    'name' =>$company->name
                 );
             }
         }
         return array(
             'data' =>$data,
-            'title'=>__('Competencies by Supplier'),
+            'title'=>__('Competencies by Company'),
             'type' =>'donut'
         );
     }
     public static function collect_view_add_competency_fields($args){
-        $supplier_data=Supplier::all();
-        $suppliers    =array();
-        if(sizeof($supplier_data)){
-            foreach($supplier_data as $supplier){
-                $suppliers[$supplier->id]=$supplier->name;
+        $company_data=Company::all();
+        $companies   =array();
+        if(sizeof($company_data)){
+            foreach($company_data as $company){
+                $companies[$company->id]=$company->name;
             }
         }
         return view(
             'aegis::hooks.add-competency-fields',
             compact(
-                'suppliers'
+                'companies'
             )
         );
     }
@@ -68,22 +68,22 @@ class HooksController extends AegisController
         )->render();
     }
     public static function collect_view_competency_fields($competency){
-        $supplier_data=Supplier::all();
-        $suppliers    =array();
-        $value        =CompetencySupplier::where('competency_id',$competency->id)->first();
+        $company_data=Company::all();
+        $companies   =array();
+        $value       =CompetencyCompany::where('competency_id',$competency->id)->first();
         if($value){
-            $value=$value->supplier_id;
+            $value=$value->company_id;
         }
-        if(sizeof($supplier_data)){
-            foreach($supplier_data as $supplier){
-                $suppliers[$supplier->id]=$supplier->name;
+        if(sizeof($company_data)){
+            foreach($company_data as $company){
+                $companies[$company->id]=$company->name;
             }
         }
         return view(
             'aegis::hooks.add-competency-fields',
             compact(
                 'competency',
-                'suppliers',
+                'companies',
                 'value'
             )
         );
@@ -92,10 +92,10 @@ class HooksController extends AegisController
         return self::dashboard_charts;
     }
     public static function collect_hr__add_competency($args){
-        $competency_supplier               =new CompetencySupplier;
-        $competency_supplier->competency_id=$args['competency']->id;
-        $competency_supplier->supplier_id  =$args['request']   ->aegis['supplier'];
-        $competency_supplier->save();
+        $competency_company               =new CompetencyCompany;
+        $competency_company->competency_id=$args['competency']->id;
+        $competency_company->company_id   =$args['request']   ->aegis['company'];
+        $competency_company->save();
     }
     public static function collect_view_set_up($args){
         return view('aegis::hooks.set-up-page');

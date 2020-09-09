@@ -2,7 +2,7 @@
     api="user"
     label="{{ __('Key Discipline') }}"
     method="disciplines"
-    module="Aegis"
+    module="AEGIS"
     name="aegis[discipline]"
     required
     type="text"
@@ -11,7 +11,7 @@
     api="user"
     label="{{ __('Grade') }}"
     method="grades"
-    module="Aegis"
+    module="AEGIS"
     name="aegis[grade]"
     required
     type="text"
@@ -21,7 +21,7 @@
     api="user"
     label="{{ __('Key Discipline') }}"
     method="disciplines"
-    module="Aegis"
+    module="AEGIS"
     name="aegis[discipline]"
     required
     type="autocomplete"
@@ -34,7 +34,7 @@
     api="user"
     label="{{ __('Grade') }}"
     method="grades"
-    module="Aegis"
+    module="AEGIS"
     name="aegis[grade]"
     required
     type="autocomplete"

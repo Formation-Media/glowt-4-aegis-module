@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Aegis\Database\Seeders;
+namespace Modules\AEGIS\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Eloquent\Model;
 
-class AegisDatabaseSeeder extends Seeder
+class AEGISDatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.

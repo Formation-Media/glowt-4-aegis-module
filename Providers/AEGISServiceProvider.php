@@ -1,16 +1,16 @@
 <?php
 
-namespace Modules\Aegis\Providers;
+namespace Modules\AEGIS\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
 
-class AegisServiceProvider extends ServiceProvider
+class AEGISServiceProvider extends ServiceProvider
 {
     /**
      * @var string $moduleName
      */
-    protected $moduleName = 'Aegis';
+    protected $moduleName = 'AEGIS';
 
     /**
      * @var string $moduleNameLower

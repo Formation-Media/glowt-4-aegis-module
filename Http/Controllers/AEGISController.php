@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Aegis\Http\Controllers;
+namespace Modules\AEGIS\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class AegisController extends \App\Http\Controllers\Controller
+class AEGISController extends \App\Http\Controllers\Controller
 {
     // Ajax
     public function ajax_load(Request $request){

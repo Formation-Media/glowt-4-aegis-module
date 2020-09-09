@@ -1,22 +1,22 @@
 <?php
 
-namespace Modules\Aegis\Http\Controllers;
+namespace Modules\AEGIS\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Aegis\Models\Supplier;
+use Modules\AEGIS\Models\Company;
 
-class SuppliersController extends Controller
+class CompaniesController extends Controller
 {
     // Ajax
-    public function ajax_add_supplier(Request $request){
-        $supplier        =new Supplier();
-        $supplier->name  =$request->name;
-        $supplier->status=$request->status??0;
-        $supplier->save();
-        return $supplier;
+    public function ajax_add_company(Request $request){
+        $company        =new Company();
+        $company->name  =$request->name;
+        $company->status=$request->status??0;
+        $company->save();
+        return $company;
     }
-    public function ajax_table_suppliers(Request $request){
+    public function ajax_table_companies(Request $request){
         $row_structure=array(
             'data'=>array(
                 'Name'=>array(
@@ -38,7 +38,7 @@ class SuppliersController extends Controller
                 ),
             )
         );
-        return parent::to_ajax_table('Supplier',$row_structure,array(),function($query){
+        return parent::to_ajax_table('Company',$row_structure,array(),function($query){
             return $query->orderBy('name');
         });
     }

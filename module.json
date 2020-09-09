@@ -1,11 +1,11 @@
 {
-    "name": "Aegis",
+    "name": "AEGIS",
     "alias": "aegis",
     "description": "",
     "keywords": [],
     "order": 0,
     "providers": [
-        "Modules\\Aegis\\Providers\\AegisServiceProvider"
+        "Modules\\AEGIS\\Providers\\AEGISServiceProvider"
     ],
     "aliases": {},
     "files": [],
