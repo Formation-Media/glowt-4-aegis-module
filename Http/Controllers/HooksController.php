@@ -100,4 +100,28 @@ class HooksController extends AEGISController
     public static function collect_view_set_up($args){
         return view('aegis::hooks.set-up-page');
     }
+    public static function collect_view_table_filter($args){
+        $companies=array();
+        if($competency_companies=Company::all()){
+            foreach($competency_companies as $company){
+                $companies[$company->id]=$company->name;
+            }
+        }
+        return view(
+            'aegis::hooks.table-filter',
+            compact(
+                'args',
+                'companies'
+            )
+        )->render();
+    }
+    // public static function filter_ajax_table_competencies($args){
+    //     $args['query'];
+    //     $args['request'];
+    //     $args['query']=$args['query']->where();
+    //     \Log::debug([
+    //         __FILE__=>__LINE__,
+    //         $request->all()
+    //     ]);
+    // }
 }
