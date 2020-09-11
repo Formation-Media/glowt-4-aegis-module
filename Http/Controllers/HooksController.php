@@ -59,10 +59,46 @@ class HooksController extends AEGISController
         ]);
         $user->save();
     }
+    public static function collect_store_profile($args){
+		$user=$args['user'];
+        $user->setMeta([
+            'aegis.discipline'=>$args['request']->aegis['discipline'],
+            'aegis.grade'     =>$args['request']->aegis['grade'],
+            'aegis.type'      =>$args['request']->aegis['type']
+        ]);
+        $user->save();
+    }
+    public static function collect_store_user($args){
+		$user=$args['user'];
+        $user->setMeta([
+            'aegis.discipline'=>$args['request']->aegis['discipline'],
+            'aegis.grade'     =>$args['request']->aegis['grade'],
+            'aegis.type'      =>$args['request']->aegis['type']
+        ]);
+        $user->save();
+    }
     public static function collect_view_add_user($data,$module){
         return view(
             'aegis::hooks.add-user',
             array(
+                'types'=>self::user_types()
+            )
+        )->render();
+    }
+    public static function collect_view_edit_profile($data,$module){
+        return view(
+            'aegis::hooks.add-user',
+            array(
+				'user' =>$data,
+                'types'=>self::user_types()
+            )
+        )->render();
+    }
+    public static function collect_view_edit_user($data,$module){
+        return view(
+            'aegis::hooks.add-user',
+            array(
+				'user' =>$data,
                 'types'=>self::user_types()
             )
         )->render();
