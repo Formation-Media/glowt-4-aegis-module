@@ -11,7 +11,7 @@ class CompaniesController extends Controller
 {
     public static function __permissions(User $user){
         return array(
-            'index'=>array('view'=>true),
+            'index'=>true,
         );
     }
     // Ajax
