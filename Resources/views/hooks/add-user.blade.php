@@ -6,7 +6,7 @@
     name="aegis[discipline]"
     required
     type="text"
-	value="{{ isset($user->meta['aegis.discipline'])?$user->meta['aegis.discipline']:'' }}"
+	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.discipline']?$user->meta['aegis.discipline']:'' }}"
 />
 <x-field
     api="user"
@@ -16,7 +16,7 @@
     name="aegis[grade]"
     required
     type="text"
-	value="{{ isset($user->meta['aegis.grade'])?$user->meta['aegis.grade']:'' }}"
+	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.grade']?$user->meta['aegis.grade']:'' }}"
 />
 {{--
 	<x-field
@@ -48,5 +48,5 @@
     :options="$types"
     required
     type="select"
-	value="{{ isset($user->meta['aegis.type'])?$user->meta['aegis.type']:'' }}"
+	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.type']?$user->meta['aegis.type']:'' }}"
 />
