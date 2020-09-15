@@ -3,11 +3,17 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Company;
 
 class CompaniesController extends Controller
 {
+    public static function __permissions(User $user){
+        return array(
+            'index'=>array('view'=>true),
+        );
+    }
     // Ajax
     public function ajax_add_company(Request $request){
         $company        =new Company();
