@@ -4,7 +4,7 @@
         label="{{ __('Company') }}"
         name="company"
         :options="$companies"
-        placeholder="All Compannies"
+        placeholder="All Companies"
         type="select"
     />
 @endif
