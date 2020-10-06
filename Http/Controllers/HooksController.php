@@ -7,11 +7,6 @@ use Modules\AEGIS\Models\Company;
 
 class HooksController extends AEGISController
 {
-    const dashboard_charts=array(
-        'Competencies by Company'=>array(
-            'method'=>'chart_competencies_by_company'
-        )
-    );
     public static function chart_competencies_by_company($settings){
         $data=array();
         $companies=CompetencyCompany::select([
@@ -125,7 +120,11 @@ class HooksController extends AEGISController
         );
     }
     public static function collect_dashboard_charts($data,$module){
-        return self::dashboard_charts;
+        return array(
+            'Competencies by Company'=>array(
+                'method'=>'chart_competencies_by_company'
+            )
+        );
     }
     public static function collect_hr__add_competency($args){
         $competency_company               =new CompetencyCompany;
