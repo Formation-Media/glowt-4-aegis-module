@@ -8,7 +8,6 @@ use Illuminate\Http\Response;
 
 class AEGISController extends \App\Http\Controllers\Controller
 {
-    public static function __permissions(User $user){}
     // Ajax
     public function ajax_load(Request $request){
 

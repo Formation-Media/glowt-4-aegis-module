@@ -133,7 +133,8 @@ class HooksController extends AEGISController
         $competency_company->save();
     }
     public static function collect_view_set_up($args){
-        return view('aegis::hooks.set-up-page');
+        $permissions=\Auth::user()->feature_permissions('AEGIS','companies');
+        return view('aegis::hooks.set-up-page',compact('permissions'));
     }
     public static function collect_view_table_filter($args){
         $companies=array();

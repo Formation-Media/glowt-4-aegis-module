@@ -10,13 +10,6 @@ use Modules\AEGIS\Models\Company;
 
 class CompaniesController extends Controller
 {
-    public static function __permissions(User $user){
-        $is_manager=$user->has_role('HR::HR Manager');
-        return array(
-            'company'=>$is_manager,
-            'index'  =>$is_manager,
-        );
-    }
     // Ajax
     public function ajax_add_company(Request $request){
         $company        =new Company();
@@ -31,20 +24,9 @@ class CompaniesController extends Controller
         return true;
     }
     public function ajax_table_companies(Request $request){
+        $permissions  =\Auth::user()->feature_permissions('AEGIS','companies');
         $row_structure=array(
-            'actions'=>array(
-                array(
-                    'style'=>'primary',
-                    'name' =>'Edit',
-                    'uri'  =>$this->link_base.'company/{{id}}'
-                ),
-                array(
-                    'class'=>'js-delete-company',
-                    'id'   =>'{{id}}',
-                    'style'=>'danger',
-                    'name' =>'Delete'
-                )
-            ),
+            'actions'=>array(),
             'data'=>array(
                 'id'=>array(
                     'columns'=>'id',
@@ -77,6 +59,23 @@ class CompaniesController extends Controller
                 ),
             )
         );
+        if($permissions){
+            if($permissions['company']){
+                $row_structure['actions'][]=array(
+                    'style'=>'primary',
+                    'name' =>'Edit',
+                    'uri'  =>$this->link_base.'company/{{id}}'
+                );
+            }
+            if($permissions['delete']){
+                $row_structure['actions'][]=array(
+                    'class'=>'js-delete-company',
+                    'id'   =>'{{id}}',
+                    'style'=>'danger',
+                    'name' =>'Delete'
+                );
+            }
+        }
         return parent::to_ajax_table('Company',$row_structure,array(),function($query){
             return $query->orderBy('name');
         });
@@ -110,6 +109,7 @@ class CompaniesController extends Controller
         return parent::view(compact('company'));
     }
     public function index(){
-        return parent::view();
+        $permissions=\Auth::user()->feature_permissions('AEGIS','companies');
+        return parent::view(compact('permissions'));
     }
 }
