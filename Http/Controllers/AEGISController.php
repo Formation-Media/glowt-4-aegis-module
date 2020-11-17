@@ -8,14 +8,6 @@ use Illuminate\Http\Response;
 
 class AEGISController extends \App\Http\Controllers\Controller
 {
-    // Ajax
-    public function ajax_load(Request $request){
-
-    }
-    // Autocomplete
-    public function ajax_autocomplete(Request $request){
-
-    }
     // Views
     public function add(){
         return parent::view();
