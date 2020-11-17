@@ -16,9 +16,6 @@ class AEGISController extends \App\Http\Controllers\Controller
     public function ajax_autocomplete(Request $request){
 
     }
-    // Form Storage
-    public function store_add(Request $request){
-    }
     // Views
     public function add(){
         return parent::view();
