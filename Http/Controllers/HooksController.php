@@ -151,13 +151,16 @@ class HooksController extends AEGISController
             )
         )->render();
     }
-    // public static function filter_ajax_table_competencies($args){
-    //     $args['query'];
-    //     $args['request'];
-    //     $args['query']=$args['query']->where();
-    //     \Log::debug([
-    //         __FILE__=>__LINE__,
-    //         $request->all()
-    //     ]);
-    // }
+    public static function filter_ajax_table_competencies($args){
+        $request=$args['request'];
+        if($request->filter){
+            if(isset($request->filter['company'])){
+                if($ids=CompetencyCompany::select('competency_id')->where('company_id',$request->filter['company'])->get()){
+                    $ids=array_column($ids->toArray(),'competency_id');
+                    $args['query']->whereIn('m_hr_competencies.id',$ids);
+                }
+            }
+        }
+        return $args;
+    }
 }
