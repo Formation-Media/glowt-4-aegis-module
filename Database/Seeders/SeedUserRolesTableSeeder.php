@@ -2,10 +2,11 @@
 
 namespace Modules\AEGIS\Database\Seeders;
 
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Eloquent\Model;
 
-class AEGISDatabaseSeeder extends Seeder
+class SeedUserRolesTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,8 +16,11 @@ class AEGISDatabaseSeeder extends Seeder
     public function run()
     {
         Model::unguard();
-        $this->call(
-            SeedUserRolesTableSeeder::class
-        );
+        // foreach(array(
+        //     'Associate'
+        // ) as $role){
+        //     $role=Role::firstOrNew(['module'=>'AEGIS','name'=>$role]);
+        //     $role->save();
+        // }
     }
 }
