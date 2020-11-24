@@ -10,14 +10,12 @@
 	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.discipline']?$user->meta['aegis.discipline']:'' }}"
 />
 <x-field
-    api="user"
     disabled="{{ $method==='profile' }}"
     label="{{ __('Grade') }}"
-    method="grades"
-    module="AEGIS"
     name="aegis[grade]"
+    :options="$grades"
     required
-    type="text"
+    type="select"
 	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.grade']?$user->meta['aegis.grade']:'' }}"
 />
 <x-field

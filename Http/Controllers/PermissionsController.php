@@ -41,6 +41,16 @@ class PermissionsController
                     \Config('roles.by_name.hr.hr_manager')         =>array('has_permission'=>true, 'fixed'=>false),
                     \Config('roles.by_name.hr.competency_approver')=>array('has_permission'=>false,'fixed'=>true),
                 ),
+            ),
+            'management'=>array(
+                'user-grades'=>array(
+                    1=>array('has_permission'=>true, 'fixed'=>true),
+                    2=>array('has_permission'=>true, 'fixed'=>false),
+                    3=>array('has_permission'=>false,'fixed'=>false),
+                    4=>array('has_permission'=>false,'fixed'=>false),
+                    \Config('roles.by_name.hr.hr_manager')         =>array('has_permission'=>true, 'fixed'=>false),
+                    \Config('roles.by_name.hr.competency_approver')=>array('has_permission'=>false,'fixed'=>false),
+                ),
             )
         );
         return $permissions;

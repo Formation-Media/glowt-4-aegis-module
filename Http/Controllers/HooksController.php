@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\UserGrade;
 
 class HooksController extends AEGISController
 {
@@ -68,6 +69,7 @@ class HooksController extends AEGISController
         return view(
             'aegis::hooks.add-user',
             array(
+                'grades'=>UserGrade::all()->formatted(),
                 'method'=>'add',
                 'types' =>self::user_types()
             )
@@ -77,6 +79,7 @@ class HooksController extends AEGISController
         return view(
             'aegis::hooks.add-user',
             array(
+                'grades'=>UserGrade::formatted(),
                 'method'=>'profile',
                 'types' =>self::user_types(),
 				'user'  =>$data,
@@ -87,6 +90,7 @@ class HooksController extends AEGISController
         return view(
             'aegis::hooks.add-user',
             array(
+                'grades'=>UserGrade::formatted(),
                 'method'=>'view',
                 'types' =>self::user_types(),
 				'user'  =>$data,
@@ -126,6 +130,11 @@ class HooksController extends AEGISController
         $competency_company->competency_id=$args['competency']->id;
         $competency_company->company_id   =$args['request']   ->aegis['company'];
         $competency_company->save();
+    }
+    public static function collect_view_management($args){
+        return array(
+            '/a/m/AEGIS/management/user-grades'=>'User Grades'
+        );
     }
     public static function collect_view_set_up($args){
         $permissions=\Auth::user()->feature_permissions('AEGIS','companies');
