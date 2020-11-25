@@ -69,7 +69,7 @@ class HooksController extends AEGISController
         return view(
             'aegis::hooks.add-user',
             array(
-                'grades'=>UserGrade::all()->formatted(),
+                'grades'=>UserGrade::formatted(),
                 'method'=>'add',
                 'types' =>self::user_types()
             )
