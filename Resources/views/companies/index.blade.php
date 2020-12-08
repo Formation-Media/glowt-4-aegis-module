@@ -3,8 +3,8 @@
     if($permissions['add']){
         $page_menu[]=array(
             'data' =>array(
-                'target'=>'#modal-add-competency-company',
-                'toggle'=>'modal'
+                'bs-target'=>'#modal-add-competency-company',
+                'bs-toggle'=>'modal'
             ),
             'icon' =>'plus',
             'title'=>'Add Competency Company'

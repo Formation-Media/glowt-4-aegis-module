@@ -8,8 +8,8 @@
         'page_menu'=>array(
             array(
                 'data' =>array(
-                    'target'=>'#modal-add-user-grade',
-                    'toggle'=>'modal'
+                    'bs-target'=>'#modal-add-user-grade',
+                    'bs-toggle'=>'modal'
                 ),
                 'icon' =>'plus',
                 'title'=>'Add User Grade'
