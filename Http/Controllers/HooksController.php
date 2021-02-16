@@ -9,14 +9,15 @@ use Modules\AEGIS\Models\UserGrade;
 class HooksController extends AEGISController
 {
     public static function chart_competencies_by_company($settings){
-        $data=array();
-        $companies=CompetencyCompany::select([
-                                        \DB::raw('count(m_aegis_companies.status) as count,m_aegis_companies.name')
-                                    ])
-                                    ->join('m_aegis_companies','m_aegis_competency_company.company_id','=','m_aegis_companies.id')
-                                    ->groupBy('name')
-                                    ->orderBy('status')
-                                    ->get();
+        $data     =array();
+        $companies=CompetencyCompany
+            ::select([
+                \DB::raw('count(m_aegis_companies.status) as count,m_aegis_companies.name')
+            ])
+            ->join('m_aegis_companies','m_aegis_competency_company.company_id','=','m_aegis_companies.id')
+            ->groupBy('name')
+            ->orderBy('status')
+            ->get();
         if($companies){
             foreach($companies as $company){
                 $data[]=array(
@@ -60,7 +61,7 @@ class HooksController extends AEGISController
 		$user=$args['user'];
         $user->setMeta([
             'aegis.discipline'=>$args['request']->aegis['discipline'],
-            'aegis.grade'     =>$args['request']->aegis['grade'],
+            'aegis.grade'     =>$args['request']->aegis['grade']??null,
             'aegis.type'      =>$args['request']->aegis['type']
         ]);
         $user->save();
