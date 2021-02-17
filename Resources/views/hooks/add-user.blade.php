@@ -9,15 +9,17 @@
     type="text"
 	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.discipline']?$user->meta['aegis.discipline']:'' }}"
 />
-<x-field
-    disabled="{{ $method==='profile' }}"
-    label="{{ __('Grade') }}"
-    name="aegis[grade]"
-    :options="$grades"
-    required
-    type="select"
-	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.grade']?$user->meta['aegis.grade']:'' }}"
-/>
+@if(sizeof($grades))
+    <x-field
+        disabled="{{ $method==='profile' }}"
+        label="{{ __('Grade') }}"
+        name="aegis[grade]"
+        :options="$grades"
+        required
+        type="select"
+        value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.grade']?$user->meta['aegis.grade']:'' }}"
+    />
+@endif
 <x-field
     disabled="{{ $method==='profile' }}"
     label="{{ __('Type') }}"
