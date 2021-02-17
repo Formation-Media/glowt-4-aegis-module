@@ -1,7 +1,7 @@
 <x-field
     disabled="{{ $method==='profile' }}"
     api="user"
-    label="{{ __('Key Discipline') }}"
+    label="{{ __('Job Title/Key Discipline') }}"
     method="disciplines"
     module="AEGIS"
     name="aegis[discipline]"

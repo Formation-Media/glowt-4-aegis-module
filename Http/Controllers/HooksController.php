@@ -48,11 +48,11 @@ class HooksController extends AEGISController
         );
     }
     public static function collect_add_user($args){
-        $user=$args['user'];
+        $user =$args['user'];
         $aegis=$args['request']->aegis;
         $user->setMeta([
             'aegis.discipline'=>$aegis['discipline'],
-            'aegis.grade'     =>$aegis['grade'],
+            'aegis.grade'     =>$aegis['grade']??null,
             'aegis.type'      =>$aegis['type']
         ]);
         $user->save();
@@ -127,10 +127,12 @@ class HooksController extends AEGISController
         );
     }
     public static function collect_hr__add_competency($args){
-        $competency_company               =new CompetencyCompany;
-        $competency_company->competency_id=$args['competency']->id;
-        $competency_company->company_id   =$args['request']   ->aegis['company'];
-        $competency_company->save();
+        if(isset($args['request']->aegis)){
+            $competency_company               =new CompetencyCompany;
+            $competency_company->competency_id=$args['competency']->id;
+            $competency_company->company_id   =$args['request']   ->aegis['company'];
+            $competency_company->save();
+        }
     }
     public static function collect_view_management($args){
         return array(
@@ -156,7 +158,7 @@ class HooksController extends AEGISController
             )
         )->render();
     }
-    public static function filter_ajax_table_competencies($args){
+    public static function filter_hr__ajax_table_competencies($args){
         $request=$args['request'];
         if($request->filter){
             if(isset($request->filter['company'])){
@@ -167,5 +169,8 @@ class HooksController extends AEGISController
             }
         }
         return $args;
+    }
+    public static function filter_hr__competency_details(&$details,$module,...$supporting_data){
+        $details['Pen Profile']=$supporting_data[0]->user->meta['hr.bio'];
     }
 }
