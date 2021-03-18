@@ -90,6 +90,21 @@ class HooksController extends AEGISController
             )
         );
     }
+    public static function collect_hr__view_competency_summary($competency,$module){
+        if($bio=$competency->user->getMeta('hr.bio')??null){
+            $bio=nl2br($bio);
+        }
+        return view(
+            'aegis::_hooks.hr.competency-summary',
+            compact(
+                'bio'
+            )
+        );
+    }
+    public static function collect_hr__view_set_up($args){
+        $permissions=\Auth::user()->feature_permissions('AEGIS','companies');
+        return view('aegis::_hooks.set-up-page',compact('permissions'));
+    }
     public static function collect_store_user($args){
 		$user=$args['user'];
         $user->setMeta([
@@ -143,10 +158,6 @@ class HooksController extends AEGISController
             '/a/m/AEGIS/management/user-grades'=>'User Grades'
         );
     }
-    public static function collect_view_set_up($args){
-        $permissions=\Auth::user()->feature_permissions('AEGIS','companies');
-        return view('aegis::_hooks.set-up-page',compact('permissions'));
-    }
     public static function collect_view_table_filter($args){
         $companies=array();
         if($competency_companies=Company::all()){
@@ -173,16 +184,5 @@ class HooksController extends AEGISController
             }
         }
         return $args;
-    }
-    public static function collect_hr__view_competency_summary($competency,$module){
-        if($bio=$competency->user->getMeta('hr.bio')??null){
-            $bio=nl2br($bio);
-        }
-        return view(
-            'aegis::_hooks.hr.competency-summary',
-            compact(
-                'bio'
-            )
-        );
     }
 }
