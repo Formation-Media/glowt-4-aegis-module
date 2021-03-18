@@ -32,21 +32,6 @@ class HooksController extends AEGISController
             'type' =>'donut'
         );
     }
-    public static function collect_view_add_competency_fields($args){
-        $company_data=Company::all();
-        $companies   =array();
-        if(sizeof($company_data)){
-            foreach($company_data as $company){
-                $companies[$company->id]=$company->name;
-            }
-        }
-        return view(
-            'aegis::hooks.add-competency-fields',
-            compact(
-                'companies'
-            )
-        );
-    }
     public static function collect_add_user($args){
         $user =$args['user'];
         $aegis=$args['request']->aegis;
@@ -57,48 +42,30 @@ class HooksController extends AEGISController
         ]);
         $user->save();
     }
-    public static function collect_store_user($args){
-		$user=$args['user'];
-        $user->setMeta([
-            'aegis.discipline'=>$args['request']->aegis['discipline'],
-            'aegis.grade'     =>$args['request']->aegis['grade']??null,
-            'aegis.type'      =>$args['request']->aegis['type']
-        ]);
-        $user->save();
+    public static function collect_hr__add_competency($args){
+        if(isset($args['request']->aegis)){
+            $competency_company               =new CompetencyCompany;
+            $competency_company->competency_id=$args['competency']->id;
+            $competency_company->company_id   =$args['request']   ->aegis['company'];
+            $competency_company->save();
+        }
     }
-    public static function collect_view_add_user($data,$module){
+    public static function collect_hr__view_add_competency_fields($args){
+        $company_data=Company::all();
+        $companies   =array();
+        if(sizeof($company_data)){
+            foreach($company_data as $company){
+                $companies[$company->id]=$company->name;
+            }
+        }
         return view(
-            'aegis::hooks.add-user',
-            array(
-                'grades'=>UserGrade::formatted(),
-                'method'=>'add',
-                'types' =>self::user_types()
+            'aegis::_hooks.add-competency-fields',
+            compact(
+                'companies'
             )
-        )->render();
+        );
     }
-    public static function collect_view_edit_profile($data,$module){
-        return view(
-            'aegis::hooks.add-user',
-            array(
-                'grades'=>UserGrade::formatted(),
-                'method'=>'profile',
-                'types' =>self::user_types(),
-				'user'  =>$data,
-            )
-        )->render();
-    }
-    public static function collect_view_edit_user($data,$module){
-        return view(
-            'aegis::hooks.add-user',
-            array(
-                'grades'=>UserGrade::formatted(),
-                'method'=>'view',
-                'types' =>self::user_types(),
-				'user'  =>$data,
-            )
-        )->render();
-    }
-    public static function collect_view_competency_fields($competency){
+    public static function collect_hr__view_competency_fields($competency){
         $company_data=Company::all();
         $companies   =array();
         $value       =CompetencyCompany::where('competency_id',$competency->id)->first();
@@ -111,13 +78,54 @@ class HooksController extends AEGISController
             }
         }
         return view(
-            'aegis::hooks.add-competency-fields',
+            'aegis::_hooks.add-competency-fields',
             compact(
                 'competency',
                 'companies',
                 'value'
             )
         );
+    }
+    public static function collect_store_user($args){
+		$user=$args['user'];
+        $user->setMeta([
+            'aegis.discipline'=>$args['request']->aegis['discipline'],
+            'aegis.grade'     =>$args['request']->aegis['grade']??null,
+            'aegis.type'      =>$args['request']->aegis['type']
+        ]);
+        $user->save();
+    }
+    public static function collect_view_add_user($data,$module){
+        return view(
+            'aegis::_hooks.add-user',
+            array(
+                'grades'=>UserGrade::formatted(),
+                'method'=>'add',
+                'types' =>self::user_types()
+            )
+        )->render();
+    }
+    public static function collect_view_edit_profile($data,$module){
+        return view(
+            'aegis::_hooks.add-user',
+            array(
+                'grades'=>UserGrade::formatted(),
+                'method'=>'profile',
+                'types' =>self::user_types(),
+				'user'  =>$data,
+            )
+        )->render();
+    }
+    public static function collect_view_edit_user($data,$module){
+        return view(
+            'aegis::_hooks.add-user',
+            array(
+                'grades'=>UserGrade::formatted(),
+                'method'=>'view',
+                'types' =>self::user_types(),
+				'user'  =>$data,
+            )
+        )->render();
     }
     public static function collect_dashboard_charts($data,$module){
         return array(
@@ -126,14 +134,6 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_hr__add_competency($args){
-        if(isset($args['request']->aegis)){
-            $competency_company               =new CompetencyCompany;
-            $competency_company->competency_id=$args['competency']->id;
-            $competency_company->company_id   =$args['request']   ->aegis['company'];
-            $competency_company->save();
-        }
-    }
     public static function collect_view_management($args){
         return array(
             '/a/m/AEGIS/management/user-grades'=>'User Grades'
@@ -141,7 +141,7 @@ class HooksController extends AEGISController
     }
     public static function collect_view_set_up($args){
         $permissions=\Auth::user()->feature_permissions('AEGIS','companies');
-        return view('aegis::hooks.set-up-page',compact('permissions'));
+        return view('aegis::_hooks.set-up-page',compact('permissions'));
     }
     public static function collect_view_table_filter($args){
         $companies=array();
@@ -151,7 +151,7 @@ class HooksController extends AEGISController
             }
         }
         return view(
-            'aegis::hooks.table-filter',
+            'aegis::_hooks.table-filter',
             compact(
                 'args',
                 'companies'
@@ -170,7 +170,15 @@ class HooksController extends AEGISController
         }
         return $args;
     }
-    public static function filter_hr__competency_details(&$details,$module,...$supporting_data){
-        $details['Pen Profile']=$supporting_data[0]->user->meta['hr.bio'];
+    public static function collect_hr__view_competency_summary($competency,$module){
+        if($bio=$competency->user->getMeta('hr.bio')??null){
+            $bio=str_replace("\r\n",'<br>',$bio);
+        }
+        return view(
+            'aegis::_hooks.hr.competency-summary',
+            compact(
+                'bio'
+            )
+        );
     }
 }
