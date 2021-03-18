@@ -77,9 +77,13 @@ class HooksController extends AEGISController
                 $companies[$company->id]=$company->name;
             }
         }
+        if($bio=$competency->user->getMeta('hr.bio')??null){
+            $bio=nl2br($bio);
+        }
         return view(
             'aegis::_hooks.add-competency-fields',
             compact(
+                'bio',
                 'competency',
                 'companies',
                 'value'
@@ -172,7 +176,7 @@ class HooksController extends AEGISController
     }
     public static function collect_hr__view_competency_summary($competency,$module){
         if($bio=$competency->user->getMeta('hr.bio')??null){
-            $bio=str_replace("\r\n",'<br>',$bio);
+            $bio=nl2br($bio);
         }
         return view(
             'aegis::_hooks.hr.competency-summary',

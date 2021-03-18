@@ -12,6 +12,6 @@
 @isset($competency)
     <div class="span-2">
         <strong>Pen Profile:</strong><br>
-        <x-blockquote>{{ $competency->user->meta['hr.bio'] }}</x-blockquote>
+        <x-blockquote>{{ $bio }}</x-blockquote>
     </div>
 @endisset
