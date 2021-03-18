@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\UserGrade;
 
 class HooksController extends AEGISController
@@ -115,36 +116,13 @@ class HooksController extends AEGISController
         $user->save();
     }
     public static function collect_view_add_user($data,$module){
-        return view(
-            'aegis::_hooks.add-user',
-            array(
-                'grades'=>UserGrade::formatted(),
-                'method'=>'add',
-                'types' =>self::user_types()
-            )
-        )->render();
+        return self::_add_user_hook('add');
     }
     public static function collect_view_edit_profile($data,$module){
-        return view(
-            'aegis::_hooks.add-user',
-            array(
-                'grades'=>UserGrade::formatted(),
-                'method'=>'profile',
-                'types' =>self::user_types(),
-				'user'  =>$data,
-            )
-        )->render();
+        return self::_add_user_hook('profile',$data);
     }
     public static function collect_view_edit_user($data,$module){
-        return view(
-            'aegis::_hooks.add-user',
-            array(
-                'grades'=>UserGrade::formatted(),
-                'method'=>'view',
-                'types' =>self::user_types(),
-				'user'  =>$data,
-            )
-        )->render();
+        return self::_add_user_hook('view',$data);
     }
     public static function collect_dashboard_charts($data,$module){
         return array(
@@ -155,6 +133,7 @@ class HooksController extends AEGISController
     }
     public static function collect_view_management($args){
         return array(
+            '/a/m/AEGIS/management/job-titles' =>'Job Titles',
             '/a/m/AEGIS/management/user-grades'=>'User Grades'
         );
     }
@@ -184,5 +163,18 @@ class HooksController extends AEGISController
             }
         }
         return $args;
+    }
+
+    private static function _add_user_hook($method,$user=null){
+        return view(
+            'aegis::_hooks.add-user',
+            array(
+                'grades'    =>UserGrade::formatted(),
+                'job_titles'=>JobTitle::formatted(),
+                'method'    =>$method,
+                'types'     =>self::user_types(),
+                'user'      =>$user
+            )
+        )->render();
     }
 }

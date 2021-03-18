@@ -1,14 +1,14 @@
-<x-field
-    disabled="{{ $method==='profile' }}"
-    api="user"
-    label="{{ __('Job Title/Key Discipline') }}"
-    method="disciplines"
-    module="AEGIS"
-    name="aegis[discipline]"
-    required
-    type="text"
-	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.discipline']?$user->meta['aegis.discipline']:'' }}"
-/>
+@if(sizeof($job_titles))
+    <x-field
+        disabled="{{ $method==='profile' }}"
+        label="{{ __('Grade') }}"
+        name="aegis[grade]"
+        :options="$job_titles"
+        required
+        type="select"
+        value="{{ isset($user)?$user->getMeta('aegis.discipline'):false }}"
+    />
+@endif
 @if(sizeof($grades))
     <x-field
         disabled="{{ $method==='profile' }}"
