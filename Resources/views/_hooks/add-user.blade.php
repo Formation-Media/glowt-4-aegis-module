@@ -1,8 +1,8 @@
 @if(sizeof($job_titles))
     <x-field
         disabled="{{ $method==='profile' }}"
-        label="{{ __('Grade') }}"
-        name="aegis[grade]"
+        label="{{ __('Job Title') }}"
+        name="aegis[discipline]"
         :options="$job_titles"
         required
         type="select"
