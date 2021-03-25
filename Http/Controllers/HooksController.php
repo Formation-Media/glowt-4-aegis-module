@@ -51,6 +51,13 @@ class HooksController extends AEGISController
             $competency_company->save();
         }
     }
+    public static function collect_hr__edit_competency($args){
+        if(isset($args['request']->aegis)){
+            CompetencyCompany::where('competency_id',$args['competency']->id)->first()->update([
+                'company_id'=>$args['request']->aegis['company']
+            ]);
+        }
+    }
     public static function collect_hr__view_add_competency_fields($args){
         $company_data=Company::all();
         $companies   =array();
