@@ -1,6 +1,7 @@
 {
     "name": "formation-media/aegis",
     "description": "",
+    "version": "0.8.3",
     "authors": [
         {
             "name": "Formation Media",
