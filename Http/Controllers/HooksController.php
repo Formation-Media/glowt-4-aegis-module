@@ -147,6 +147,7 @@ class HooksController extends AEGISController
     }
     public static function collect_view_management($args){
         return array(
+            '/a/m/AEGIS/management/changelog'  =>'Changelog',
             '/a/m/AEGIS/management/job-titles' =>'Job Titles',
             '/a/m/AEGIS/management/user-grades'=>'User Grades'
         );
