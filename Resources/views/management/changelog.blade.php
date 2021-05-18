@@ -11,7 +11,7 @@
     @php
         $changes=array(
             '2021-05-18'=>array(
-                'Glowt Core - 0.21.1'=>array(
+                'Glowt Core - 0.22.1'=>array(
                     'Improved notification list'
                 ),
                 'AEGIS - 0.9.0'=>array(
