@@ -10,16 +10,18 @@
 @section('content')
     @php
         $changes=array(
-            '2021-05-18'=>array(
-                'Glowt Core - 0.22.1'=>array(
-                    'Improved notification list'
-                ),
-                'AEGIS - 0.9.0'=>array(
-                    'Added changelog'
-                ),
-                'HR - 0.16.0'=>array(
-                    'Enable editing of competencies when denied.'
+            '2021-05-21'=>array(
+                'Glowt Core - 0.22.2'=>'Fix for encoded characters in email field',
+                'AEGIS - 0.9.1'=>'Updated changelog',
+                'HR - 0.17.0'=>array(
+                    'Add colour helper to incomplete subjects',
+                    'Fix incomplete subject count'
                 )
+            ),
+            '2021-05-18'=>array(
+                'Glowt Core - 0.22.1'=>'Improved notification list',
+                'AEGIS - 0.9.0'=>'Added changelog',
+                'HR - 0.16.0'=>'Enable editing of competencies when denied.'
             ),
             '2021-05-14'=>array(
                 'Glowt Core - 0.21.0'=>array(
@@ -28,9 +30,7 @@
                     'Miscellaneous bugfixes and improvements',
                     'Custom avatar support'
                 ),
-                'AEGIS - 0.8.4'=>array(
-                    'Support retrieval of version number'
-                ),
+                'AEGIS - 0.8.4'=>'Support retrieval of version number',
                 'HR - 0.15.4'=>array(
                     'Support retrieval of version number',
                     'Fix edit button on Competencies'
@@ -48,6 +48,11 @@
         <x-list-group class="shadow">
             @foreach ($modules as $module=>$changes)
                 <x-list-group-item title="{{ $module }}">
+                    @php
+                        if(!is_array($changes)){
+                            $changes=array($changes);
+                        }
+                    @endphp
                     <ol reversed class="cols-md-2 mb-0">
                         @foreach ($changes as $change)
                             <li>{!! $change !!}</li>
