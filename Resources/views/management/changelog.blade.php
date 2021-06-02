@@ -10,6 +10,19 @@
 @section('content')
     @php
         $changes=array(
+            '2021-06-02'=>array(
+                'Glowt Core - 0.23.0'=>array(
+                    'Support wider range of chart types',
+                    'Update iconography',
+                    'Improvements to PDF renderer',
+                    'Improvements to error processing',
+                    'Developer improvements'
+                ),
+                'AEGIS - 0.9.1'=>array(
+                    'Replace charts to use new functionality',
+                    'Updated changelog'
+                ),
+            ),
             '2021-05-21'=>array(
                 'Glowt Core - 0.22.2'=>'Fix for encoded characters in email field',
                 'AEGIS - 0.9.1'=>'Updated changelog',

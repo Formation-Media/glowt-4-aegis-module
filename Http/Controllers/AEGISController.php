@@ -2,11 +2,9 @@
 
 namespace Modules\AEGIS\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Http\Controllers\Controller;
 
-class AEGISController extends \App\Http\Controllers\Controller
+class AEGISController extends Controller
 {
     // Views
     public function add(){
