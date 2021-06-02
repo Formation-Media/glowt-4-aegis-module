@@ -22,6 +22,15 @@
                     'Replace charts to use new functionality',
                     'Updated changelog'
                 ),
+                'HR - 0.18.0'=>array(
+                    'Highlight issues that need approving',
+                    'Replace charts to use new functionality',
+                    'Competency review fixes',
+                    'Fix skill-less bugs',
+                    '"The reporting figures at the top of the page is not reporting all missing items. If a 1,2 or 3, or justification is missing, this is counted as complete in the top figure as the first item is showing \'yes\'."',
+                    '"When the form has been rejected, the reporting at the top is showing as complete, even though on my form there are four items that need to be amended."',
+                    'Updated changelog'
+                ),
             ),
             '2021-05-21'=>array(
                 'Glowt Core - 0.22.2'=>'Fix for encoded characters in email field',
