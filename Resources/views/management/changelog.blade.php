@@ -18,7 +18,7 @@
                     'Improvements to error processing',
                     'Developer improvements'
                 ),
-                'AEGIS - 0.9.1'=>array(
+                'AEGIS - 0.9.2'=>array(
                     'Replace charts to use new functionality',
                     'Updated changelog'
                 ),
