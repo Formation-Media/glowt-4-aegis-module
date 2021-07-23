@@ -11,7 +11,7 @@
     @php
         $changes=array(
             '2021-07-23'=>array(
-                'Glowt Core - 0.27.0'=>array(
+                'Glowt Core - 0.28.0'=>array(
                     'Now installable as app on Desktop and mobile',
                     'Changed icon set',
                     'UI Updates',
