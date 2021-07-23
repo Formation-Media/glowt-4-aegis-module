@@ -10,8 +10,14 @@
 @section('content')
     @php
         $changes=array(
-            '2021-06-02'=>array(
-                'Glowt Core - 0.23.0'=>array(
+            '2021-07-23'=>array(
+                'Glowt Core - 0.27.0'=>array(
+                    'Now installable as app on Desktop and mobile',
+                    'Changed icon set',
+                    'UI Updates',
+                    'Improved user deleting',
+                    'Add support for APIs',
+                    'Fix dashboard charts',
                     'Support wider range of chart types',
                     'Update iconography',
                     'Improvements to PDF renderer',
@@ -22,7 +28,12 @@
                     'Replace charts to use new functionality',
                     'Updated changelog'
                 ),
-                'HR - 0.18.0'=>array(
+                'HR - 0.19.0'=>array(
+                    'Fixed issues with subjects not being correctly highlighted as incomplete',
+                    'Added ability to edit active competency',
+                    'Change Pen Profile to editor',
+                    'UX fixes',
+                    'Chart colour fixes',
                     'Highlight issues that need approving',
                     'Replace charts to use new functionality',
                     'Competency review fixes',
