@@ -10,6 +10,15 @@
 @section('content')
     @php
         $changes=array(
+            '2021-0#-##'=>array(
+                'Glowt Core - 0.28.1'=>array(
+                    'Fix dismissal of notifications'
+                    'UI Fixes',
+                ),
+                'AEGIS - 0.9.4'=>array(
+                    'Updated changelog'
+                )
+            ),
             '2021-07-23'=>array(
                 'Glowt Core - 0.28.0'=>array(
                     'Now installable as app on Desktop and mobile',
