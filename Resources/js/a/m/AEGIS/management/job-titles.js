@@ -1,4 +1,4 @@
-const bootstrap = require('bootstrap')
+import { Modal } from 'bootstrap';
 var titles={
     table:false,
     init:function(){
@@ -40,7 +40,7 @@ var titles={
         }
     },
     watch_modal:function(){
-        var modal=new bootstrap.Modal(document.querySelector('#modal-add-job-title'));
+        var modal=new Modal(document.querySelector('#modal-add-job-title'));
         document.querySelector('#modal-add-job-title .modal-save').addEventListener('click',function(e){
             var form=document.querySelector('#modal-add-job-title form');
             if((data=window.form.validate_form(form,e))!==false){

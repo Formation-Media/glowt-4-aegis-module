@@ -1,4 +1,4 @@
-const bootstrap = require('bootstrap')
+import { Modal } from 'bootstrap';
 var companies={
     table:false,
     init:function(){
@@ -40,7 +40,7 @@ var companies={
         }
     },
     watch_modal:function(){
-        var modal=new bootstrap.Modal(document.querySelector('#modal-add-competency-company'));
+        var modal=new Modal(document.querySelector('#modal-add-competency-company'));
         document.querySelector('#modal-add-competency-company .modal-save').addEventListener('click',function(e){
             var form=document.querySelector('#modal-add-competency-company form');
             if((data=window.form.validate_form(form,e))!==false){

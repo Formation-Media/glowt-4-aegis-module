@@ -1,4 +1,4 @@
-const bootstrap = require('bootstrap')
+import { Modal } from 'bootstrap';
 var grades={
     table:false,
     init:function(){
@@ -40,7 +40,7 @@ var grades={
         }
     },
     watch_modal:function(){
-        var modal=new bootstrap.Modal(document.querySelector('#modal-add-user-grade'));
+        var modal=new Modal(document.querySelector('#modal-add-user-grade'));
         document.querySelector('#modal-add-user-grade .modal-save').addEventListener('click',function(e){
             var form=document.querySelector('#modal-add-user-grade form');
             if((data=window.form.validate_form(form,e))!==false){
