@@ -164,6 +164,19 @@ class HooksController extends AEGISController
         return $args;
     }
 
+    public static function filter_main_menu(&$data,$module){
+        $data[]=array(
+            'icon'    =>'folder',
+            'link'    =>'/a/m/'.$module->getName().'/projects',
+            'title'   =>'Projects',
+        );
+        $data[]=array(
+            'icon' => 'file-pen',
+            'link'    =>'/a/m/'.$module->getName().'/scopes',
+            'title'   =>'Scopes',
+        );
+    }
+
     private static function _add_user_hook($method,$user=null){
         return view(
             'aegis::_hooks.add-user',
