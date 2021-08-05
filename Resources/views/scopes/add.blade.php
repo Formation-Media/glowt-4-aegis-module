@@ -3,12 +3,26 @@
     array(
         'breadcrumbs'=>array(
             'Aegis',
-            'scopes' => __('Scopes'),
+            $module_base.'scopes' => __('Scopes'),
             __('Add')
         ),
-
     )
 )
 @section('content')
+<x-form name="scope">
+    <x-card title="{{__('Details')}}">
+        <x-field
+            name="name"
+            label="{{__('Name')}}"
+            type="text"
+            required
+        />
+    </x-card>
+    <x-field type="actions">
+        <x-slot name="center">
+            <x-field label="{{ __('Add') }}" name="add" type="submit" style="success"/>
+        </x-slot>
+    </x-field>
+</x-form>
 
 @endsection

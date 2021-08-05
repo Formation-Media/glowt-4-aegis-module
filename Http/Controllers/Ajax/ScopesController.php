@@ -10,6 +10,27 @@ use Modules\AEGIS\Models\Scope;
 
 class ScopesController extends Controller
 {
+
+    public function autocomplete_scopes($request){
+        $return=array();
+        if($scopes=Scope::search(
+            array(
+                'name'
+            ),
+            '%'.$request->term.'%'
+        )->paged()
+        ){
+            foreach($scopes as $scope){
+                $return[]=array(
+                    'data'   =>$scope,
+                    'value'   =>$scope->id,
+                    'content'=>$scope->name
+                );
+            }
+        }
+        return $return;
+    }
+
     public function table_view($request){
         $actions       =array();
         $global_actions=array();

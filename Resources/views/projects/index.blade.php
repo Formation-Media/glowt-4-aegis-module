@@ -3,7 +3,7 @@
     $page_menu[]=array(
         'href' =>'/a/m/Aegis/projects/add',
         'icon' =>'file-plus',
-        'title'=>__('Add Scope')
+        'title'=>__('Add Project')
     );
 @endphp
 @extends(
@@ -16,5 +16,5 @@
     )
 )
 @section('content')
-    <x-table selects  api="projects" method="view" type="new" module="Aegis"/>
+    <x-table selects  api="Projects" method="view" type="new" module="Aegis"/>
 @endsection

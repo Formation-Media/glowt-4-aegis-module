@@ -1,7 +1,7 @@
 @php
     $page_menu=array();
     $page_menu[]=array(
-        'href' =>'/a/m/Aegis/projects/add-variant',
+        'href' =>'/a/m/Aegis/projects/add-variant/'.$project->id,
         'icon' =>'file-plus',
         'title'=>__('Add Variant')
     );
@@ -17,5 +17,5 @@
     )
 )
 @section('content')
-
+    <x-table selects api="Projects" module="Aegis" method="variantsview" type="classic" id="{{$project->id}}" />
 @endsection

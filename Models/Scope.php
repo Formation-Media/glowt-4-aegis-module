@@ -10,7 +10,7 @@ class Scope extends Model
     use \App\Models\Base_Model;
     use SoftDeletes;
     protected $fillable = [];
-    protected $table = 'm_aegis_Scope';
+    protected $table = 'm_aegis_scopes';
 
     public function projects()
     {
