@@ -47,6 +47,10 @@ class ProjectsController extends Controller
         $project->scope_id = $request->scope;
         $project->update();
 
+        $default_project_variant = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
+        $default_project_variant->name = $request->name; 
+        $default_project_variant->update();
+
         return redirect($redirect);
     }
 
@@ -54,6 +58,7 @@ class ProjectsController extends Controller
         $project_variant = ProjectVariant::find($id);
         $redirect = url('a/m/Aegis/projects/project/'.$project_variant->project_id);
         $project_variant->name = $request->name;
+        $project_variant->save();
 
         return redirect($redirect);
 
