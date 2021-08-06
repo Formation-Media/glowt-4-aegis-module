@@ -5,6 +5,14 @@
         'icon' =>'file-plus',
         'title'=>__('Add Project to Scope')
     );
+    $tabs = [
+        [
+            'name' => 'Details'
+        ],
+        [
+            'name' => 'Projects'
+        ]
+    ]
 @endphp
 @extends(
     'layouts.account',
@@ -17,21 +25,27 @@
     )
 )
 @section('content')
-<x-form name="scope">
-    <x-card>
-        <x-field
-            name="name"
-            label="{{__('Name')}}"
-            type="text"
-            value="{{ $scope->name}}"
-            required
-        />
-    </x-card>
-    <x-field type="actions">
-        <x-slot name="center">
-            <x-field label="{{ __('Update') }}" name="add" type="submit" style="primary"/>
-        </x-slot>
-    </x-field>
-</x-form>
-
+<x-tabs name="scope" :tabs="$tabs">
+    <x-tab target="Details">
+        <x-form name="scope">
+            <x-card>
+                <x-field
+                    name="name"
+                    label="{{__('Name')}}"
+                    type="text"
+                    value="{{ $scope->name}}"
+                    required
+                />
+            </x-card>
+            <x-field type="actions">
+                <x-slot name="center">
+                    <x-field label="{{ __('Update') }}" name="add" type="submit" style="primary"/>
+                </x-slot>
+            </x-field>
+        </x-form>
+    </x-tab>
+    <x-tab target="Projects">
+        <x-table selects api="Projects" module="Aegis" method="view" type="classic" id="{{$scope->id}}" />
+    </x-tab>
+</x-tabs>
 @endsection

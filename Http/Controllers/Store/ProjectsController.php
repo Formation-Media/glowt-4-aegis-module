@@ -42,7 +42,7 @@ class ProjectsController extends Controller
 
     public function project(Request $request, $id){
         $project = Project::find($id);
-        $redirect = url('a/m/Aegis/project/'.$id);
+        $redirect = url('a/m/Aegis/projects/project/'.$id);
         $project->name = $request->name;
         $project->scope_id = $request->scope;
         $project->update();
@@ -52,7 +52,7 @@ class ProjectsController extends Controller
 
     public function project_variant(Request $request, $id){
         $project_variant = ProjectVariant::find($id);
-        $redirect = url('a/m/Aegis/project/'.$project_variant->project_id);
+        $redirect = url('a/m/Aegis/projects/project/'.$project_variant->project_id);
         $project_variant->name = $request->name;
 
         return redirect($redirect);

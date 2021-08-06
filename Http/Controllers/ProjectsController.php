@@ -16,13 +16,12 @@ class ProjectsController extends Controller
 
     public function project(Request $request, $id){
         $project = Project::find($id);
-        return parent::view(compact('project'));
+        $scope = $project->scope?? null;
+        return parent::view(compact('project', 'scope'));
     }
 
     public function add(Request $request, $id=null){
         $scope = Scope::find($id);
-
-
         return parent::view(compact('scope'));
     }
 

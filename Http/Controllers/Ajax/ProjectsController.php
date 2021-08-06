@@ -83,7 +83,11 @@ class ProjectsController extends Controller
             ),
         );
         return parent::to_ajax_table('Project',$row_structure,$global_actions,
-            function ($query){
+            function ($query) use($request){
+
+                if($request->id){
+                    return $query->where('scope_id', $request->id);
+                }
                 return $query;
             },
             function ($in,$out){

@@ -16,5 +16,5 @@
     )
 )
 @section('content')
-    <x-table selects  api="Projects" method="view" type="new" module="Aegis"/>
+    <x-table selects  api="Projects" method="view" type="classic" module="Aegis"/>
 @endsection
