@@ -5,9 +5,10 @@ namespace Modules\AEGIS\Http\Controllers\Ajax;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
-use App\Models\User;
+use Modules\AEGIS\Models\VariantDocument;
 
 class ProjectsController extends Controller
 {
@@ -159,5 +160,66 @@ class ProjectsController extends Controller
             }
         );
     }
+
+    public function table_variantdocumentsview($request){
+        $actions=array(
+            array(
+                'style'=>'primary',
+                'name' =>'View',
+                'uri'  =>'/a/m/DocumentManagement/documents/document/{{document_id}}'
+            ),
+        );
+        $global_actions=array();
+        $row_structure=array(
+            'actions'=>$actions,
+            'data'=>array(
+                'ID'=>array(
+                    'columns'=>'id',
+                    'display'=>false
+                ),
+                'DOCUMENT_ID'=>array(
+                    'columns'=>'document_id',
+                    'display'=> false
+                ),
+                'Name'=>array(
+                    'default_sort'=>'asc',
+                    'sortable'    =>true,
+                ),
+                'Status'=>array(
+                    'sortable'    =>true,
+                ),
+                'Added By'=>array(
+                    'sortable'=>true,
+                ),
+                'Added at'=>array(
+                    'columns' =>'created_at',
+                    'sortable'=>true,
+                    'class'   =>'\App\Helpers\Dates',
+                    'method'  =>'datetime',
+                ),
+                'Updated at'=>array(
+                    'columns' =>'updated_at',
+                    'sortable'=>true,
+                    'class'   =>'\App\Helpers\Dates',
+                    'method'  =>'datetime',
+                ),
+
+            ),
+        );
+        return parent::to_ajax_table('VariantDocument',$row_structure,$global_actions,
+            function ($query) use($request){
+                return $query->where('variant_id', $request->id);
+            },
+            function ($in,$out){
+                $variant_document = VariantDocument::where('id', $in['id'])->first();
+                $added_by = User::where('id', $variant_document->document->added_by)->first();
+                $out['Name'] =  $variant_document->document->name;
+                $out['Status'] = $variant_document->document->status;
+                $out['Added By'] = $added_by->name;
+                return $out;
+            }
+        );
+    }
+
 
 }

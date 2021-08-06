@@ -14,10 +14,10 @@ class VariantDocument extends Model
     protected $table = 'm_aegis_variant_documents';
 
     public function document(){
-        return $this->hasOne(\Modules\DocumentManagement\Models\Document::class, 'document_id', 'id');
+        return $this->belongsTo(\Modules\DocumentManagement\Models\Document::class,'document_id','id');
     }
 
     public function project_variant(){
-        return $this->hasOne(ProjectVariant::class, 'project_id', 'id');
+        return $this->belongsTo(ProjectVariant::class, 'variant_id' , 'id');
     }
 }

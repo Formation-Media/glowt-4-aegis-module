@@ -17,7 +17,26 @@ class ProjectsController extends Controller
     public function project(Request $request, $id){
         $project = Project::find($id);
         $scope = $project->scope?? null;
-        return parent::view(compact('project', 'scope'));
+        $tabs = [
+            [
+                'name' => 'Details'
+            ],
+        ];
+
+        $variants = $project->variants->where('is_default', false );
+        foreach($variants as $variant){
+            $tabs[] = ['name' => $variant->name];
+        }
+
+        $default_variant = $project->variants->where('is_default', true)->first();
+
+        return parent::view(compact(
+            'default_variant',
+            'project',
+            'scope',
+            'tabs',
+            'variants'
+        ));
     }
 
     public function add(Request $request, $id=null){

@@ -5,14 +5,7 @@
         'icon' =>'file-plus',
         'title'=>__('Add Variant')
     );
-    $tabs = [
-        [
-            'name' => 'Details'
-        ],
-        [
-            'name' => 'Variants'
-        ]
-    ];
+
     $types=[
         'Engineering' => 'Engineering',
         'HR'          =>'HR',
@@ -69,10 +62,33 @@
                     </x-slot>
                 </x-field>
             </x-form>
+            <h2>Documents</h2>
+            <x-table selects api="Projects" module="Aegis" method="variantdocumentsview" type="classic" id="{{$default_variant->id}}" />
+
         </x-tab>
-        <x-tab target="Variants">
-            <x-table selects api="Projects" module="Aegis" method="variantsview" type="classic" id="{{$project->id}}" />
-        </x-tab>
+        @foreach($variants as $variant)
+            <x-tab target="{{ $variant->name }}">
+                <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/Aegis/projects/variant/'.$variant->id}}">
+                    <x-card>
+                        <x-field
+                            name="name"
+                            label="{{__('Name')}}"
+                            type="text"
+                            value="{{$variant->name}}"
+                            required
+                        />
+                    </x-card>
+                    <x-field type="actions">
+                        <x-slot name="center">
+                            <x-field label="{{ __('Update') }}" name="add" type="submit" style="primary"/>
+                        </x-slot>
+                    </x-field>
+                </x-form>
+                <h2>Documents</h2>
+                <x-table selects api="Projects" module="Aegis" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
+            </x-tab>
+        @endforeach
+
     </x-tabs>
 
 @endsection
