@@ -4,7 +4,7 @@
         'breadcrumbs'=>array(
             'Aegis',
             $module_base.'scopes' => __('Scopes'),
-            __('Add')
+            __('Add Scope')
         ),
     )
 )

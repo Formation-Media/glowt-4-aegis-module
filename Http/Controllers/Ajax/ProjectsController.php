@@ -11,6 +11,26 @@ use App\Models\User;
 
 class ProjectsController extends Controller
 {
+
+    public function delete_project($request){
+        foreach($request->ids as $id){
+            $project = Project::find($id);
+            $project->delete();
+        }
+    }
+
+    public function delete_project_variant($request){
+        foreach($request->ids as  $id){
+            $project_variant = ProjectVariant::find($id);
+            if($project_variant->is_default){
+                \Auth::user()->notify(new Toast('Default Variant not Deleted', 'The default variant of a project cannot be deleted'));
+            } else {
+                $project_variant->delete();
+            }
+        }
+        return true;
+    }
+
     public function table_view($request){
         $actions       =array();
         $global_actions=array();

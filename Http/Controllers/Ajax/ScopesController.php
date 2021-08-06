@@ -31,6 +31,13 @@ class ScopesController extends Controller
         return $return;
     }
 
+    public function delete_scope($request){
+        foreach($request->ids as $id){
+            $scope = Scope::find($id);
+            $scope->delete();
+        }
+    }
+
     public function table_view($request){
         $actions       =array();
         $global_actions=array();

@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class VariantDocument extends Model
 {
     use \App\Models\Base_Model;
-    protected $fillable = [];
-    protected $table = 'm_aegis_variant_document';
+    protected $fillable = [
+        'document_id',
+        'variant_id'
+    ];
+    protected $table = 'm_aegis_variant_documents';
 
     public function document(){
         return $this->hasOne(\Modules\DocumentManagement\Models\Document::class, 'document_id', 'id');

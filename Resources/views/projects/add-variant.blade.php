@@ -19,7 +19,6 @@
                 name="name"
                 type="text"
                 label="{{__('Name')}}"
-                hidden
                 required
             />
         </x-card>

@@ -22,5 +22,9 @@ class ProjectVariant extends Model
         return $this->belongsToMany(\Modules\DocumentManagement\Models\Document::class, 'm_aegis_document_variants','variant_id', 'document_id');
     }
 
+    public function project(){
+        return $this->belongsTo(Project::class, 'project_id', 'id' );
+    }
+
 
 }

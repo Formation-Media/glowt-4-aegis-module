@@ -11,7 +11,7 @@
         'breadcrumbs'=>array(
             'Aegis',
             $module_base.'projects' => __('Projects'),
-            __('Add')
+            __('Add Project')
         ),
 
     )
@@ -33,8 +33,8 @@
                 method="scopes"
                 module="Aegis"
                 :value="[
-                    'text' => $scope->name,
-                    'value' => $scope->id
+                    'text' => $scope->name ?? null,
+                    'value' => $scope->id ?? null
                 ]"
                 required
             />

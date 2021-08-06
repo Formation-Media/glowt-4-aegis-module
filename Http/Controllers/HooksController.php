@@ -5,7 +5,9 @@ namespace Modules\AEGIS\Http\Controllers;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\JobTitle;
+use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
+use Modules\AEGIS\Models\VariantDocument;
 
 class HooksController extends AEGISController
 {
@@ -26,6 +28,56 @@ class HooksController extends AEGISController
             'aegis.type'      =>$aegis['type']
         ]);
         $user->save();
+    }
+
+    public static function collect_documentmanagement__view_add_document_fields($args){
+        $raw_project_variants = ProjectVariant::all();
+        $project_variants = [];
+
+        foreach($raw_project_variants as $variant){
+            $project_variants[$variant->project->name][$variant->id] = $variant->name;
+        }
+
+        return view(
+            'aegis::_hooks.add-document-fields',
+            compact('project_variants')
+        );
+    }
+    public static function collect_documentmanagement__view_document_fields($document){
+        $raw_project_variants = ProjectVariant::all();
+        $document_variant = VariantDocument::where('document_id', $document->id)->first();
+        if($document_variant){
+            $selected_variant = $document_variant->variant_id;
+        } else {
+            $selected_variant = null;
+        }
+        $project_variants = [];
+        foreach($raw_project_variants as $variant){
+            $project_variants[$variant->project->name][$variant->id] = $variant->name;
+        }
+        return view(
+            'aegis::_hooks.add-document-fields',
+            compact(
+                'project_variants',
+                'selected_variant'
+            )
+        );
+    }
+    public static function collect_documentmanagement__add_document($args){
+        if(isset($args['request']->aegis)){
+            $variant_document = new VariantDocument();
+            $variant_document->document_id = $args['new_document']->id;
+            $variant_document->variant_id = $args['request']->aegis['project_variant'];
+            $variant_document->save();
+        }
+    }
+    public static function collect_documentmanagement__edit_document($args){
+        if(isset($args['request']->aegis)){
+            $variant_document = VariantDocument::updateOrCreate(
+                ['document_id' => $args['document']->id ],
+                ['variant_id' => $args['request']->aegis['project_variant']]
+            );
+        }
     }
     public static function collect_hr__add_competency($args){
         if(isset($args['request']->aegis)){

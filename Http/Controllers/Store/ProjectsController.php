@@ -11,7 +11,6 @@ use Modules\AEGIS\Models\ProjectVariant;
 class ProjectsController extends Controller
 {
     public function add(Request $request){
-        $redirect = url('a/m/Aegis/projects');
         $new_project = new Project();
         $new_project->scope_id = $request->scope;
         $new_project->name = $request->name;
@@ -24,17 +23,19 @@ class ProjectsController extends Controller
         $default_variant->project_id = $new_project->id;
         $default_variant->added_by = \Auth::id();
         $default_variant->save();
+        $redirect = url('a/m/Aegis/projects/project/'.$new_project->id);
 
         return redirect($redirect);
     }
 
     public function add_variant(Request $request , $id){
-        $redirect = url('a/m/Aegis/project/'.$id);
+        $redirect = url('a/m/Aegis/projects/project/'.$id);
         $new_variant = new ProjectVariant();
         $new_variant->name = $request->name;
         $new_variant->is_default = false;
         $new_variant->project_id = $id;
         $new_variant->added_by = \Auth::id();
+        $new_variant->save();
 
         return redirect($redirect);
     }
