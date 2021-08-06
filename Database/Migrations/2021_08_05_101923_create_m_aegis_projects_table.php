@@ -27,7 +27,7 @@ class CreateMAegisProjectsTable extends Migration
             $table->id();
             $table->string('name');
             $table->boolean('is_default');
-            $table->foreignId('project_id')->references('id')->on('m_aegis_projects');
+            $table->foreignId('project_id')->references('id')->on('m_aegis_projects')->onDelete('cascade');
             $table->foreignId('added_by')->references('id')->on('users');
             $table->softDeletes();
             $table->timestamps();
@@ -35,8 +35,8 @@ class CreateMAegisProjectsTable extends Migration
 
         Schema::create('m_aegis_variant_documents', function (Blueprint $table){
             $table->id();
-            $table->foreignId('variant_id')->references('id')->on('m_aegis_project_variants');
-            $table->foreignId('document_id')->references('id')->on('m_dm_documents');
+            $table->foreignId('variant_id')->references('id')->on('m_aegis_project_variants')->onDelete('cascade');
+            $table->foreignId('document_id')->references('id')->on('m_dm_documents')->onDelete('cascade');
             $table->timestamps();
         });
     }

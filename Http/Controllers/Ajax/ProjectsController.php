@@ -15,6 +15,10 @@ class ProjectsController extends Controller
     public function delete_project($request){
         foreach($request->ids as $id){
             $project = Project::find($id);
+            $project_variants = ProjectVariant::where('project_id', $project->id)->get();
+            foreach($project_variants as $variant){
+                $variant->delete();
+            }
             $project->delete();
         }
     }
