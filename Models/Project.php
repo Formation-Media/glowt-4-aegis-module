@@ -23,4 +23,8 @@ class Project extends Model
     public function user(){
         return $this->belongsTo(\App\Models\User::class, 'added_by', 'id');
     }
+
+    public function type(){
+        return $this->belongsTo(Type::class, 'type_id', 'id');
+    }
 }

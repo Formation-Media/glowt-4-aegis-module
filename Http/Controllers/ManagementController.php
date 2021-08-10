@@ -17,4 +17,10 @@ class ManagementController extends Controller
     public function user_grades(Request $request){
         return parent::view();
     }
+    public function types(Request $request){
+        return parent::view();
+    }
+    public function add_scope(Request $request){
+        return parent::view();
+    }
 }

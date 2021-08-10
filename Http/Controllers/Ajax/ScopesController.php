@@ -39,11 +39,58 @@ class ScopesController extends Controller
         return $return;
     }
 
-    public function delete_scope($request){
-        foreach($request->ids as $id){
-            $scope = Scope::find($id);
-            $scope->delete();
+    public function delete_scope(Request $request){
+        if($request->ids){
+            $scopes=array();
+            if($scopes=Scope::whereIn('id',$request->ids)->get()){
+                foreach($scopes as $scope){
+                    $names[]=$scope->name;
+                    $scope->delete();
+                }
+            }
+            if($names){
+                \Auth::user()->notify(new Toast('Delete Scopes','Successfully deleted '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
+            }
+        }else{
+            \Auth::user()->notify(new Toast('Delete Scopes','No scopes were selected for deletion.'));
         }
+        return true;
+    }
+    public function disable_scope(Request $request){
+        if($request->ids){
+            $names=array();
+            if($scopes=Scope::whereIn('id',$request->ids)->get()){
+                foreach($scopes as $scope){
+                    $names[]=$scope->name;
+                    $scope->status=false;
+                    $scope->save();
+                }
+            }
+            if($names){
+                \Auth::user()->notify(new Toast('Disabled Scopes','Successfully disabled '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
+            }
+        }else{
+            \Auth::user()->notify(new Toast('Disabled Scopes','No Scopes were selected for disabling.'));
+        }
+        return true;
+    }
+    public function enable_scope(Request $request){
+        if($request->ids){
+            $names=array();
+            if($scopes=Scope::whereIn('id',$request->ids)->get()){
+                foreach($scopes as $scope){
+                    $names[]=$scope->name;
+                    $scope->status=false;
+                    $scope->save();
+                }
+            }
+            if($names){
+                \Auth::user()->notify(new Toast('Disabled Scopes','Successfully disabled '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
+            }
+        }else{
+            \Auth::user()->notify(new Toast('Disabled Scopes','No scopes were selected for disabling.'));
+        }
+        return true;
     }
 
     public function table_view($request){
@@ -56,13 +103,28 @@ class ScopesController extends Controller
                 'uri'  =>'/a/m/AEGIS/scopes/scope/{{id}}'
             ),
         );
-        $global_actions = array(
-            array(
-                'action' =>'delete-scope',
-                'style' =>'danger',
-                'title' =>'Delete'
-            )
-        );
+        if(\Auth::user()->has_role('core::Administrator') || \Auth::user()->has_role('core::Manager')){
+            $global_actions = array(
+                array(
+                    'action'=>'enable-scope',
+                    'icon'  =>'square-check',
+                    'style' =>'success',
+                    'title' =>'Enable'
+                ),
+                array(
+                    'action'=>'disable-scope',
+                    'icon'  =>'square-xmark',
+                    'style' =>'warning',
+                    'title' =>'Disable'
+                ),
+                array(
+                    'action'=>'delete-scope',
+                    'icon'  =>'square-xmark',
+                    'style' =>'danger',
+                    'title' =>'Delete'
+                )
+            );
+        }
         $row_structure=array(
             'actions'=>$actions,
             'data'=>array(

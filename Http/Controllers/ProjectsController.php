@@ -2,11 +2,12 @@
 
 namespace Modules\AEGIS\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use App\Http\Controllers\Controller;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\Scope;
+use Modules\AEGIS\Models\Type;
 
 class ProjectsController extends Controller
 {
@@ -22,6 +23,7 @@ class ProjectsController extends Controller
                 'name' => 'Details'
             ],
         ];
+        $types = Type::where('status', true)->pluck('id', 'name')->toArray();
 
         $variants = $project->variants;
         foreach($variants as $i=>$variant){
@@ -40,13 +42,15 @@ class ProjectsController extends Controller
             'project',
             'scope',
             'tabs',
+            'types',
             'variants'
         ));
     }
 
     public function add(Request $request, $id=null){
         $scope = Scope::find($id);
-        return parent::view(compact('scope'));
+        $types = Type::where('status', true)->pluck('id', 'name')->toArray();
+        return parent::view(compact('scope', 'types'));
     }
 
     public function add_variant(Request $request, $id){

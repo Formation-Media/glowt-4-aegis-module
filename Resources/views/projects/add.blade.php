@@ -1,10 +1,3 @@
-@php
-    $types=[
-        'Engineering' => 'Engineering',
-        'HR'          =>'HR',
-        'Rail'        =>'Rail'
-    ];
-@endphp
 @extends(
     'layouts.account',
     array(

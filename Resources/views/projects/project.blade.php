@@ -5,11 +5,7 @@
         'icon' =>'file-plus',
         'title'=>__('Add Variant')
     );
-    $types=[
-        'Engineering' => 'Engineering',
-        'HR'          =>'HR',
-        'Rail'        =>'Rail'
-    ];
+
 @endphp
 @extends(
     'layouts.account',

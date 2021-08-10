@@ -64,7 +64,7 @@ class HooksController extends AEGISController
         );
     }
     public static function collect_documentmanagement__add_document($args){
-        if(isset($args['request']->aegis)){
+        if( isset($args['request']->aegis['project_variant'])){
             $variant_document = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id = $args['request']->aegis['project_variant'];
@@ -72,7 +72,7 @@ class HooksController extends AEGISController
         }
     }
     public static function collect_documentmanagement__edit_document($args){
-        if(isset($args['request']->aegis)){
+        if(isset($args['request']->aegis['project_variant'])){
             $variant_document = VariantDocument::updateOrCreate(
                 ['document_id' => $args['document']->id ],
                 ['variant_id' => $args['request']->aegis['project_variant']]
@@ -183,9 +183,11 @@ class HooksController extends AEGISController
     }
     public static function collect_view_management($args){
         return array(
+            '/a/m/AEGIS/management/add-scope'  =>'Add Scope',
             '/a/m/AEGIS/management/changelog'  =>'Changelog',
             '/a/m/AEGIS/management/job-titles' =>'Job Titles',
-            '/a/m/AEGIS/management/user-grades'=>'User Grades'
+            '/a/m/AEGIS/management/user-grades'=>'User Grades',
+            '/a/m/AEGIS/management/types'      =>'Types'
         );
     }
     public static function collect_view_table_filter($args){

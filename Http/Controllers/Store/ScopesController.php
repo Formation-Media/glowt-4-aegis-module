@@ -10,13 +10,7 @@ use Modules\AEGIS\Models\Scope;
 class ScopesController extends Controller
 {
     public function add(Request $request){
-        $redirect = url('a/m/AEGIS/scopes');
-        $scope = new Scope();
-        $scope->name = $request->name;
-        $scope->added_by = \Auth::id();
-        $scope->save();
 
-        return redirect($redirect);
     }
 
     public function scope(Request $request, $id){

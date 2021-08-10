@@ -17,8 +17,8 @@ class CreateMAegisProjectsTable extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('scope_id')->references('id')->on('m_aegis_scopes');
+            $table->foreignId('type_id')->references('id')->on('m_aegis_types');
             $table->foreignId('added_by')->references('id')->on('users');
-            $table->set('type', ['Engineering', 'HR','Rail']);
             $table->softDeletes();
             $table->timestamps();
         });
