@@ -3,7 +3,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'Aegis',
+            'AEGIS',
             $module_base.'projects' => __('Projects'),
             'project/'.$project->id => $project->name,
             __('Add Variant')

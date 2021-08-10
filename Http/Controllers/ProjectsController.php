@@ -23,9 +23,14 @@ class ProjectsController extends Controller
             ],
         ];
 
-        $variants = $project->variants->where('is_default', false );
-        foreach($variants as $variant){
-            $tabs[] = ['name' => $variant->name];
+        $variants = $project->variants;
+        foreach($variants as $i=>$variant){
+            if($variant->is_default == true){
+                $tabs[]= ['name'=>__('Default ').' ('.$variant->name.')'];
+            } else {
+                $tabs[] = ['name' => __('Variant ').($i).' ('.$variant->name.')'];
+            }
+
         }
 
         $default_variant = $project->variants->where('is_default', true)->first();

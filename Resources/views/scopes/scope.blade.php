@@ -1,7 +1,7 @@
 @php
     $page_menu=array();
     $page_menu[]=array(
-        'href' =>'/a/m/Aegis/projects/add/'.$scope->id,
+        'href' =>'/a/m/AEGIS/projects/add/'.$scope->id,
         'icon' =>'file-plus',
         'title'=>__('Add Project to Scope')
     );
@@ -45,7 +45,7 @@
         </x-form>
     </x-tab>
     <x-tab target="Projects">
-        <x-table selects api="Projects" module="Aegis" method="view" type="classic" id="{{$scope->id}}" />
+        <x-table selects api="Projects" module="AEGIS" method="view" type="classic" id="{{$scope->id}}" />
     </x-tab>
 </x-tabs>
 @endsection

@@ -2,7 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'Aegis',
+            'AEGIS',
             $module_base.'scopes' => __('Scopes'),
             __('Add Scope')
         ),
@@ -10,7 +10,7 @@
 )
 @section('content')
 <x-form name="scope">
-    <x-card title="{{__('Details')}}">
+    <x-card >
         <x-field
             name="name"
             label="{{__('Name')}}"

@@ -23,13 +23,13 @@ class ProjectsController extends Controller
         $default_variant->project_id = $new_project->id;
         $default_variant->added_by = \Auth::id();
         $default_variant->save();
-        $redirect = url('a/m/Aegis/projects/project/'.$new_project->id);
+        $redirect = url('a/m/AEGIS/projects/project/'.$new_project->id);
 
         return redirect($redirect);
     }
 
     public function add_variant(Request $request , $id){
-        $redirect = url('a/m/Aegis/projects/project/'.$id);
+        $redirect = url('a/m/AEGIS/projects/project/'.$id);
         $new_variant = new ProjectVariant();
         $new_variant->name = $request->name;
         $new_variant->is_default = false;
@@ -42,13 +42,13 @@ class ProjectsController extends Controller
 
     public function project(Request $request, $id){
         $project = Project::find($id);
-        $redirect = url('a/m/Aegis/projects/project/'.$id);
+        $redirect = url('a/m/AEGIS/projects/project/'.$id);
         $project->name = $request->name;
         $project->scope_id = $request->scope;
         $project->update();
 
         $default_project_variant = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
-        $default_project_variant->name = $request->name; 
+        $default_project_variant->name = $request->name;
         $default_project_variant->update();
 
         return redirect($redirect);
@@ -56,7 +56,7 @@ class ProjectsController extends Controller
 
     public function project_variant(Request $request, $id){
         $project_variant = ProjectVariant::find($id);
-        $redirect = url('a/m/Aegis/projects/project/'.$project_variant->project_id);
+        $redirect = url('a/m/AEGIS/projects/project/'.$project_variant->project_id);
         $project_variant->name = $request->name;
         $project_variant->save();
 

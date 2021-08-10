@@ -43,7 +43,7 @@ class ProjectsController extends Controller
             array(
                 'style'=>'primary',
                 'name' =>'View',
-                'uri'  =>'/a/m/Aegis/projects/project/{{id}}'
+                'uri'  =>'/a/m/AEGIS/projects/project/{{id}}'
             ),
         );
         $global_actions = array(
@@ -61,7 +61,6 @@ class ProjectsController extends Controller
                     'display'=>false
                 ),
                 'Name'=>array(
-                    'columns'     =>'name',
                     'default_sort'=>'asc',
                     'sortable'    =>true,
                 ),
@@ -99,6 +98,7 @@ class ProjectsController extends Controller
                 $project = Project::where('id', $in['id'])->first();
                 $added_by = User::where('id',$project->added_by)->first();
                 $out['Added By'] = $added_by->name;
+                $out['Name'] = $project->id.': '.$project->name;
                 return $out;
             }
         );

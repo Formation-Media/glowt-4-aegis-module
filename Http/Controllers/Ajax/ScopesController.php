@@ -10,6 +10,14 @@ use Modules\AEGIS\Models\Scope;
 
 class ScopesController extends Controller
 {
+    public function add_scope($request)
+    {
+        $scope = new Scope();
+        $scope->name = $request->name;
+        $scope->added_by = \Auth::id();
+        $scope->save();
+        return $scope;
+    }
 
     public function autocomplete_scopes($request){
         $return=array();
@@ -45,7 +53,7 @@ class ScopesController extends Controller
             array(
                 'style'=>'primary',
                 'name' =>'View',
-                'uri'  =>'/a/m/Aegis/scopes/scope/{{id}}'
+                'uri'  =>'/a/m/AEGIS/scopes/scope/{{id}}'
             ),
         );
         $global_actions = array(

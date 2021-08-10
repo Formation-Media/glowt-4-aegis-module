@@ -9,7 +9,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'Aegis',
+            'AEGIS',
             $module_base.'projects' => __('Projects'),
             __('Add Project')
         ),
@@ -31,11 +31,12 @@
                 type="autocomplete"
                 api="Scopes"
                 method="scopes"
-                module="Aegis"
+                module="AEGIS"
                 :value="[
                     'text' => $scope->name ?? null,
                     'value' => $scope->id ?? null
                 ]"
+                allow-add
                 required
             />
             <x-field
