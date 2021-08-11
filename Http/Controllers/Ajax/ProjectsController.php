@@ -36,6 +36,18 @@ class ProjectsController extends Controller
         return true;
     }
 
+    public function get_project_variants($request){
+        $variants=[];
+        if(isset($request->project)){
+            $project = Project::find($request->project);
+            $variants = $project->variants->pluck('name', 'id')->toArray();
+        }
+
+        return array(
+            'variants' => $variants
+        );
+    }
+
     public function table_view($request){
         $actions       =array();
         $global_actions=array();
@@ -65,7 +77,6 @@ class ProjectsController extends Controller
                     'sortable'    =>true,
                 ),
                 'Type'=>array(
-                    'columns'     =>'type',
                     'sortable'    =>true,
                 ),
                 'Added By'=>array(
@@ -99,6 +110,7 @@ class ProjectsController extends Controller
                 $added_by = User::where('id',$project->added_by)->first();
                 $out['Added By'] = $added_by->name;
                 $out['Name'] = $project->id.': '.$project->name;
+                $out['Type'] = $project->type->name;
                 return $out;
             }
         );

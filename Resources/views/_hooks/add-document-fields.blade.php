@@ -1,11 +1,20 @@
+@isset($projects)
+    <x-field
+        label="{{__('Project')}}"
+        name="aegis[project]"
+        :options="$projects"
+        type="select"
+        :value="$project??''"
+    />
 
-@isset($project_variants)
     <x-field
         label="{{ __('Project Variant') }}"
         name="aegis[project_variant]"
-        :options="$project_variants"
+        :options="[]"
         type="select"
         :value="$selected_variant??''"
     />
 @endisset
+
+
 

@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Http\Controllers;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\JobTitle;
+use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
@@ -31,20 +32,16 @@ class HooksController extends AEGISController
     }
 
     public static function collect_documentmanagement__view_add_document_fields($args){
-        $raw_project_variants = ProjectVariant::all();
-        $project_variants = [];
-
-        foreach($raw_project_variants as $variant){
-            $project_variants[$variant->project->name][$variant->id] = $variant->name;
-        }
+        $projects = Project::all()->pluck('name', 'id')->toArray();
 
         return view(
             'aegis::_hooks.add-document-fields',
-            compact('project_variants')
+            compact('projects')
         );
     }
     public static function collect_documentmanagement__view_document_fields($document){
-        $raw_project_variants = ProjectVariant::all();
+        $projects = Project::all()->pluck('name','id')->toArray();
+        $project_variants = ProjectVariant::all()->where('project_id', $document->variant->project_id)->pluck('name','id')->toArray();
         $document_variant = VariantDocument::where('document_id', $document->id)->first();
         if($document_variant){
             $selected_variant = $document_variant->variant_id;
@@ -52,13 +49,13 @@ class HooksController extends AEGISController
             $selected_variant = null;
         }
         $project_variants = [];
-        foreach($raw_project_variants as $variant){
-            $project_variants[$variant->project->name][$variant->id] = $variant->name;
-        }
+
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
+                'projects',
                 'project_variants',
+                'selected_project',
                 'selected_variant'
             )
         );

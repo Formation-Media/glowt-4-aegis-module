@@ -14,7 +14,7 @@ class ProjectsController extends Controller
         $new_project = new Project();
         $new_project->scope_id = $request->scope;
         $new_project->name = $request->name;
-        $new_project->type = $request->type;
+        $new_project->type_id = $request->type;
         $new_project->added_by = \Auth::id();
         $new_project->save();
         $default_variant = new ProjectVariant();

@@ -23,7 +23,7 @@ class ProjectsController extends Controller
                 'name' => 'Details'
             ],
         ];
-        $types = Type::where('status', true)->pluck('id', 'name')->toArray();
+        $types = Type::where('status', true)->pluck('name', 'id')->toArray();
 
         $variants = $project->variants;
         foreach($variants as $i=>$variant){
@@ -49,7 +49,7 @@ class ProjectsController extends Controller
 
     public function add(Request $request, $id=null){
         $scope = Scope::find($id);
-        $types = Type::where('status', true)->pluck('id', 'name')->toArray();
+        $types = Type::where('status', true)->pluck('name', 'id')->toArray();
         return parent::view(compact('scope', 'types'));
     }
 
