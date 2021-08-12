@@ -39,10 +39,10 @@ class HooksController extends AEGISController
 
         if(isset($_GET['project_variant'])){
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
-            \Log::debug([$selected_variant]);
+            $selected_project = $selected_variant->project;
+            $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
         }
-        $selected_project = $selected_variant->project;
-        $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
+
 
         return view(
             'aegis::_hooks.add-document-fields',
