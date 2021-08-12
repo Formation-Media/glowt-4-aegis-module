@@ -51,18 +51,16 @@ class HooksController extends AEGISController
     }
     public static function collect_documentmanagement__view_document_fields($document){
         $projects = Project::all()->pluck('name','id')->toArray();
-        if(isset($document->variant)){
-            $project_variants = ProjectVariant::all()->where('project_id', $document->variant->project_id)->pluck('name','id')->toArray();
-        }
         $document_variant = VariantDocument::where('document_id', $document->id)->first();
         if($document_variant){
-            $selected_variant = $document_variant->variant_id;
-            $selected_project = $document_variant->variant->project_id;
+            $selected_variant = $document_variant->project_variant;
+            $selected_project = $document_variant->project_variant->project;
+            $project_variants = $selected_project->variants->pluck('name','id')->toArray();
         } else {
             $selected_variant = null;
             $selected_project = null;
+            $project_variants = [];
         }
-        $project_variants = [];
 
         return view(
             'aegis::_hooks.add-document-fields',
