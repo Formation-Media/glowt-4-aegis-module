@@ -31,7 +31,6 @@ class ProjectsController extends Controller
             } else {
                 $tabs[] = ['name' => __('Variant ').($i).' ('.$variant->name.')'];
             }
-
         }
 
         $default_variant = $project->variants->where('is_default', true)->first();
