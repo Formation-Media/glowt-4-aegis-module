@@ -35,7 +35,7 @@ class ProjectsController extends Controller
         $actions=array(
             array(
                 'style'=>'primary',
-                'name' =>'View',
+                'name' =>__('View'),
                 'uri'  =>'/a/m/AEGIS/projects/project/{{id}}'
             ),
         );
@@ -43,7 +43,7 @@ class ProjectsController extends Controller
             array(
                 'action' =>'delete-project',
                 'style' =>'danger',
-                'title' =>'Delete'
+                'title' =>__('Delete')
             )
         );
         $row_structure=array(
@@ -53,23 +53,23 @@ class ProjectsController extends Controller
                     'columns'=>'id',
                     'display'=>false
                 ),
-                'Name'=>array(
+                __('Name')=>array(
                     'default_sort'=>'asc',
                     'sortable'    =>true,
                 ),
-                'Type'=>array(
+                __('Type')=>array(
                     'sortable'    =>true,
                 ),
-                'Added By'=>array(
+                __('Added By')=>array(
                     'sortable'=>true,
                 ),
-                'Added at'=>array(
+                __('Added at')=>array(
                     'columns' =>'created_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-                'Updated at'=>array(
+                __('Updated at')=>array(
                     'columns' =>'updated_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
@@ -88,9 +88,9 @@ class ProjectsController extends Controller
             function ($in,$out){
                 $project = Project::where('id', $in['id'])->first();
                 $added_by = User::where('id',$project->added_by)->first();
-                $out['Added By'] = $added_by->name;
-                $out['Name'] = $project->id.': '.$project->name;
-                $out['Type'] = $project->type->name;
+                $out[__('Added By')] = $added_by->name;
+                $out[__('Name')] = $project->id.': '.$project->name;
+                $out[__('Type')] = $project->type->name;
                 return $out;
             }
         );
@@ -100,7 +100,7 @@ class ProjectsController extends Controller
         $actions=array(
             array(
                 'style'=>'primary',
-                'name' =>'View',
+                'name' =>__('View'),
                 'uri'  =>'/a/m/Documents/document/document/{{document_id}}'
             ),
         );
@@ -115,23 +115,23 @@ class ProjectsController extends Controller
                     'columns'=>'document_id',
                     'display'=> false
                 ),
-                'Name'=>array(
+                __('Name')=>array(
                     'default_sort'=>'asc',
                     'sortable'    =>true,
                 ),
-                'Status'=>array(
+                __('Status')=>array(
                     'sortable'    =>true,
                 ),
-                'Added By'=>array(
+                __('Added By')=>array(
                     'sortable'=>true,
                 ),
-                'Added at'=>array(
+                __('Added at')=>array(
                     'columns' =>'created_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-                'Updated at'=>array(
+                __('Updated at')=>array(
                     'columns' =>'updated_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
@@ -146,9 +146,9 @@ class ProjectsController extends Controller
             function ($in,$out){
                 $variant_document = VariantDocument::where('id', $in['id'])->first();
                 $added_by = User::where('id', $variant_document->document->added_by)->first();
-                $out['Name'] =  $variant_document->document->name;
-                $out['Status'] = $variant_document->document->status;
-                $out['Added By'] = $added_by->name;
+                $out[__('Name')] =  $variant_document->document->name;
+                $out[__('Status')] = $variant_document->document->status;
+                $out[__('Added By')] = $added_by->name;
                 return $out;
             }
         );

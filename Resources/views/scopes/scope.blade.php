@@ -7,10 +7,10 @@
     );
     $tabs = [
         [
-            'name' => 'Details'
+            'name' => __('Details')
         ],
         [
-            'name' => 'Projects'
+            'name' => __('Projects')
         ]
     ]
 @endphp
@@ -27,7 +27,7 @@
 )
 @section('content')
     <x-tabs name="scope" :tabs="$tabs">
-        <x-tab target="Details">
+        <x-tab target="{{__('Details')}}">
             <x-form name="scope">
                 <x-card>
                     <x-field
@@ -45,7 +45,7 @@
                 </x-field>
             </x-form>
         </x-tab>
-        <x-tab target="Projects">
+        <x-tab target="{{__('Projects')}}">
             <x-table selects api="Projects" module="AEGIS" method="view" type="classic" id="{{$scope->id}}" />
         </x-tab>
     </x-tabs>

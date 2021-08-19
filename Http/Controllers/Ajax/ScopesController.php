@@ -19,11 +19,11 @@ class ScopesController extends Controller
     public function autocomplete_scopes($request){
         $return=array();
         if($scopes=Scope::search(
-                array(
-                    'name'
-                ),
-                '%'.$request->term.'%'
-            )->paged()){
+            array(
+                'name'
+            ),
+            '%'.$request->term.'%'
+        )->paged()){
             foreach($scopes as $scope){
                 $return[]=array(
                     'data'   =>$scope,
@@ -97,7 +97,7 @@ class ScopesController extends Controller
         $actions=array(
             array(
                 'style'=>'primary',
-                'name' =>'View',
+                'name' =>__('View'),
                 'uri'  =>'/a/m/AEGIS/scopes/scope/{{id}}'
             ),
         );
@@ -107,19 +107,19 @@ class ScopesController extends Controller
                     'action'=>'enable-scope',
                     'icon'  =>'square-check',
                     'style' =>'success',
-                    'title' =>'Enable'
+                    'title' =>__('Enable')
                 ),
                 array(
                     'action'=>'disable-scope',
                     'icon'  =>'square-xmark',
                     'style' =>'warning',
-                    'title' =>'Disable'
+                    'title' =>__('Disable')
                 ),
                 array(
                     'action'=>'delete-scope',
                     'icon'  =>'square-xmark',
                     'style' =>'danger',
-                    'title' =>'Delete'
+                    'title' =>__('Delete')
                 )
             );
         }
@@ -130,21 +130,21 @@ class ScopesController extends Controller
                     'columns'=>'id',
                     'display'=>false
                 ),
-                'Name'=>array(
+                __('Name')=>array(
                     'columns'     =>'name',
                     'default_sort'=>'asc',
                     'sortable'    =>true,
                 ),
-                'Added By'=>array(
+                __('Added By')=>array(
                     'sortable'=>true,
                 ),
-                'Added at'=>array(
+                __('Added at')=>array(
                     'columns' =>'created_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-                'Updated at'=>array(
+                __('Updated at')=>array(
                     'columns' =>'updated_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
@@ -159,7 +159,7 @@ class ScopesController extends Controller
             function ($in,$out){
                 $scope = Scope::where('id', $in['id'])->first();
                 $added_by = User::where('id',$scope->added_by)->first();
-                $out['Added By'] = $added_by->name;
+                $out[__('Added By')] = $added_by->name;
                 return $out;
             }
         );

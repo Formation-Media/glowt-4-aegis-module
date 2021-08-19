@@ -29,7 +29,5 @@ var document = {
     }
 }
 document.addEventListener('DOMContentLoaded', function(){
-        document.init();
-    },
-    false
-);
+    document.init();
+},false);
