@@ -106,10 +106,6 @@
                     <x-table selects api="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                 </x-tab>
             @endif
-
-
         @endforeach
-
     </x-tabs>
-
 @endsection

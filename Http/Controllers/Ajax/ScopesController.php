@@ -153,7 +153,6 @@ class ScopesController extends Controller
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-
             ),
         );
         return parent::to_ajax_table('scope',$row_structure,$global_actions,

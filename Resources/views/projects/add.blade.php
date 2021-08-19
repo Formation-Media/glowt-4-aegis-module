@@ -6,7 +6,6 @@
             $module_base.'projects' => __('Projects'),
             __('Add Project')
         ),
-
     )
 )
 @section('content')
@@ -47,7 +46,4 @@
             </x-slot>
         </x-field>
     </x-form>
-
-
-
 @endsection

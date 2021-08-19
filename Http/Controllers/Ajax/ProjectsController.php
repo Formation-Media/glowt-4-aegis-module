@@ -215,7 +215,6 @@ class ProjectsController extends Controller
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-
             ),
         );
         return parent::to_ajax_table('VariantDocument',$row_structure,$global_actions,
@@ -232,6 +231,4 @@ class ProjectsController extends Controller
             }
         );
     }
-
-
 }

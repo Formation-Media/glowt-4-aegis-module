@@ -43,7 +43,6 @@ class HooksController extends AEGISController
             $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
         }
 
-
         return view(
             'aegis::_hooks.add-document-fields',
             compact('projects', 'project_variants', 'selected_project', 'selected_variant')

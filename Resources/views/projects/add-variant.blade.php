@@ -8,7 +8,6 @@
             'project/'.$project->id => $project->name,
             __('Add Variant')
         ),
-
     )
 )
 @section('content')
@@ -28,6 +27,4 @@
             </x-slot>
         </x-field>
     </x-form>
-
-
 @endsection

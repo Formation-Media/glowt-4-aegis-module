@@ -1,4 +1,3 @@
-
 @isset($projects)
     <x-field
         label="{{__('Project')}}"
@@ -16,6 +15,3 @@
         :value="$selected_variant? $selected_variant->id : ''"
     />
 @endisset
-
-
-
