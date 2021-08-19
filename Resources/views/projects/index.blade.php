@@ -10,6 +10,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
+            $module->getName(),
             __('Projects')
         ),
         'page_menu'=> $page_menu

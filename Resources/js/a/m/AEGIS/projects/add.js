@@ -15,9 +15,7 @@ var add={
                         document.getElementById('scope').value=json.data.id;
                     }
                 },
-                function(json){
-                    console.log(json);
-                },
+                null,
                 function(){
                     app.toggle_loader();
                 }

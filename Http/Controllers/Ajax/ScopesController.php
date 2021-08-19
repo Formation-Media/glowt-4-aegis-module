@@ -2,32 +2,28 @@
 
 namespace Modules\AEGIS\Http\Controllers\Ajax;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\Toast;
+use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Scope;
 
 class ScopesController extends Controller
 {
-    public function add_scope($request)
-    {
-        $scope = new Scope();
-        $scope->name = $request->name;
-        $scope->added_by = \Auth::id();
-        $scope->save();
-        return $scope;
+    public function add_scope($request){
+        return Scope::create([
+            'name' => $request->name,
+            'added_by' => \Auth::user()
+        ]);
     }
-
     public function autocomplete_scopes($request){
         $return=array();
         if($scopes=Scope::search(
-            array(
-                'name'
-            ),
-            '%'.$request->term.'%'
-        )->paged()
-        ){
+                array(
+                    'name'
+                ),
+                '%'.$request->term.'%'
+            )->paged()){
             foreach($scopes as $scope){
                 $return[]=array(
                     'data'   =>$scope,
@@ -38,8 +34,8 @@ class ScopesController extends Controller
         }
         return $return;
     }
-
     public function delete_scope(Request $request){
+        $user = \Auth::user();
         if($request->ids){
             $scopes=array();
             if($scopes=Scope::whereIn('id',$request->ids)->get()){
@@ -49,14 +45,15 @@ class ScopesController extends Controller
                 }
             }
             if($names){
-                \Auth::user()->notify(new Toast('Delete Scopes','Successfully deleted '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
+                $user->notify(new Toast('Delete Scopes','Successfully deleted '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
             }
         }else{
-            \Auth::user()->notify(new Toast('Delete Scopes','No scopes were selected for deletion.'));
+            $user->notify(new Toast('Delete Scopes','No scopes were selected for deletion.'));
         }
         return true;
     }
     public function disable_scope(Request $request){
+        $user = \Auth::user();
         if($request->ids){
             $names=array();
             if($scopes=Scope::whereIn('id',$request->ids)->get()){
@@ -67,14 +64,15 @@ class ScopesController extends Controller
                 }
             }
             if($names){
-                \Auth::user()->notify(new Toast('Disabled Scopes','Successfully disabled '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
+                $user->notify(new Toast('Disabled Scopes','Successfully disabled '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
             }
         }else{
-            \Auth::user()->notify(new Toast('Disabled Scopes','No Scopes were selected for disabling.'));
+            $user->notify(new Toast('Disabled Scopes','No Scopes were selected for disabling.'));
         }
         return true;
     }
     public function enable_scope(Request $request){
+        $user = \Auth::user();
         if($request->ids){
             $names=array();
             if($scopes=Scope::whereIn('id',$request->ids)->get()){
@@ -85,16 +83,16 @@ class ScopesController extends Controller
                 }
             }
             if($names){
-                \Auth::user()->notify(new Toast('Disabled Scopes','Successfully disabled '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
+                $user->notify(new Toast('Disabled Scopes','Successfully disabled '.number_format(sizeof($names)).' scopes: '.implode(', ',$names)));
             }
         }else{
-            \Auth::user()->notify(new Toast('Disabled Scopes','No scopes were selected for disabling.'));
+            $user->notify(new Toast('Disabled Scopes','No scopes were selected for disabling.'));
         }
         return true;
     }
 
     public function table_view($request){
-        $actions       =array();
+        $user = \Auth::user();
         $global_actions=array();
         $actions=array(
             array(
@@ -103,7 +101,7 @@ class ScopesController extends Controller
                 'uri'  =>'/a/m/AEGIS/scopes/scope/{{id}}'
             ),
         );
-        if(\Auth::user()->has_role('core::Administrator') || \Auth::user()->has_role('core::Manager')){
+        if($user->has_role('core::Administrator') || $user->has_role('core::Manager')){
             $global_actions = array(
                 array(
                     'action'=>'enable-scope',
@@ -146,14 +144,12 @@ class ScopesController extends Controller
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-
                 'Updated at'=>array(
                     'columns' =>'updated_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-
             ),
         );
         return parent::to_ajax_table('scope',$row_structure,$global_actions,

@@ -1,18 +1,15 @@
-
 @extends(
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'AEGIS',
+            $module->getName(),
             $module_base.'projects' => __('Projects'),
             'project/'.$project->id => $project->name,
             __('Add Variant')
         ),
-
     )
 )
 @section('content')
-
     <x-form name="project_variant">
         <x-card>
             <x-field
@@ -28,6 +25,4 @@
             </x-slot>
         </x-field>
     </x-form>
-
-
 @endsection

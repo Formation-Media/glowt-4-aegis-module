@@ -5,13 +5,13 @@
         'icon' =>'file-plus',
         'title'=>__('Add Variant')
     );
-
 @endphp
 @extends(
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'projects' => __('Projects'),
+            $module->getName(),
+            $module_base.'projects' => __('Projects'),
                         $project->id.': '.$project->name
         ),
         'page_menu'=> $page_menu
@@ -19,7 +19,7 @@
 )
 @section('content')
     <x-tabs name="project" :tabs="$tabs">
-        <x-tab target="Details">
+        <x-tab target="{{__('Details')}}">
             <x-form name="project">
                 <x-card>
                     <x-field
@@ -58,7 +58,6 @@
                 </x-field>
             </x-form>
         </x-tab>
-
         @foreach($variants as $i=>$variant)
             @if ($variant->is_default==true)
                 <x-tab target="{{ __('Default ').' ('.$variant->name.')' }}">
@@ -78,10 +77,10 @@
                             </x-slot>
                         </x-field>
                     </x-form>
-                    <h2>Documents</h2>
+                    <h2>{{__('Documents')}}</h2>
                     <x-table selects api="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                     <div class="text-center">
-                        <x-link style="primary" title="{{__('Add Document to Project Variant')}}" href="{{ url('a/m/DocumentManagement/documents/add?project_variant='.$variant->id)}}"/>
+                        <x-link style="primary" title="{{__('Add Document to Project Variant')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
                     </div>
                 </x-tab>
             @else
@@ -102,14 +101,10 @@
                             </x-slot>
                         </x-field>
                     </x-form>
-                    <h2>Documents</h2>
+                    <h2>{{__('Documents')}}</h2>
                     <x-table selects api="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                 </x-tab>
             @endif
-
-
         @endforeach
-
     </x-tabs>
-
 @endsection

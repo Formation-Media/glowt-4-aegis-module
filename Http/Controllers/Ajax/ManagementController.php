@@ -27,7 +27,6 @@ class ManagementController extends Controller
         $grade->save();
         return $grade;
     }
-
     public function add_type(Request $request){
         $type        =new Type();
         $type->name  =$request->name;
@@ -46,6 +45,7 @@ class ManagementController extends Controller
         return true;
     }
     public function delete_type(Request $request){
+        $user = \Auth::user();
         if($request->ids){
             $types=array();
             if($types=Type::whereIn('id',$request->ids)->get()){
@@ -55,14 +55,15 @@ class ManagementController extends Controller
                 }
             }
             if($names){
-                \Auth::user()->notify(new Toast('Delete Types','Successfully deleted '.number_format(sizeof($names)).' types: '.implode(', ',$names)));
+                $user->notify(new Toast('Delete Types','Successfully deleted '.number_format(sizeof($names)).' types: '.implode(', ',$names)));
             }
         }else{
-            \Auth::user()->notify(new Toast('Delete Types','No types were selected for deletion.'));
+            $user->notify(new Toast('Delete Types','No types were selected for deletion.'));
         }
         return true;
     }
     public function disable_type(Request $request){
+        $user = \Auth::user();
         if($request->ids){
             $names=array();
             if($types=Type::whereIn('id',$request->ids)->get()){
@@ -73,14 +74,15 @@ class ManagementController extends Controller
                 }
             }
             if($names){
-                \Auth::user()->notify(new Toast('Disabled Types','Successfully disabled '.number_format(sizeof($names)).' types: '.implode(', ',$names)));
+                $user->notify(new Toast('Disabled Types','Successfully disabled '.number_format(sizeof($names)).' types: '.implode(', ',$names)));
             }
         }else{
-            \Auth::user()->notify(new Toast('Disabled Types','No types were selected for disabling.'));
+            $user->notify(new Toast('Disabled Types','No types were selected for disabling.'));
         }
         return true;
     }
     public function enable_type(Request $request){
+        $user = \Auth::user();
         if($request->ids){
             $names=array();
             if($types=Type::whereIn('id',$request->ids)->get()){
@@ -91,14 +93,13 @@ class ManagementController extends Controller
                 }
             }
             if($names){
-                \Auth::user()->notify(new Toast('Disabled Types','Successfully disabled '.number_format(sizeof($names)).' types: '.implode(', ',$names)));
+                $user->notify(new Toast('Disabled Types','Successfully disabled '.number_format(sizeof($names)).' types: '.implode(', ',$names)));
             }
         }else{
-            \Auth::user()->notify(new Toast('Disabled Types','No types were selected for disabling.'));
+            $user->notify(new Toast('Disabled Types','No types were selected for disabling.'));
         }
         return true;
     }
-
     public function table_job_titles(Request $request){
         $permissions  =\Auth::user()->feature_permissions('AEGIS','companies');
         $row_structure=array(
@@ -199,8 +200,8 @@ class ManagementController extends Controller
             return $query->orderBy('name');
         });
     }
-
     public function table_types($request){
+        $user = \Auth::user();
         $actions       =array();
         $global_actions=array();
         $actions=array(
@@ -210,7 +211,7 @@ class ManagementController extends Controller
                 'uri'  =>'/a/m/AEGIS/scopes/scope/{{id}}'
             ),
         );
-        if(\Auth::user()->has_role('core::Adminstrator') || \Auth::user()->has_role('core::Manager') ){
+        if($user->has_role('core::Adminstrator') || $user->has_role('core::Manager') ){
             $global_actions=array(
                 array(
                     'action'=>'enable-type',

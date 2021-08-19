@@ -3,7 +3,6 @@
 namespace Modules\AEGIS\Http\Controllers\Store;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
@@ -11,17 +10,18 @@ use Modules\AEGIS\Models\ProjectVariant;
 class ProjectsController extends Controller
 {
     public function add(Request $request){
+        $user = \Auth::user();
         $new_project = new Project();
         $new_project->scope_id = $request->scope;
         $new_project->name = $request->name;
         $new_project->type_id = $request->type;
-        $new_project->added_by = \Auth::id();
+        $new_project->added_by = $user->id;
         $new_project->save();
         $default_variant = new ProjectVariant();
         $default_variant->name = $request->name;
         $default_variant->is_default = true;
         $default_variant->project_id = $new_project->id;
-        $default_variant->added_by = \Auth::id();
+        $default_variant->added_by = $user->id;
         $default_variant->save();
         $redirect = url('a/m/AEGIS/projects/project/'.$new_project->id);
 

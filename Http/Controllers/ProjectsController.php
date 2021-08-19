@@ -4,7 +4,6 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\Scope;
 use Modules\AEGIS\Models\Type;
@@ -20,7 +19,7 @@ class ProjectsController extends Controller
         $scope = $project->scope?? null;
         $tabs = [
             [
-                'name' => 'Details'
+                'name' => __('Details')
             ],
         ];
         $types = Type::where('status', true)->pluck('name', 'id')->toArray();

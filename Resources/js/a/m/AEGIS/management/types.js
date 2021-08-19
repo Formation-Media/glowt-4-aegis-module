@@ -1,9 +1,9 @@
-const bootstrap = require('bootstrap')
+import { Modal } from 'bootstrap';
 var types={
     init:function(){
         this.watch_modal();
         this.watch_modal_show();
-        types.add_type_modal=new bootstrap.Modal(document.querySelector('#modal-add-type'));
+        types.add_type_modal=new Modal(document.querySelector('#modal-add-type'));
     },
     watch_modal_show:function(){
         var add_type = document.querySelector('.js-add-type');
@@ -17,9 +17,8 @@ var types={
         var add_type = document.getElementById('modal-add-type');
         document.querySelector('#modal-add-type .modal-save').addEventListener('click',function(e){
             var form = add_type.querySelector('form');
-            console.log(form);
-            console.log(window.form.validate_form(form,e));
-            if((data=window.form.validate_form(form,e))!==false){
+            var data = window.form.validate_form(form,e)
+            if(data){
                 app.ajax(
                     'm/AEGIS/management/add_type',
                     data,
@@ -27,9 +26,7 @@ var types={
                         types.add_type_modal.hide();
                         tables.load_table_data(document.querySelector('[data-api="management"]'));
                     },
-                    function(json){
-                        console.log(json);
-                    },
+                    null,
                     function(json){
                         app.toggle_loader();
                     }

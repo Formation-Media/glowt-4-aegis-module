@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\AEGIS\Http\Controllers;
+namespace Modules\AEGIS\Http\Controllers\Store;
 
-use App\Helpers\Dates;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Models\Scope;
 
 class ManagementController extends Controller
 {

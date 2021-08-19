@@ -2,7 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>'Management',
+            $module->getName(),
             $module_base.'scopes' => __('Scopes'),
             __('Add Scope')
         ),
@@ -24,5 +24,4 @@
             </x-slot>
         </x-field>
     </x-form>
-
 @endsection

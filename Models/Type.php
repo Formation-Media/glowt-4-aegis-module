@@ -2,11 +2,12 @@
 
 namespace Modules\AEGIS\Models;
 
+use \App\Models\Base_Model;
 use Illuminate\Database\Eloquent\Model;
 
 class Type extends Model
 {
-    use \App\Models\Base_Model;
+    use Base_Model;
     protected $fillable = [];
     protected $table = 'm_aegis_types';
 

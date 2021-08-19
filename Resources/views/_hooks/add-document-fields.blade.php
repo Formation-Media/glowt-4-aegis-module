@@ -1,4 +1,3 @@
-
 @isset($projects)
     <x-field
         label="{{__('Project')}}"
@@ -7,7 +6,6 @@
         type="select"
         :value="$selected_project? $selected_project->id :''"
     />
-
     <x-field
         label="{{ __('Project Variant') }}"
         name="aegis[project_variant]"
@@ -16,6 +14,3 @@
         :value="$selected_variant? $selected_variant->id : ''"
     />
 @endisset
-
-
-

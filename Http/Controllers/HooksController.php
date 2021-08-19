@@ -31,25 +31,22 @@ class HooksController extends AEGISController
         $user->save();
     }
 
-    public static function collect_documentmanagement__view_add_document_fields($args){
+    public static function collect_documents__view_add_document_fields($args){
         $projects = Project::all()->pluck('name', 'id')->toArray();
         $project_variants = null;
         $selected_variant = null;
         $selected_project = null;
-
         if(isset($_GET['project_variant'])){
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
             $selected_project = $selected_variant->project;
             $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
         }
-
-
         return view(
             'aegis::_hooks.add-document-fields',
             compact('projects', 'project_variants', 'selected_project', 'selected_variant')
         );
     }
-    public static function collect_documentmanagement__view_document_fields($document){
+    public static function collect_documents__view_document_fields($document){
         $projects = Project::all()->pluck('name','id')->toArray();
         $document_variant = VariantDocument::where('document_id', $document->id)->first();
         if($document_variant){
@@ -61,7 +58,6 @@ class HooksController extends AEGISController
             $selected_project = null;
             $project_variants = [];
         }
-
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
@@ -72,7 +68,7 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_documentmanagement__add_document($args){
+    public static function collect_documents__add_document($args){
         if( isset($args['request']->aegis['project_variant'])){
             $variant_document = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
@@ -80,7 +76,7 @@ class HooksController extends AEGISController
             $variant_document->save();
         }
     }
-    public static function collect_documentmanagement__edit_document($args){
+    public static function collect_documents__edit_document($args){
         if(isset($args['request']->aegis['project_variant'])){
             $variant_document = VariantDocument::updateOrCreate(
                 ['document_id' => $args['document']->id ],
@@ -192,11 +188,11 @@ class HooksController extends AEGISController
     }
     public static function collect_view_management($args){
         return array(
-            '/a/m/AEGIS/management/add-scope'  =>'Add Scope',
+            '/a/m/AEGIS/management/scopes'  =>__('Scopes'),
             '/a/m/AEGIS/management/changelog'  =>'Changelog',
-            '/a/m/AEGIS/management/job-titles' =>'Job Titles',
-            '/a/m/AEGIS/management/user-grades'=>'User Grades',
-            '/a/m/AEGIS/management/types'      =>'Types'
+            '/a/m/AEGIS/management/job-titles' =>__('Job Titles'),
+            '/a/m/AEGIS/management/user-grades'=>__('User Grades'),
+            '/a/m/AEGIS/management/types'      =>__('Types')
         );
     }
     public static function collect_view_table_filter($args){
@@ -231,12 +227,12 @@ class HooksController extends AEGISController
         $data[]=array(
             'icon'    =>'folder',
             'link'    =>'/a/m/'.$module->getName().'/projects',
-            'title'   =>'Projects',
+            'title'   =>__('Projects'),
         );
         $data[]=array(
             'icon' => 'file-pen',
             'link'    =>'/a/m/'.$module->getName().'/scopes',
-            'title'   =>'Scopes',
+            'title'   =>__('Scopes'),
         );
     }
 

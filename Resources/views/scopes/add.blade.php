@@ -2,7 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'AEGIS',
+            $module->getName(),
             $module_base.'scopes' => __('Scopes'),
             __('Add Scope')
         ),
