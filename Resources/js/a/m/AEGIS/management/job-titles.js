@@ -43,7 +43,8 @@ var titles={
         var modal=new Modal(document.querySelector('#modal-add-job-title'));
         document.querySelector('#modal-add-job-title .modal-save').addEventListener('click',function(e){
             var form=document.querySelector('#modal-add-job-title form');
-            if((data=window.form.validate_form(form,e))!==false){
+            var data = window.form.validate_form(form,e);
+            if(data){
                 app.ajax(
                     'm/AEGIS/management/add_job_title',
                     data,

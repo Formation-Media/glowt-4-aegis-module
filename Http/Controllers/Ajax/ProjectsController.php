@@ -122,7 +122,7 @@ class ProjectsController extends Controller
                 __('Status')=>array(
                     'sortable'    =>true,
                 ),
-                __('Added By')=>array(
+                __('Created By')=>array(
                     'sortable'=>true,
                 ),
                 __('Added at')=>array(
@@ -145,10 +145,10 @@ class ProjectsController extends Controller
             },
             function ($in,$out){
                 $variant_document = VariantDocument::where('id', $in['id'])->first();
-                $added_by = User::where('id', $variant_document->document->added_by)->first();
+                $added_by = $variant_document->document->created_by;
                 $out[__('Name')] =  $variant_document->document->name;
                 $out[__('Status')] = $variant_document->document->status;
-                $out[__('Added By')] = $added_by->name;
+                $out[__('Created By')] = $added_by->name;
                 return $out;
             }
         );

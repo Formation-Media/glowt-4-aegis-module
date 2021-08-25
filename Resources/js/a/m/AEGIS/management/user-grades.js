@@ -43,7 +43,8 @@ var grades={
         var modal=new Modal(document.querySelector('#modal-add-user-grade'));
         document.querySelector('#modal-add-user-grade .modal-save').addEventListener('click',function(e){
             var form=document.querySelector('#modal-add-user-grade form');
-            if((data=window.form.validate_form(form,e))!==false){
+            var data=window.form.validate_form(form,e);
+            if(data){
                 app.ajax(
                     'm/AEGIS/management/add_user_grade',
                     data,

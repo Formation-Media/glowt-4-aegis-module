@@ -17,7 +17,7 @@
         :options="$grades"
         required
         type="select"
-        value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.grade']?$user->meta['aegis.grade']:'' }}"
+        value="{{ isset($user) && sizeof($user->meta) && $user->getMeta('aegis.grade')?$user->getMeta('aegis.grade'):'' }}"
     />
 @endif
 <x-field
@@ -27,5 +27,5 @@
     :options="$types"
     required
     type="select"
-	value="{{ isset($user) && sizeof($user->meta) && $user->meta['aegis.type']?$user->meta['aegis.type']:'' }}"
+	value="{{ isset($user) && sizeof($user->meta) && $user->getMeta('aegis.type')?$user->getMeta('aegis.type'):'' }}"
 />

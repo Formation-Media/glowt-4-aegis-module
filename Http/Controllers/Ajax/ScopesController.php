@@ -13,7 +13,7 @@ class ScopesController extends Controller
     public function add_scope($request){
         return Scope::create([
             'name' => $request->name,
-            'added_by' => \Auth::user()
+            'added_by' => \Auth::id()
         ]);
     }
     public function autocomplete_scopes($request){
@@ -151,6 +151,7 @@ class ScopesController extends Controller
                     'method'  =>'datetime',
                 ),
             ),
+            'status'=>true
         );
         return parent::to_ajax_table('scope',$row_structure,$global_actions,
             function ($query){
