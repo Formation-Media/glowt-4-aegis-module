@@ -23,7 +23,7 @@ var document_page = {
                         },
                         null,
                         function(json){
-                            app.toggle_loader();
+                            app.hide_loader();
                         }
                     );
                 }
