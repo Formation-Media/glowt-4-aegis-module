@@ -13,6 +13,7 @@ class CreateSuppliersTable extends Migration
      */
     public function up()
     {
+        Schema::disableForeignKeyConstraints();
         Schema::create('m_aegis_suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('name',250);
@@ -27,6 +28,7 @@ class CreateSuppliersTable extends Migration
             $table->foreign('supplier_id',  's_cs_id_foreign')->references('id')->on('m_aegis_suppliers')->onDelete('cascade');
             $table->timestamps();
         });
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
