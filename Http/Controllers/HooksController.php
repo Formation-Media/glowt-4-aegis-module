@@ -230,7 +230,7 @@ class HooksController extends AEGISController
             'title'   =>__('Projects'),
         );
         $data[]=array(
-            'icon' => 'file-pen',
+            'icon' => 'object-group',
             'link'    =>'/a/m/'.$module->getName().'/scopes',
             'title'   =>__('Scopes'),
         );

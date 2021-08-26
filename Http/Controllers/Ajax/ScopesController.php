@@ -153,7 +153,7 @@ class ScopesController extends Controller
             ),
             'status'=>true
         );
-        return parent::to_ajax_table('scope',$row_structure,$global_actions,
+        return parent::to_ajax_table('Scope',$row_structure,$global_actions,
             function ($query){
                 return $query;
             },
