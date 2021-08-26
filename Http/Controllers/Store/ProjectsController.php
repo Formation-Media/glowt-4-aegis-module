@@ -45,8 +45,8 @@ class ProjectsController extends Controller
         $redirect = url('a/m/AEGIS/projects/project/'.$id);
         $project->name = $request->name;
         $project->scope_id = $request->scope;
+        $project->type_id = $request->type;
         $project->update();
-
         $default_project_variant = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
         $default_project_variant->name = $request->name;
         $default_project_variant->update();

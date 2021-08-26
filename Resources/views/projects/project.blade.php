@@ -47,7 +47,7 @@
                         label="{{__('Type')}}"
                         type="select"
                         :options="$types"
-                        value="{{$project->type ?? null}}"
+                        value="{{$project->type->id?? null}}"
                         required
                     />
                 </x-card>
