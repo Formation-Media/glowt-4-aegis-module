@@ -5,6 +5,7 @@
         :options="$projects"
         type="select"
         :value="$selected_project? $selected_project->id :''"
+        required
     />
     <x-field
         label="{{ __('Project Variant') }}"
@@ -12,5 +13,6 @@
         :options="$project_variants ?? [] "
         type="select"
         :value="$selected_variant? $selected_variant->id : ''"
+        required
     />
 @endisset

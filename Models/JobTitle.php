@@ -15,7 +15,7 @@ class JobTitle extends Model
     public function scopeFormatted($query){
         $return=array();
         if($grades=$query->get()){
-            $return=array_column($grades->toArray(),'name','id');
+            $return=array_column($grades->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->toArray(),'name','id');
         }
         return $return;
     }
