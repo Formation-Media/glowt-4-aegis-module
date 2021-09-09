@@ -1,4 +1,4 @@
-import { Modal } from 'bootstrap';
+import { Modal } from 'bootstrap/js/dist/modal';
 var companies={
     table:false,
     init:function(){
