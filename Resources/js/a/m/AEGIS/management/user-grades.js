@@ -1,4 +1,3 @@
-import { Modal } from 'bootstrap/js/dist/modal';
 var grades={
     table:false,
     init:function(){
@@ -40,7 +39,7 @@ var grades={
         }
     },
     watch_modal:function(){
-        var modal=new Modal(document.querySelector('#modal-add-user-grade'));
+        var modal=new bootstrap.Modal(document.querySelector('#modal-add-user-grade'));
         document.querySelector('#modal-add-user-grade .modal-save').addEventListener('click',function(e){
             var form=document.querySelector('#modal-add-user-grade form');
             var data=window.form.validate_form(form,e);

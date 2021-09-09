@@ -1,9 +1,8 @@
-import { Modal } from 'bootstrap/js/dist/modal';
 var types={
     init:function(){
         this.watch_modal();
         this.watch_modal_show();
-        types.add_type_modal=new Modal(document.querySelector('#modal-add-type'));
+        types.add_type_modal=new bootstrap.Modal(document.querySelector('#modal-add-type'));
     },
     watch_modal_show:function(){
         var add_type = document.querySelector('.js-add-type');
