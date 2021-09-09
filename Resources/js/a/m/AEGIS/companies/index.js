@@ -1,4 +1,4 @@
-import { Modal } from 'bootstrap';
+import Modal from 'bootstrap/js/dist/modal';
 var companies={
     table:false,
     init:function(){
@@ -15,7 +15,7 @@ var companies={
                         'Delete company? It will delete all applicable data from all applicable locations.',
                         function(result){
                             if(result){
-                                app.toggle_loader();
+                                app.show_loader();
                                 app.ajax(
                                     'm/AEGIS/companies/delete_company',
                                     {
@@ -28,7 +28,7 @@ var companies={
                                         console.log(json);
                                     },
                                     function(json){
-                                        app.toggle_loader();
+                                        app.hide_loader();
                                     }
                                 );
                             }

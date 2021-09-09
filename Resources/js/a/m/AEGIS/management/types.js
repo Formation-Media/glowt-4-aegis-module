@@ -1,4 +1,4 @@
-import { Modal } from 'bootstrap';
+import Modal from 'bootstrap/js/dist/modal';
 var types={
     init:function(){
         this.watch_modal();
