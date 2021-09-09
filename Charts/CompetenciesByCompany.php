@@ -1,13 +1,12 @@
 <?php
 
-namespace Modules\AEGIS\Http\Controllers;
+namespace Modules\AEGIS\Charts;
 
-use App\Http\Controllers\Controller;
 use Modules\AEGIS\Models\CompetencyCompany;
 
-class ChartsController extends Controller
+class CompetenciesByCompany
 {
-    public static function competencies_by_company(){
+    public static function run(){
         $dataset=array(
             'labels'=>array(),
             'data'  =>array()
