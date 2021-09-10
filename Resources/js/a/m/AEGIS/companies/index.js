@@ -48,7 +48,7 @@ var companies={
                     data,
                     function(json){
                         modal.hide();
-                        tables.load_table_data(document.querySelector('[data-api="companies"]'));
+                        tables.load_table_data(document.querySelector('[data-controller="companies"]'));
                     },
                     function(json){
                         console.log(json);

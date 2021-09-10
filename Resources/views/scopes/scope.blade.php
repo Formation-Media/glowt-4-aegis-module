@@ -46,7 +46,7 @@
             </x-form>
         </x-tab>
         <x-tab target="{{__('Projects')}}">
-            <x-table selects api="Projects" module="AEGIS" method="view" type="classic" id="{{$scope->id}}" />
+            <x-table selects controller="Projects" module="AEGIS" method="view" type="classic" id="{{$scope->id}}" />
         </x-tab>
     </x-tabs>
 @endsection
