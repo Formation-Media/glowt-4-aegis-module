@@ -16,11 +16,11 @@ class SeedUserRolesTableSeeder extends Seeder
     public function run()
     {
         Model::unguard();
-        // foreach(array(
-        //     'Associate'
-        // ) as $role){
-        //     $role=Role::firstOrNew(['module'=>'AEGIS','name'=>$role]);
-        //     $role->save();
-        // }
+        foreach(array(
+            'Project Manager'
+        ) as $role){
+            $role=Role::firstOrNew(['module'=>'AEGIS','name'=>$role]);
+            $role->save();
+        }
     }
 }

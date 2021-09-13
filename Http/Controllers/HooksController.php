@@ -9,6 +9,7 @@ use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Models\Category;
 
 class HooksController extends AEGISController
 {
@@ -32,6 +33,7 @@ class HooksController extends AEGISController
     }
 
     public static function collect_documents__view_add_document_fields($args){
+        $reference = VariantDocument::where('document_id', $args['document'])->first()->reference;
         $projects = Project::all()->pluck('name', 'id')->toArray();
         $project_variants = null;
         $selected_variant = null;
@@ -43,7 +45,14 @@ class HooksController extends AEGISController
         }
         return view(
             'aegis::_hooks.add-document-fields',
-            compact('projects', 'project_variants', 'selected_project', 'selected_variant')
+            compact(
+
+                'projects',
+                'project_variants',
+                'reference',
+                'selected_project',
+                'selected_variant'
+            )
         );
     }
     public static function collect_documents__view_document_fields($document){
@@ -70,9 +79,16 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__add_document($args){
         if( isset($args['request']->aegis['project_variant'])){
+            $category = Category::find($args['request']->category);
+            $count = VariantDocument
+                ::where('variant_id', $args['request']->aegis['project_variant'] )
+                ->where('category_id', $category->id)
+                ->count();
             $variant_document = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id = $args['request']->aegis['project_variant'];
+            $project_variant = ProjectVariant::find($args['request']->aegis['project_variant']);
+            $variant_document->reference = $project_variant->reference.'/'.$category->prefix.$count;
             $variant_document->save();
         }
     }
@@ -84,6 +100,12 @@ class HooksController extends AEGISController
             );
         }
     }
+    // public static function collect_documents__view_document($args){
+    //     if(isset($args['document'])){
+    //         VariantDocument::where('document_id', )
+    //     }
+
+    // }
     public static function collect_hr__add_competency($args){
         if(isset($args['request']->aegis)){
             $competency_company               =new CompetencyCompany;

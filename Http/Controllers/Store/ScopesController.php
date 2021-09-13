@@ -12,6 +12,7 @@ class ScopesController extends Controller
         $scope = new Scope();
         $scope->name = $request->name;
         $scope->added_by = \Auth::id();
+        $scope->reference = $request->reference;
         $scope->save();
         $redirect = url('a/m/AEGIS/scopes/scope/'.$scope->id);
         return redirect($redirect);
@@ -23,7 +24,6 @@ class ScopesController extends Controller
         $scope->name = $request->name;
         $scope->added_by = \Auth::id();
         $scope->update();
-
         return redirect($redirect);
     }
 }

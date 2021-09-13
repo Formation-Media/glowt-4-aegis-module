@@ -27,7 +27,7 @@
 )
 
 @section('content')
-    <x-table selects api="companies" method="companies" module="AEGIS" />
+    <x-table selects controller="companies" method="companies" module="AEGIS" />
     @if($permissions['add'])
         <x-modal id="add-competency-company" title="Add Competency Company" save-style="success" save-text="Add">
             <x-form name="company">

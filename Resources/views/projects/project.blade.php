@@ -78,7 +78,7 @@
                         </x-field>
                     </x-form>
                     <h2>{{__('Documents')}}</h2>
-                    <x-table selects api="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
+                    <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                     <div class="text-center">
                         <x-link style="primary" title="{{__('Add Document to Project Variant')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
                     </div>
@@ -102,7 +102,7 @@
                         </x-field>
                     </x-form>
                     <h2>{{__('Documents')}}</h2>
-                    <x-table selects api="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
+                    <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                 </x-tab>
             @endif
         @endforeach
