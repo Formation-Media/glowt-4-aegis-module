@@ -18,10 +18,9 @@ class AlterMAegisProjectsTable extends Migration
             $table->string('reference')->unique();
         });
 
-        Schema::table('m_aegis_projects_variants', function (Blueprint $table){
-            $table->text('description');
+        Schema::table('m_aegis_project_variants', function (Blueprint $table){
             $table->string('reference')->unique();
-            $table->integer('variant_number')->unique();
+            $table->integer('variant_number');
         });
 
         Schema::table('m_aegis_variant_documents', function (Blueprint $table){

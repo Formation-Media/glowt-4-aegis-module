@@ -30,10 +30,11 @@ var add={
         console.log(prefield);
         document.getElementById('scope-autocomplete').addEventListener('autocomplete-select', function(e){
             app.show_loader();
+
             app.ajax(
                 'm/AEGIS/projects/get_scope_ref',
                 {
-                    name:e.value
+                    id: e.selection.id
                 },
                 function(json){
                     if(json.data){

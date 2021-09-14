@@ -33,9 +33,19 @@ class ProjectsController extends Controller
     }
 
     public function get_scope_ref($request){
-        $scope = Scope::where('name', $request->name)->first();
+        \Log::debug([$request->id]);
+        $scope = Scope::find($request->id);
         return array(
             'prefix' => $scope->reference.'/'
+        );
+    }
+
+    public function get_variant_ref($request){
+        if(isset($request->project_variant)){
+            $project_variant = ProjectVariant::find($request->project_variant);
+        }
+        return array(
+            'ref' => $project_variant->reference
         );
     }
 

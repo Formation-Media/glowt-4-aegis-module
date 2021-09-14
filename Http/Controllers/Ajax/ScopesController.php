@@ -107,19 +107,19 @@ class ScopesController extends Controller
                     'action'=>'enable-scope',
                     'icon'  =>'square-check',
                     'style' =>'success',
-                    'title' =>__('Enable')
+                    'title' =>__('dictionary.enable')
                 ),
                 array(
                     'action'=>'disable-scope',
                     'icon'  =>'square-xmark',
                     'style' =>'warning',
-                    'title' =>__('Disable')
+                    'title' =>__('dictionary.disable')
                 ),
                 array(
                     'action'=>'delete-scope',
                     'icon'  =>'square-xmark',
                     'style' =>'danger',
-                    'title' =>__('Delete')
+                    'title' =>__('dictionary.delete')
                 )
             );
         }
@@ -130,21 +130,26 @@ class ScopesController extends Controller
                     'columns'=>'id',
                     'display'=>false
                 ),
-                __('Name')=>array(
+                __('dictionary.name')=>array(
                     'columns'     =>'name',
                     'default_sort'=>'asc',
                     'sortable'    =>true,
                 ),
-                __('Added By')=>array(
+                __('dictionary.reference')=>array(
+                    'columns'     =>'reference',
+                    'default_sort'=>'asc',
+                    'sortable'    =>true,
+                ),
+                __('phrases.added-by')=>array(
                     'sortable'=>true,
                 ),
-                __('Added at')=>array(
+                __('phrases.added-at')=>array(
                     'columns' =>'created_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
                     'method'  =>'datetime',
                 ),
-                __('Updated at')=>array(
+                __('phrases.updated-at')=>array(
                     'columns' =>'updated_at',
                     'sortable'=>true,
                     'class'   =>'\App\Helpers\Dates',
@@ -160,7 +165,7 @@ class ScopesController extends Controller
             function ($in,$out){
                 $scope = Scope::where('id', $in['id'])->first();
                 $added_by = User::where('id',$scope->added_by)->first();
-                $out[__('Added By')] = $added_by->name;
+                $out[__('phrases.added-by')] = $added_by->name;
                 return $out;
             }
         );

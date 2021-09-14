@@ -23,16 +23,14 @@ class ProjectsController extends Controller
             ],
         ];
         $types = Type::where('status', true)->pluck('name', 'id')->toArray();
-
         $variants = $project->variants;
         foreach($variants as $i=>$variant){
             if($variant->is_default == true){
-                $tabs[]= ['name'=>__('Default ').' ('.$variant->name.')'];
+                $tabs[]= ['name'=>__('dictionary.default').' ('.$variant->name.')'];
             } else {
-                $tabs[] = ['name' => __('Variant ').($i).' ('.$variant->name.')'];
+                $tabs[] = ['name' => __('aegis::projects.variant').' '.($variant->variant_number).' ('.$variant->name.')'];
             }
         }
-
         $default_variant = $project->variants->where('is_default', true)->first();
 
         return parent::view(compact(

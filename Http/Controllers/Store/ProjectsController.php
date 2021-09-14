@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
+use Modules\AEGIS\Models\Scope;
 
 class ProjectsController extends Controller
 {
@@ -13,13 +14,13 @@ class ProjectsController extends Controller
         $validated = $request->validate([
             'reference' => 'required|max:4|unique:Modules\AEGIS\Models\Project'
         ]);
-        $scope = Scope::find($request->scope_id);
+        $scope = Scope::find($request->scope);
         $user = \Auth::user();
         $new_project = new Project();
         $new_project->added_by = $user->id;
         $new_project->description = $request->description;
         $new_project->name = $request->name;
-        $new_project->reference = $scope->reference.'/'.$request->reference;
+        $new_project->reference = strtoupper($scope->reference.'/'.$request->reference);
         $new_project->scope_id = $request->scope;
         $new_project->type_id = $request->type;
         $new_project->save();
@@ -28,7 +29,7 @@ class ProjectsController extends Controller
         $default_variant->is_default = true;
         $default_variant->name = $request->name;
         $default_variant->project_id = $new_project->id;
-        $default_variant->reference = $request->reference;
+        $default_variant->reference = strtoupper($scope->reference.'/'.$request->reference);
         $default_variant->variant_number = 0;
         $default_variant->save();
         $redirect = url('a/m/AEGIS/projects/project/'.$new_project->id);
@@ -46,7 +47,7 @@ class ProjectsController extends Controller
         $new_variant->is_default = false;
         $new_variant->name = $request->name;
         $new_variant->project_id = $id;
-        $new_variant->reference = $project->reference.'/'. $request->variant_number;
+        $new_variant->reference = strtoupper($project->reference.'/'. $request->variant_number.'/');
         $new_variant->variant_number = $request->variant_number;
         $new_variant->save();
         return redirect($redirect);

@@ -33,7 +33,6 @@ class HooksController extends AEGISController
     }
 
     public static function collect_documents__view_add_document_fields($args){
-        $reference = VariantDocument::where('document_id', $args['document'])->first()->reference;
         $projects = Project::all()->pluck('name', 'id')->toArray();
         $project_variants = null;
         $selected_variant = null;
@@ -46,10 +45,8 @@ class HooksController extends AEGISController
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
-
                 'projects',
                 'project_variants',
-                'reference',
                 'selected_project',
                 'selected_variant'
             )
@@ -62,16 +59,19 @@ class HooksController extends AEGISController
             $selected_variant = $document_variant->project_variant;
             $selected_project = $document_variant->project_variant->project;
             $project_variants = $selected_project->variants->pluck('name','id')->toArray();
+            $reference = $document_variant->reference;
         } else {
             $selected_variant = null;
             $selected_project = null;
             $project_variants = [];
+            $reference = null;
         }
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
                 'projects',
                 'project_variants',
+                'reference',
                 'selected_project',
                 'selected_variant'
             )

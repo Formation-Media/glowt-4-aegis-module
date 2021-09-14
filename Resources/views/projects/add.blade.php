@@ -46,9 +46,11 @@
             />
             <x-field
                 label="{{__('dictionary.reference')}}"
+                max="9999"
+                min="0"
                 name="reference"
+                prefield="{{$scope? $scope->reference.'/' : '???/'}}"
                 type="number"
-                prefield="{{__('ABC/')}}"
                 required
             />
 

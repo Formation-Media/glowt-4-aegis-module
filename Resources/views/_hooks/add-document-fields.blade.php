@@ -1,7 +1,7 @@
 @isset($projects)
     <x-field
         disabled="{{$selected_project? true: false}}"
-        label="{{__('Project')}}"
+        label="{{__('dictionary.project')}}"
         name="aegis[project]"
         :options="$projects"
         type="select"
@@ -10,7 +10,7 @@
     />
     <x-field
         disabled="{{$selected_variant? true : false}}"
-        label="{{ __('Project Variant') }}"
+        label="{{ __('aegis::projects.project-variant') }}"
         name="aegis[project_variant]"
         :options="$project_variants ?? [] "
         type="select"
@@ -19,7 +19,7 @@
     />
     <x-field
         disabled="{{true}}"
-        label="{{__('dictionary.reference')}}"
+        label="{{__('aegis::projects.project-variant-reference')}}"
         name="aegis[reference]"
         type="text"
         value="{{$reference?? null}}"
