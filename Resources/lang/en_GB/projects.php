@@ -3,6 +3,8 @@
         'add-document' => 'Add Document to Project Variant',
         'add-variant'  => 'Add Variant',
 
+        'document-reference' => 'Document Reference',
+
         'project-variant-reference' => 'Project Variant Reference',
         'project-variant' => 'Project Variant',
 

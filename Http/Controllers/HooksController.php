@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\JobTitle;
@@ -82,13 +83,17 @@ class HooksController extends AEGISController
             $category = Category::find($args['request']->category);
             $count = VariantDocument
                 ::where('variant_id', $args['request']->aegis['project_variant'] )
-                ->where('category_id', $category->id)
+                ->whereHas('document', function (Builder $query) use($category){
+                    $query->where('category_id', $category->id);
+                })
                 ->count();
+            $count = $count + 1;
+            $count = sprintf('%02d', $count);
             $variant_document = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id = $args['request']->aegis['project_variant'];
             $project_variant = ProjectVariant::find($args['request']->aegis['project_variant']);
-            $variant_document->reference = $project_variant->reference.'/'.$category->prefix.$count;
+            $variant_document->reference = $project_variant->reference.$category->prefix.$count;
             $variant_document->save();
         }
     }
