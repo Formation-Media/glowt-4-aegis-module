@@ -5,6 +5,7 @@ var add = {
     },
     watch_select_project:function(){
         var variants = document.getElementById('aegisproject-variant');
+        var reference = document.getElementById('aegisreference');
         document.getElementById('aegisproject').addEventListener('change',
         function(e){
             app.show_loader()
@@ -20,6 +21,12 @@ var add = {
                             variants.innerHTML += '<option value='+key+'>'+value+'</option>';
                         }
                     }
+                    if(json.data.default_variant){
+                        variants.value = json.data.default_variant;
+                    }
+                    if(json.data.reference){
+                        reference.value = json.data.reference;
+                    }
                 },
                 null,
                 function(json){
@@ -30,7 +37,6 @@ var add = {
     },
     watch_select_project_variant:function(){
         var reference = document.getElementById('aegisreference');
-        var category = document.getElementById('category-autocomplete');
         document.getElementById('aegisproject-variant').addEventListener('change',
             function(e){
                 app.show_loader();
@@ -53,10 +59,6 @@ var add = {
                 )
             }
         )
-        if(reference.value.length !== 0 ){
-            this.get_wait_for_category();
-        }
-
     },
 }
 document.addEventListener('DOMContentLoaded', function(){

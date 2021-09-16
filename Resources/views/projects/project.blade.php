@@ -30,6 +30,13 @@
                         required
                     />
                     <x-field
+                        label="{{__('dictionary.description')}}"
+                        name="description"
+                        type="textarea"
+                        value="{{$project->description}}"
+                        required
+                    />
+                    <x-field
                         label="{{__('dictionary.scope')}}"
                         name="scope"
                         type="autocomplete"
@@ -42,6 +49,7 @@
                         ]"
                         required
                     />
+
                     <x-field
                         label="{{__('dictionary.type')}}"
                         name="type"

@@ -27,9 +27,15 @@ class ProjectsController extends Controller
         $variants=[];
         if(isset($request->project)){
             $project = Project::find($request->project);
+            $reference = $project->reference;
             $variants = $project->variants->pluck('name', 'id')->toArray();
+            $default_variant = $project->variants->where('is_default', true)->pluck('id')->toArray();
         }
-        return compact('variants');
+        return compact(
+            'default_variant',
+            'reference',
+            'variants'
+        );
     }
 
     public function get_scope_ref($request){

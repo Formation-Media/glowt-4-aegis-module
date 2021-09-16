@@ -42,6 +42,7 @@ class HooksController extends AEGISController
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
             $selected_project = $selected_variant->project;
             $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
+
         }
         return view(
             'aegis::_hooks.add-document-fields',
@@ -93,7 +94,7 @@ class HooksController extends AEGISController
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id = $args['request']->aegis['project_variant'];
             $project_variant = ProjectVariant::find($args['request']->aegis['project_variant']);
-            $variant_document->reference = $project_variant->reference.$category->prefix.$count;
+            $variant_document->reference = $project_variant->reference.'/'.$category->prefix.$count;
             $variant_document->save();
         }
     }
