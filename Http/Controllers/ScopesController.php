@@ -4,7 +4,7 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Modules\Documents\Models\User;
+use App\Models\User;
 use Modules\AEGIS\Models\Scope;
 
 class ScopesController extends Controller

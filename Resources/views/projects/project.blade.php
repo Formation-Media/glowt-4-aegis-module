@@ -101,9 +101,11 @@
                     </x-form>
                     <h2>{{__('dictionary.documents')}}</h2>
                     <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
-                    <div class="text-center">
-                        <x-link style="primary" title="{{__('aegis::projects.add-document')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
-                    </div>
+                    @if($documents_module_enabled)
+                        <div class="text-center">
+                            <x-link style="primary" title="{{__('aegis::projects.add-document')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
+                        </div>
+                    @endif
                 </x-tab>
             @else
                 <x-tab target="{{ __('aegis::projects.variant').' '.$variant->variant_number.' ('.$variant->name.')' }}">

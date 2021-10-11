@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\Scope;
 use Modules\AEGIS\Models\Type;
+use Nwidart\Modules\Facades\Module;
 
 class ProjectsController extends Controller
 {
@@ -15,6 +16,8 @@ class ProjectsController extends Controller
     }
 
     public function project(Request $request, $id){
+        $modules = Module::allEnabled();
+        $documents_module_enabled = array_key_exists('Documents', $modules);
         $project = Project::find($id);
         $scope = $project->scope?? null;
         $tabs = [
@@ -32,8 +35,8 @@ class ProjectsController extends Controller
             }
         }
         $default_variant = $project->variants->where('is_default', true)->first();
-
         return parent::view(compact(
+            'documents_module_enabled',
             'default_variant',
             'project',
             'scope',
