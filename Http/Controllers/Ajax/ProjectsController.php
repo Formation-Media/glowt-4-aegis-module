@@ -119,9 +119,6 @@ class ProjectsController extends Controller
             }
         );
     }
-
-
-
     public function table_variantdocumentsview($request){
         $actions=array(
             array(
