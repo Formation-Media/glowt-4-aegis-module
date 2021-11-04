@@ -36,7 +36,7 @@ class CreateMAegisProjectsTable extends Migration
         Schema::create('m_aegis_variant_documents', function (Blueprint $table){
             $table->id();
             $table->foreignId('variant_id')->references('id')->on('m_aegis_project_variants')->onDelete('cascade');
-            $table->foreignId('document_id')->references('id')->on('m_documents_documents')->onDelete('cascade');
+            $table->unsignedBigInteger('document_id');
             $table->timestamps();
         });
     }
