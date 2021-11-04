@@ -11,7 +11,8 @@ class Type extends Model
     protected $fillable = [];
     protected $table = 'm_aegis_types';
 
-    public function projects(){
+    public function projects()
+    {
         return $this->hasMany(Project::class, 'type_id', 'id');
     }
 }

@@ -19,8 +19,8 @@ class ScopesController extends Controller
         return parent::view(compact('scope'));
     }
 
-    public function add(Request $request){
-
+    public function add(Request $request)
+    {
         return parent::view();
     }
 }

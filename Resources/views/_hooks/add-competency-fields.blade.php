@@ -1,4 +1,4 @@
-@if (sizeof($companies))
+@if (count($companies))
     <x-field
         disabled="{{ isset($competency) && $competency->status>2 }}"
         label="{{ __('Competency Company') }}"

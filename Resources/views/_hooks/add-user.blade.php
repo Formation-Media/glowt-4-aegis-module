@@ -1,4 +1,4 @@
-@if(sizeof($job_titles))
+@if(count($job_titles))
     <x-field
         disabled="{{ $method==='profile' }}"
         label="{{ __('Job Title') }}"
@@ -9,7 +9,7 @@
         value="{{ isset($user)?$user->getMeta('aegis.discipline'):false }}"
     />
 @endif
-@if(sizeof($grades))
+@if(count($grades))
     <x-field
         disabled="{{ $method==='profile' }}"
         label="{{ __('Grade') }}"
@@ -17,7 +17,7 @@
         :options="$grades"
         required
         type="select"
-        value="{{ isset($user) && sizeof($user->meta) && $user->getMeta('aegis.grade')?$user->getMeta('aegis.grade'):'' }}"
+        value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.grade')?$user->getMeta('aegis.grade'):'' }}"
     />
 @endif
 <x-field
@@ -27,5 +27,5 @@
     :options="$types"
     required
     type="select"
-	value="{{ isset($user) && sizeof($user->meta) && $user->getMeta('aegis.type')?$user->getMeta('aegis.type'):'' }}"
+	value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.type')?$user->getMeta('aegis.type'):'' }}"
 />

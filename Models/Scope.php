@@ -13,7 +13,8 @@ class Scope extends Model
     protected $fillable = ['name', 'added_by'];
     protected $table = 'm_aegis_scopes';
 
-    public function projects(){
+    public function projects()
+    {
         return $this->hasMany(Project::class, 'scope_id', 'id');
     }
 }

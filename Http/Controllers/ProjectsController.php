@@ -10,24 +10,24 @@ use Modules\AEGIS\Models\Type;
 
 class ProjectsController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         return parent::view();
     }
 
-    public function project(Request $request, $id){
+    public function project(Request $request, $id)
+    {
         $project = Project::find($id);
-        $scope = $project->scope?? null;
-        $tabs = [
-            [
-                'name' => __('Details')
-            ],
+        $scope   = $project->scope ?? null;
+        $tabs    = [
+            ['name' => __('Details')],
         ];
         $types = Type::where('status', true)->pluck('name', 'id')->toArray();
 
         $variants = $project->variants;
-        foreach($variants as $i=>$variant){
-            if($variant->is_default == true){
-                $tabs[]= ['name'=>__('Default ').' ('.$variant->name.')'];
+        foreach ($variants as $i => $variant) {
+            if ($variant->is_default == true) {
+                $tabs[] = ['name' => __('Default ').' ('.$variant->name.')'];
             } else {
                 $tabs[] = ['name' => __('Variant ').($i).' ('.$variant->name.')'];
             }
@@ -45,13 +45,15 @@ class ProjectsController extends Controller
         ));
     }
 
-    public function add(Request $request, $id=null){
+    public function add(Request $request, $id = null)
+    {
         $scope = Scope::find($id);
         $types = Type::where('status', true)->pluck('name', 'id')->toArray();
         return parent::view(compact('scope', 'types'));
     }
 
-    public function add_variant(Request $request, $id){
+    public function add_variant(Request $request, $id)
+    {
         $project = Project::find($id);
         return parent::view(compact('project'));
     }

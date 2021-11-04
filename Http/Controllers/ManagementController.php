@@ -8,19 +8,24 @@ use Illuminate\Http\Request;
 
 class ManagementController extends Controller
 {
-    public function changelog(Request $request){
+    public function changelog(Request $request)
+    {
         return parent::view();
     }
-    public function job_titles(Request $request){
+    public function job_titles(Request $request)
+    {
         return parent::view();
     }
-    public function user_grades(Request $request){
+    public function user_grades(Request $request)
+    {
         return parent::view();
     }
-    public function types(Request $request){
+    public function types(Request $request)
+    {
         return parent::view();
     }
-    public function add_scope(Request $request){
+    public function add_scope(Request $request)
+    {
         return parent::view();
     }
 }
