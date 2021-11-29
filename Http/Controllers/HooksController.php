@@ -12,7 +12,7 @@ use Modules\AEGIS\Models\VariantDocument;
 
 class HooksController extends AEGISController
 {
-    public static function chart_competencies_by_company($settings)
+    public static function chart_competencies_by_company()
     {
         return array(
             'method' => 'competencies_by_company',
@@ -33,7 +33,7 @@ class HooksController extends AEGISController
         $user->save();
     }
 
-    public static function collect_documents__view_add_document_fields($args)
+    public static function collect_documents__view_add_document_fields()
     {
         $projects         = Project::all()->pluck('name', 'id')->toArray();
         $project_variants = null;
@@ -46,7 +46,12 @@ class HooksController extends AEGISController
         }
         return view(
             'aegis::_hooks.add-document-fields',
-            compact('projects', 'project_variants', 'selected_project', 'selected_variant')
+            compact(
+                'projects',
+                'project_variants',
+                'selected_project',
+                'selected_variant'
+            )
         );
     }
     public static function collect_documents__view_document_fields($document)
@@ -84,7 +89,7 @@ class HooksController extends AEGISController
     public static function collect_documents__edit_document($args)
     {
         if (isset($args['request']->aegis['project_variant'])) {
-            $variant_document = VariantDocument::updateOrCreate(
+            VariantDocument::updateOrCreate(
                 ['document_id' => $args['document']->id],
                 ['variant_id' => $args['request']->aegis['project_variant']]
             );
@@ -114,7 +119,7 @@ class HooksController extends AEGISController
             }
         }
     }
-    public static function collect_hr__view_add_competency_fields($args)
+    public static function collect_hr__view_add_competency_fields()
     {
         $company_data = Company::all();
         $companies    = array();
@@ -156,7 +161,7 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_hr__view_competency_summary($competency, $module)
+    public static function collect_hr__view_competency_summary($competency)
     {
         if ($bio = $competency->user->getMeta('hr.bio') ?? null) {
             $bio = nl2br($bio);
@@ -168,7 +173,7 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_hr__view_set_up($args)
+    public static function collect_hr__view_set_up()
     {
         $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
         return view('aegis::_hooks.set-up-page', compact('permissions'));
@@ -183,19 +188,19 @@ class HooksController extends AEGISController
         ]);
         $user->save();
     }
-    public static function collect_view_add_user($data, $module)
+    public static function collect_view_add_user()
     {
-        return self::_add_user_hook('add');
+        return self::add_user_hook('add');
     }
-    public static function collect_view_edit_profile($data, $module)
+    public static function collect_view_edit_profile($data)
     {
-        return self::_add_user_hook('profile', $data);
+        return self::add_user_hook('profile', $data);
     }
-    public static function collect_view_edit_user($data, $module)
+    public static function collect_view_edit_user($data)
     {
-        return self::_add_user_hook('view', $data);
+        return self::add_user_hook('view', $data);
     }
-    public static function collect_dashboard_charts($data, $module)
+    public static function collect_dashboard_charts()
     {
         return array(
             'Competencies by Company' => array(
@@ -203,7 +208,7 @@ class HooksController extends AEGISController
             ),
         );
     }
-    public static function collect_view_management($args)
+    public static function collect_view_management()
     {
         return array(
             '/a/m/AEGIS/scopes'                 => __('Scopes'),
@@ -257,7 +262,7 @@ class HooksController extends AEGISController
         );
     }
 
-    private static function _add_user_hook($method, $user = null)
+    private static function add_user_hook($method, $user = null)
     {
         return view(
             'aegis::_hooks.add-user',
