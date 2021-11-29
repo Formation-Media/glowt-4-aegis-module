@@ -19,7 +19,7 @@
     )
 )
 @section('content')
-    <x-table selects  api="management" method="types" type="classic" module="AEGIS"/>
+    <x-table selects controller="management" method="types" type="classic" module="AEGIS"/>
     <x-modal id="add-type" title="{{__('Add Type')}}" save-style="success" save-text="Add">
         <x-form name="types">
             <x-field

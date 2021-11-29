@@ -18,10 +18,10 @@
                 required
             />
             <x-field
+                controller="Scopes"
                 name="scope"
                 label="{{__('Scope')}}"
                 type="autocomplete"
-                api="Scopes"
                 method="scopes"
                 module="AEGIS"
                 :value="[

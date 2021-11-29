@@ -23,7 +23,7 @@ var types={
                     data,
                     function(json){
                         types.add_type_modal.hide();
-                        tables.load_table_data(document.querySelector('[data-api="management"]'));
+                        tables.load_table_data(document.querySelector('[data-controller="management"]'));
                     },
                     null,
                     function(json){
