@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\Http\Controllers;
 
+use App\Helpers\Modules;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\JobTitle;
@@ -9,6 +10,8 @@ use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\HR\Models\CompetencySection;
+use Modules\HR\Models\CompetencySubjectAchievement;
 
 class HooksController extends AEGISController
 {
@@ -26,9 +29,11 @@ class HooksController extends AEGISController
         $user  = $args['user'];
         $aegis = $args['request']->aegis;
         $user->setMeta([
-            'aegis.discipline' => $aegis['discipline'],
-            'aegis.grade'      => $aegis['grade'] ?? null,
-            'aegis.type'       => $aegis['type'],
+            'aegis.default-sections' => $args['request']->aegis['default-sections'] ?? null,
+            'aegis.discipline'       => $args['request']->aegis['discipline'],
+            'aegis.grade'            => $args['request']->aegis['grade'] ?? null,
+            'aegis.live-document'    => $args['request']->aegis['live-document'] ?? null,
+            'aegis.type'             => $args['request']->aegis['type'],
         ]);
         $user->save();
     }
@@ -103,6 +108,32 @@ class HooksController extends AEGISController
             $competency_company->company_id    = $args['request']->aegis['company'];
             $competency_company->save();
         }
+        $default_sections = $args['competency']->user->getMeta('aegis.default-sections');
+        if ($default_sections) {
+            $competency_sections = CompetencySection
+                ::whereIn('id', $default_sections)
+                ->active()
+                ->with([
+                    'groups',
+                    'groups.subjects',
+                ])
+                ->get();
+            foreach ($competency_sections as $competency_section) {
+                $groups = $competency_section->groups;
+                if ($groups) {
+                    foreach ($groups as $group) {
+                        foreach ($group->subjects as $subject) {
+                            CompetencySubjectAchievement::create([
+                                'competency_id' => $args['competency']->id,
+                                'subject_id'    => $subject->id,
+                                'status'        => false,
+                                'has_knowledge' => false,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
     }
     public static function collect_hr__edit_competency($args)
     {
@@ -128,10 +159,15 @@ class HooksController extends AEGISController
                 $companies[$company->id] = $company->name;
             }
         }
+        $details = [
+            __('aegis::phrases.live-document') => '<a href="'.\Auth::user()->getMeta('aegis.live-document').'" target="_blank">'
+                .__('dictionary.view').'</a>',
+        ];
         return view(
             'aegis::_hooks.add-competency-fields',
             compact(
-                'companies'
+                'companies',
+                'details',
             )
         );
     }
@@ -139,7 +175,11 @@ class HooksController extends AEGISController
     {
         $company_data = Company::all();
         $companies    = array();
-        $value        = CompetencyCompany::where('competency_id', $competency->id)->first();
+        $details = [
+            __('aegis::phrases.live-document') => '<a href="'.$competency->user->getMeta('aegis.live-document').'" target="_blank">'
+                .__('dictionary.view').'</a>',
+        ];
+        $value = CompetencyCompany::where('competency_id', $competency->id)->first();
         if ($value) {
             $value = $value->company_id;
         }
@@ -157,19 +197,25 @@ class HooksController extends AEGISController
                 'bio',
                 'competency',
                 'companies',
+                'details',
                 'value'
             )
         );
     }
     public static function collect_hr__view_competency_summary($competency)
     {
+        $details = [
+            __('aegis::phrases.live-document') => '<a href="'.$competency->user->getMeta('aegis.live-document').'" target="_blank">'
+                .__('dictionary.view').'</a>',
+        ];
         if ($bio = $competency->user->getMeta('hr.bio') ?? null) {
             $bio = nl2br($bio);
         }
         return view(
             'aegis::_hooks.hr.competency-summary',
             compact(
-                'bio'
+                'bio',
+                'details'
             )
         );
     }
@@ -182,9 +228,11 @@ class HooksController extends AEGISController
     {
         $user = $args['user'];
         $user->setMeta([
-            'aegis.discipline' => $args['request']->aegis['discipline'],
-            'aegis.grade'      => $args['request']->aegis['grade'] ?? null,
-            'aegis.type'       => $args['request']->aegis['type'],
+            'aegis.default-sections' => $args['request']->aegis['default-sections'] ?? null,
+            'aegis.discipline'       => $args['request']->aegis['discipline'],
+            'aegis.grade'            => $args['request']->aegis['grade'] ?? null,
+            'aegis.live-document'    => $args['request']->aegis['live-document'] ?? null,
+            'aegis.type'             => $args['request']->aegis['type'],
         ]);
         $user->save();
     }
@@ -250,28 +298,38 @@ class HooksController extends AEGISController
 
     public static function filter_main_menu(&$data, $module)
     {
-        $data[] = array(
-            'icon'  => 'folder',
-            'link'  => '/a/m/'.$module->getName().'/projects',
-            'title' => __('Projects'),
-        );
-        $data[] = array(
-            'icon'  => 'object-group',
-            'link'  => '/a/m/'.$module->getName().'/scopes',
-            'title' => __('Scopes'),
-        );
+        if (Modules::isEnabled('Documents')) {
+            $data[] = array(
+                'icon'  => 'folder',
+                'link'  => '/a/m/'.$module->getName().'/projects',
+                'title' => __('Projects'),
+            );
+            $data[] = array(
+                'icon'  => 'object-group',
+                'link'  => '/a/m/'.$module->getName().'/scopes',
+                'title' => __('Scopes'),
+            );
+        }
     }
 
     private static function add_user_hook($method, $user = null)
     {
+        $competency_sections = false;
+        $grades              = UserGrade::formatted();
+        $job_titles          = JobTitle::formatted();
+        $types               = self::user_types();
+        if (Modules::isEnabled('HR')) {
+            $competency_sections = CompetencySection::orderBy('name')->pluck('name', 'id');
+        }
         return view(
             'aegis::_hooks.add-user',
-            array(
-                'grades'     => UserGrade::formatted(),
-                'job_titles' => JobTitle::formatted(),
-                'method'     => $method,
-                'types'      => self::user_types(),
-                'user'       => $user,
+            compact(
+                'competency_sections',
+                'grades',
+                'job_titles',
+                'method',
+                'types',
+                'user',
             )
         )->render();
     }

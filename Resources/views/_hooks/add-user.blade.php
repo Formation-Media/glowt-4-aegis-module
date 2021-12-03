@@ -29,3 +29,21 @@
     type="select"
 	value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.type')?$user->getMeta('aegis.type'):'' }}"
 />
+@if($method!=='profile')
+    <x-field
+        label="{{ __('aegis::phrases.live-document') }}"
+        name="aegis[live-document]"
+        type="url"
+        value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.live-document')?$user->getMeta('aegis.live-document'):'' }}"
+    />
+    @if($competency_sections)
+        <x-field
+            label="{{ __('aegis::phrases.default-sections') }}"
+            name="aegis[default-sections][]"
+            multiple
+            :options="$competency_sections"
+            type="select"
+            :value="isset($user) && count($user->meta) && $user->getMeta('aegis.default-sections') ? $user->getMeta('aegis.default-sections'):''"
+        />
+    @endif
+@endif
