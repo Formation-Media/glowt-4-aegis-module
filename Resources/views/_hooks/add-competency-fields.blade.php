@@ -11,6 +11,9 @@
 @endif
 @isset($competency)
     <div class="span-2">
+        <hr>
+        <x-details :details="$details" />
+        <hr>
         <strong>Pen Profile:</strong><br>
         <x-blockquote>{!! $bio !!}</x-blockquote>
     </div>
