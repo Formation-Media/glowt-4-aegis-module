@@ -47,7 +47,7 @@
     type="select"
 	value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.type')?$user->getMeta('aegis.type'):'' }}"
 />
-{{-- @if($method!=='profile')
+@if($method!=='profile')
     <x-field
         label="{{ __('aegis::phrases.user-reference') }}"
         max="3"
@@ -55,4 +55,4 @@
         type="text"
         value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.user-reference')?$user->getMeta('aegis.user-reference'):'' }}"
     />
-@endif --}}
+@endif
