@@ -3,45 +3,45 @@
     array(
         'breadcrumbs'=>array(
             $module->getName(),
-            $module_base.'projects' => __('Projects'),
-            __('Add Project')
+            $module_base.'projects' => __('dictionary.projects'),
+            __('dictionary.add')
         ),
     )
 )
 @section('content')
     <x-form name="project">
-        <x-card title="{{__('Details')}}">
+        <x-card>
             <x-field
+                label="{{__('dictionary.name')}}"
                 name="name"
-                label="{{__('Name')}}"
-                type="text"
                 required
+                type="text"
             />
             <x-field
+                allow-add
                 controller="Scopes"
-                name="scope"
-                label="{{__('Scope')}}"
-                type="autocomplete"
+                label="{{__('dictionary.scope')}}"
                 method="scopes"
                 module="AEGIS"
+                name="scope"
+                required
+                type="autocomplete"
                 :value="[
-                    'text' => $scope->name ?? null,
+                    'text'  => $scope->name ?? null,
                     'value' => $scope->id ?? null
                 ]"
-                allow-add
-                required
             />
             <x-field
+                label="{{__('dictionary.type')}}"
                 name="type"
-                label="{{__('Type')}}"
-                type="select"
                 :options="$types"
                 required
+                type="select"
             />
         </x-card>
         <x-field type="actions">
             <x-slot name="center">
-                <x-field label="{{ __('Add') }}" name="add" type="submit" style="success"/>
+                <x-field label="{{ __('dictionary.add') }}" name="add" type="submit" style="success"/>
             </x-slot>
         </x-field>
     </x-form>
