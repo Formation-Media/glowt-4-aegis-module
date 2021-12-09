@@ -6,21 +6,18 @@
         'title'=>__('Add Project to Scope')
     );
     $tabs = [
-        [
-            'name' => __('Details')
-        ],
-        [
-            'name' => __('Projects')
-        ]
+        ['name' => __('dictionary.details')],
+        ['name' => __('dictionary.projects')],
     ]
 @endphp
 @extends(
     'layouts.account',
     array(
         'breadcrumbs'=>array(
+            'management'=>__('dictionary.management'),
             $module->getName(),
             $module_base.'scopes' => __('Scopes'),
-                        $scope->name
+            $scope->name
         ),
         'page_menu'=> $page_menu
     )
