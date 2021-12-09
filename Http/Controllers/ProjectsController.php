@@ -20,20 +20,19 @@ class ProjectsController extends Controller
         $project = Project::find($id);
         $scope   = $project->scope ?? null;
         $tabs    = [
-            ['name' => __('Details')],
+            ['name' => __('dictionary.details')],
         ];
         $types = Type::where('status', true)->pluck('name', 'id')->toArray();
 
         $variants = $project->variants;
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
-                $tabs[] = ['name' => __('Default ').' ('.$variant->name.')'];
+                $default_variant = $variant;
+                $tabs[]          = ['name' => __('dictionary.default').' ('.$variant->name.')'];
             } else {
-                $tabs[] = ['name' => __('Variant ').($i).' ('.$variant->name.')'];
+                $tabs[] = ['name' => __('dictionary.variant').' '.($i).' ('.$variant->name.')'];
             }
         }
-
-        $default_variant = $project->variants->where('is_default', true)->first();
 
         return parent::view(compact(
             'default_variant',

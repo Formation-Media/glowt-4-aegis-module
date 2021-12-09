@@ -1,10 +1,10 @@
 @php
     $page_menu=array(
         array(
-                'class'=> 'js-add-type',
-                'icon' =>'plus',
-                'title'=>__('Add Type')
-            )
+            'class'=> 'js-add-type',
+            'icon' =>'plus',
+            'title'=>__('Add Type')
+        )
     );
 @endphp
 @extends(

@@ -37,10 +37,10 @@ var companies={
         }
     },
     watch_modal:function(){
-        var modal=new bootstrap.Modal(document.querySelector('#modal-add-competency-company'));
+        var modal = new bootstrap.Modal(document.querySelector('#modal-add-competency-company'));
         document.querySelector('#modal-add-competency-company .modal-save').addEventListener('click',function(e){
-            var form=document.querySelector('#modal-add-competency-company form');
-            let data=window.form.validate_form(form,e);
+            var form = document.querySelector('#modal-add-competency-company form');
+            let data = window.form.validate_form(form,e);
             if(data){
                 app.ajax(
                     'm/AEGIS/companies/add_company',

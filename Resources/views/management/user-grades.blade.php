@@ -2,8 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>'Management',
-                            __('User Grades')
+            'management'=>__('dictionary.management'),
+            $module->getName(),
+            __('User Grades')
         ),
         'page_menu'=>array(
             array(
