@@ -1,6 +1,6 @@
 @if($method!=='profile' && $competency_sections)
     <x-field
-        label="{{ __('aegis::phrases.default-sections') }}"
+        label="{!! __('aegis::phrases.default-sections') !!}"
         name="aegis[default-sections][]"
         multiple
         :options="$competency_sections"

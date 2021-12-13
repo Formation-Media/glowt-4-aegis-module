@@ -1,7 +1,7 @@
 <?php
 
 return array(
-    'default-sections' => 'Default Sections',
+    'default-sections' => 'Default "No Knowledge" Sections',
 
     'live-document' => 'Live Document',
 
