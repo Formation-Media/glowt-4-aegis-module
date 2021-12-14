@@ -310,7 +310,6 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
-            '/a/m/AEGIS/companies'                => __('dictionary.companies'),
             '/a/m/AEGIS/scopes'                   => __('Scopes'),
             '/a/m/AEGIS/management/job-titles'    => __('Job Titles'),
             '/a/m/AEGIS/management/user-grades'   => __('User Grades'),
@@ -332,6 +331,11 @@ class HooksController extends AEGISController
                 'companies'
             )
         )->render();
+    }
+    public static function collect_hr__view_set_up()
+    {
+        $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
+        return view('aegis::_hooks.set-up-page', compact('permissions'));
     }
     public static function filter_hr__ajax_table_competencies($args)
     {
