@@ -5,7 +5,7 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Helpers\Modules;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
-use Modules\AEGIS\Models\DocumentApprovalItemCompany;
+use Modules\AEGIS\Models\DocumentApprovalItemDetails;
 use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
@@ -30,7 +30,6 @@ class HooksController extends AEGISController
     {
         self::collect_store_user($args);
     }
-
     public static function collect_documents__view_add_document_fields()
     {
         $projects         = Project::all()->pluck('name', 'id')->toArray();
@@ -54,11 +53,13 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_approve_fields()
     {
-        $companies = Company::active()->pluck('name', 'id');
+        $companies  = Company::active()->pluck('name', 'id');
+        $job_titles = JobTitle::whereIn('id', \Auth::user()->getMeta('aegis.discipline'))->formatted();
         return view(
             'aegis::_hooks.approve-fields',
             compact(
-                'companies'
+                'companies',
+                'job_titles',
             )
         );
     }
@@ -100,7 +101,7 @@ class HooksController extends AEGISController
         $item               = $args['item'];
         $request            = $args['request'];
         $user               = $args['user'];
-        $company            = Company::find($request->company);
+        $company            = Company::find($request->aegis['company']);
         $user_reference     = $user->getMeta('aegis.user-reference');
         $previous_reference = DocumentApprovalProcessItem
             ::where([
@@ -116,12 +117,13 @@ class HooksController extends AEGISController
         }
         list($company_reference, $user, $increment) = explode('-', $previous_reference);
         $item->reference                            = implode('-', [$company_reference, $user, $increment + 1]);
-        DocumentApprovalItemCompany::updateOrInsert(
+        DocumentApprovalItemDetails::updateOrInsert(
             ['approval_item_id' => $item->id],
             [
-                'company_id' => $company->id,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'company_id'   => $company->id,
+                'job_title_id' => $request->aegis['role'],
+                'created_at'   => now(),
+                'updated_at'   => now(),
             ],
         );
         $item->save();
@@ -336,6 +338,18 @@ class HooksController extends AEGISController
     {
         $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
         return view('aegis::_hooks.set-up-page', compact('permissions'));
+    }
+    public static function filter_documents__pdf_signature_columns(&$data, $module, $signature)
+    {
+        $details   = DocumentApprovalItemDetails::where('approval_item_id', $signature->id)->first();
+        $company   = $details->company->name ?? null;
+        $job_title = $details->job_title->name ?? null;
+        if ($company) {
+            $data[__('dictionary.company')] = $company;
+        }
+        if ($job_title) {
+            $data[__('aegis::phrases.approved-as')] = $job_title;
+        }
     }
     public static function filter_hr__ajax_table_competencies($args)
     {

@@ -48,10 +48,11 @@ class AegisUpdate0120 extends Migration
             }
         }
         Schema::enableForeignKeyConstraints();
-        Schema::create('m_aegis_document_approval_item_company', function (Blueprint $table) {
+        Schema::create('m_aegis_document_approval_item_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('approval_item_id')->references('id')->on('m_documents_documents_approval_items')->onDelete('cascade');
             $table->foreignId('company_id')->references('id')->on('m_aegis_companies')->onDelete('cascade');
+            $table->foreignId('job_title_id')->references('id')->on('m_aegis_job_titles')->nullable();
             $table->timestamps();
         });
     }
@@ -67,7 +68,7 @@ class AegisUpdate0120 extends Migration
             $table->dropColumn('abbreviation');
         });
         \DB::table('users_meta')->where('key', 'aegis.user-reference')->delete();
-        Schema::dropIfExists('m_aegis_document_approval_item_company');
+        Schema::dropIfExists('m_aegis_document_approval_item_details');
     }
     private function company_abbreviation($company, $loop = 1)
     {

@@ -11,7 +11,7 @@
 @if(count($grades))
     <x-field
         disabled="{{ $method==='profile' }}"
-        label="{{ __('Grade') }}"
+        label="{{ __('dictionary.grade') }}"
         name="aegis[grade]"
         :options="$grades"
         required
@@ -22,12 +22,13 @@
 @if(count($job_titles))
     <x-field
         disabled="{{ $method==='profile' }}"
-        label="{{ __('Job Title') }}"
-        name="aegis[discipline]"
+        label="{{ __('aegis::phrases.job-title') }}"
+        multiple
+        name="aegis[discipline][]"
         :options="$job_titles"
         required
         type="select"
-        value="{{ isset($user)?$user->getMeta('aegis.discipline'):false }}"
+        :value="isset($user)?$user->getMeta('aegis.discipline'):[]"
     />
 @endif
 @if($method!=='profile')
@@ -40,7 +41,7 @@
 @endif
 <x-field
     disabled="{{ $method==='profile' }}"
-    label="{{ __('Type') }}"
+    label="{{ __('dictionary.type') }}"
     name="aegis[type]"
     :options="$types"
     required
