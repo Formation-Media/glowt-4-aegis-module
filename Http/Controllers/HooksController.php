@@ -5,12 +5,13 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Helpers\Modules;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\DocumentApprovalItemDetails;
 use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
-// use Modules\Documents\Models\DocumentApprovalProcessItem;
+use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
 
@@ -29,7 +30,6 @@ class HooksController extends AEGISController
     {
         self::collect_store_user($args);
     }
-
     public static function collect_documents__view_add_document_fields()
     {
         $projects         = Project::all()->pluck('name', 'id')->toArray();
@@ -48,6 +48,18 @@ class HooksController extends AEGISController
                 'project_variants',
                 'selected_project',
                 'selected_variant'
+            )
+        );
+    }
+    public static function collect_documents__view_approve_fields()
+    {
+        $companies  = Company::active()->pluck('name', 'id');
+        $job_titles = JobTitle::whereIn('id', \Auth::user()->getMeta('aegis.discipline'))->formatted();
+        return view(
+            'aegis::_hooks.approve-fields',
+            compact(
+                'companies',
+                'job_titles',
             )
         );
     }
@@ -81,27 +93,40 @@ class HooksController extends AEGISController
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
             $variant_document->save();
-            // $items              = DocumentApprovalProcessItem::where('document_id', $variant_document->document_id)->get();
-            // $user               = \Auth::user();
-            // $previous_reference = DocumentApprovalProcessItem
-            //     ::where([
-            //         ['agent_id', $user->id],
-            //         ['document_id', '!=', $variant_document->document_id],
-            //     ])
-            //     ->orderBy('id', 'desc')
-            //     ->first();
-            // if ($previous_reference) {
-            //     $previous_reference = substr($previous_reference->reference, 7);
-            // }
-            /*// dd(substr($previous_reference, 7));
-            // foreach ($items as $item) {
-            //     $item->reference = 'FOR-JAS-';
-            // }
-            // dd([
-            //     $args,
-            //     $user,
-            // ]);*/
         }
+    }
+    public static function collect_documents__approve_deny($args)
+    {
+        $document           = $args['document'];
+        $item               = $args['item'];
+        $request            = $args['request'];
+        $user               = $args['user'];
+        $company            = Company::find($request->aegis['company']);
+        $user_reference     = $user->getMeta('aegis.user-reference');
+        $previous_reference = DocumentApprovalProcessItem
+            ::where([
+                ['agent_id', $user->id],
+                ['document_id', '!=', $document->id],
+            ])
+            ->orderBy('id', 'desc')
+            ->first();
+        if ($previous_reference) {
+            $previous_reference = $previous_reference->reference;
+        } else {
+            $previous_reference = $company->abbreviation.'-'.$user_reference.'-0';
+        }
+        list($company_reference, $user, $increment) = explode('-', $previous_reference);
+        $item->reference                            = implode('-', [$company_reference, $user, $increment + 1]);
+        DocumentApprovalItemDetails::updateOrInsert(
+            ['approval_item_id' => $item->id],
+            [
+                'company_id'   => $company->id,
+                'job_title_id' => $request->aegis['role'],
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ],
+        );
+        $item->save();
     }
     public static function collect_documents__edit_document($args)
     {
@@ -241,24 +266,24 @@ class HooksController extends AEGISController
     {
         $aegis = $args['request']->aegis;
         $user  = $args['user'];
-        // if (!$aegis['user-reference']) {
-        //     $i                       = 0;
-        //     $name                    = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
-        //     $aegis['user-reference'] = $name.$i;
-        //     while (\DB::table('users_meta')->where([
-        //         'key'   => 'aegis.user-reference',
-        //         'value' => $aegis['user-reference'],
-        //     ])->count()) {
-        //         $aegis['user-reference'] = $name.$i++;
-        //     }
-        // }
+        if (!$aegis['user-reference']) {
+            $i                       = 0;
+            $name                    = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
+            $aegis['user-reference'] = $name.$i;
+            while (\DB::table('users_meta')->where([
+                'key'   => 'aegis.user-reference',
+                'value' => $aegis['user-reference'],
+            ])->count()) {
+                $aegis['user-reference'] = $name.$i++;
+            }
+        }
         $user->setMeta([
             'aegis.default-sections' => $aegis['default-sections'] ?? null,
             'aegis.discipline'       => $aegis['discipline'],
             'aegis.grade'            => $aegis['grade'] ?? null,
             'aegis.live-document'    => $aegis['live-document'] ?? null,
             'aegis.type'             => $aegis['type'],
-            // 'aegis.user-reference'   => $aegis['user-reference'],
+            'aegis.user-reference'   => $aegis['user-reference'],
         ]);
         $user->save();
     }
@@ -287,11 +312,11 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
-            '/a/m/AEGIS/companies'                => __('dictionary.companies'),
-            '/a/m/AEGIS/scopes'                   => __('Scopes'),
-            '/a/m/AEGIS/management/job-titles'    => __('Job Titles'),
-            '/a/m/AEGIS/management/user-grades'   => __('User Grades'),
-            '/a/m/AEGIS/management/project-types' => __('Project Types'),
+            '/a/m/AEGIS/management/import'        => __('dictionary.import'),
+            '/a/m/AEGIS/management/job-titles'    => __('aegis::phrases.job-titles'),
+            '/a/m/AEGIS/management/project-types' => __('aegis::phrases.project-types'),
+            '/a/m/AEGIS/scopes'                   => __('dictionary.scopes'),
+            '/a/m/AEGIS/management/user-grades'   => __('aegis::phrases.user-grades'),
         );
     }
     public static function collect_view_table_filter($args)
@@ -309,6 +334,23 @@ class HooksController extends AEGISController
                 'companies'
             )
         )->render();
+    }
+    public static function collect_hr__view_set_up()
+    {
+        $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
+        return view('aegis::_hooks.set-up-page', compact('permissions'));
+    }
+    public static function filter_documents__pdf_signature_columns(&$data, $module, $signature)
+    {
+        $details   = DocumentApprovalItemDetails::where('approval_item_id', $signature->id)->first();
+        $company   = $details->company->name ?? null;
+        $job_title = $details->job_title->name ?? null;
+        if ($company) {
+            $data[__('dictionary.company')] = $company;
+        }
+        if ($job_title) {
+            $data[__('aegis::phrases.approved-as')] = $job_title;
+        }
     }
     public static function filter_hr__ajax_table_competencies($args)
     {
