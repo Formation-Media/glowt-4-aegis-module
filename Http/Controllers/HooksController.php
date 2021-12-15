@@ -312,10 +312,11 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
-            '/a/m/AEGIS/scopes'                   => __('Scopes'),
-            '/a/m/AEGIS/management/job-titles'    => __('Job Titles'),
-            '/a/m/AEGIS/management/user-grades'   => __('User Grades'),
-            '/a/m/AEGIS/management/project-types' => __('Project Types'),
+            '/a/m/AEGIS/management/import'        => __('dictionary.import'),
+            '/a/m/AEGIS/management/job-titles'    => __('aegis::phrases.job-titles'),
+            '/a/m/AEGIS/management/project-types' => __('aegis::phrases.project-types'),
+            '/a/m/AEGIS/scopes'                   => __('dictionary.scopes'),
+            '/a/m/AEGIS/management/user-grades'   => __('aegis::phrases.user-grades'),
         );
     }
     public static function collect_view_table_filter($args)

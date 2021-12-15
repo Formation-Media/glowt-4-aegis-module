@@ -6,9 +6,13 @@ return array(
 
     'default-sections' => 'Default "No Knowledge" Sections',
 
-    'job-title' => 'Job Title',
+    'job-title'  => 'Job Title',
+    'job-titles' => 'Job Titles',
 
     'live-document' => 'Live Document',
 
+    'project-types' => 'Project Types',
+
+    'user-grades'    => 'User Grades',
     'user-reference' => 'User Reference',
 );
