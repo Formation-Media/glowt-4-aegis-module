@@ -13,6 +13,7 @@ class AlterMAegisProjectsTable extends Migration
      */
     public function up()
     {
+        Schema::disableForeignKeyConstraints();
         Schema::table('m_aegis_projects', function (Blueprint $table){
             $table->text('description');
             $table->string('reference')->unique();
@@ -30,6 +31,7 @@ class AlterMAegisProjectsTable extends Migration
         Schema::table('m_aegis_scopes', function (Blueprint $table){
             $table->string('reference')->unique();
         });
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
