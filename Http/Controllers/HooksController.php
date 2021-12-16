@@ -5,11 +5,13 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Helpers\Modules;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\DocumentApprovalItemDetails;
 use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
 
@@ -26,18 +28,8 @@ class HooksController extends AEGISController
     }
     public static function collect_add_user($args)
     {
-        $user  = $args['user'];
-        $aegis = $args['request']->aegis;
-        $user->setMeta([
-            'aegis.default-sections' => $args['request']->aegis['default-sections'] ?? null,
-            'aegis.discipline'       => $args['request']->aegis['discipline'],
-            'aegis.grade'            => $args['request']->aegis['grade'] ?? null,
-            'aegis.live-document'    => $args['request']->aegis['live-document'] ?? null,
-            'aegis.type'             => $args['request']->aegis['type'],
-        ]);
-        $user->save();
+        self::collect_store_user($args);
     }
-
     public static function collect_documents__view_add_document_fields()
     {
         $projects         = Project::all()->pluck('name', 'id')->toArray();
@@ -56,6 +48,18 @@ class HooksController extends AEGISController
                 'project_variants',
                 'selected_project',
                 'selected_variant'
+            )
+        );
+    }
+    public static function collect_documents__view_approve_fields()
+    {
+        $companies  = Company::active()->pluck('name', 'id');
+        $job_titles = JobTitle::whereIn('id', \Auth::user()->getMeta('aegis.discipline'))->formatted();
+        return view(
+            'aegis::_hooks.approve-fields',
+            compact(
+                'companies',
+                'job_titles',
             )
         );
     }
@@ -90,6 +94,39 @@ class HooksController extends AEGISController
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
             $variant_document->save();
         }
+    }
+    public static function collect_documents__approve_deny($args)
+    {
+        $document           = $args['document'];
+        $item               = $args['item'];
+        $request            = $args['request'];
+        $user               = $args['user'];
+        $company            = Company::find($request->aegis['company']);
+        $user_reference     = $user->getMeta('aegis.user-reference');
+        $previous_reference = DocumentApprovalProcessItem
+            ::where([
+                ['agent_id', $user->id],
+                ['document_id', '!=', $document->id],
+            ])
+            ->orderBy('id', 'desc')
+            ->first();
+        if ($previous_reference) {
+            $previous_reference = $previous_reference->reference;
+        } else {
+            $previous_reference = $company->abbreviation.'-'.$user_reference.'-0';
+        }
+        list($company_reference, $user, $increment) = explode('-', $previous_reference);
+        $item->reference                            = implode('-', [$company_reference, $user, $increment + 1]);
+        DocumentApprovalItemDetails::updateOrInsert(
+            ['approval_item_id' => $item->id],
+            [
+                'company_id'   => $company->id,
+                'job_title_id' => $request->aegis['role'],
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ],
+        );
+        $item->save();
     }
     public static function collect_documents__edit_document($args)
     {
@@ -154,15 +191,17 @@ class HooksController extends AEGISController
     {
         $company_data = Company::all();
         $companies    = array();
+        $details      = [];
         if (count($company_data)) {
             foreach ($company_data as $company) {
                 $companies[$company->id] = $company->name;
             }
         }
-        $details = [
-            __('aegis::phrases.live-document') => '<a href="'.\Auth::user()->getMeta('aegis.live-document').'" target="_blank">'
-                .__('dictionary.view').'</a>',
-        ];
+        $live_document = \Auth::user()->getMeta('aegis.live-document');
+        if ($live_document) {
+            $details[__('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
+                .__('dictionary.view').'</a>';
+        }
         return view(
             'aegis::_hooks.add-competency-fields',
             compact(
@@ -173,12 +212,14 @@ class HooksController extends AEGISController
     }
     public static function collect_hr__view_competency_fields($competency)
     {
-        $company_data = Company::all();
-        $companies    = array();
-        $details = [
-            __('aegis::phrases.live-document') => '<a href="'.$competency->user->getMeta('aegis.live-document').'" target="_blank">'
-                .__('dictionary.view').'</a>',
-        ];
+        $company_data  = Company::all();
+        $companies     = array();
+        $details       = [];
+        $live_document = $competency->user->getMeta('aegis.live-document');
+        if ($live_document) {
+            $details[__('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
+                .__('dictionary.view').'</a>';
+        }
         $value = CompetencyCompany::where('competency_id', $competency->id)->first();
         if ($value) {
             $value = $value->company_id;
@@ -204,10 +245,12 @@ class HooksController extends AEGISController
     }
     public static function collect_hr__view_competency_summary($competency)
     {
-        $details = [
-            __('aegis::phrases.live-document') => '<a href="'.$competency->user->getMeta('aegis.live-document').'" target="_blank">'
-                .__('dictionary.view').'</a>',
-        ];
+        $details       = [];
+        $live_document = $competency->user->getMeta('aegis.live-document');
+        if ($live_document) {
+            $details[__('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
+                .__('dictionary.view').'</a>';
+        }
         if ($bio = $competency->user->getMeta('hr.bio') ?? null) {
             $bio = nl2br($bio);
         }
@@ -219,20 +262,28 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_hr__view_set_up()
-    {
-        $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
-        return view('aegis::_hooks.set-up-page', compact('permissions'));
-    }
     public static function collect_store_user($args)
     {
-        $user = $args['user'];
+        $aegis = $args['request']->aegis;
+        $user  = $args['user'];
+        if (!$aegis['user-reference']) {
+            $i                       = 0;
+            $name                    = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
+            $aegis['user-reference'] = $name.$i;
+            while (\DB::table('users_meta')->where([
+                'key'   => 'aegis.user-reference',
+                'value' => $aegis['user-reference'],
+            ])->count()) {
+                $aegis['user-reference'] = $name.$i++;
+            }
+        }
         $user->setMeta([
-            'aegis.default-sections' => $args['request']->aegis['default-sections'] ?? null,
-            'aegis.discipline'       => $args['request']->aegis['discipline'],
-            'aegis.grade'            => $args['request']->aegis['grade'] ?? null,
-            'aegis.live-document'    => $args['request']->aegis['live-document'] ?? null,
-            'aegis.type'             => $args['request']->aegis['type'],
+            'aegis.default-sections' => $aegis['default-sections'] ?? null,
+            'aegis.discipline'       => $aegis['discipline'],
+            'aegis.grade'            => $aegis['grade'] ?? null,
+            'aegis.live-document'    => $aegis['live-document'] ?? null,
+            'aegis.type'             => $aegis['type'],
+            'aegis.user-reference'   => $aegis['user-reference'],
         ]);
         $user->save();
     }
@@ -250,20 +301,22 @@ class HooksController extends AEGISController
     }
     public static function collect_dashboard_charts()
     {
-        return array(
-            'Competencies by Company' => array(
+        $dashboard_charts = array();
+        if (\Auth::user()->has_role('HR::HR Manager')) {
+            $dashboard_charts['Competencies by Company'] = array(
                 'method' => 'chart_competencies_by_company',
-            ),
-        );
+            );
+        }
+        return $dashboard_charts;
     }
     public static function collect_view_management()
     {
         return array(
-            '/a/m/AEGIS/scopes'                 => __('Scopes'),
-            '/a/m/AEGIS/management/changelog'   => __('Changelog'),
-            '/a/m/AEGIS/management/job-titles'  => __('Job Titles'),
-            '/a/m/AEGIS/management/user-grades' => __('User Grades'),
-            '/a/m/AEGIS/management/types'       => __('Project Types'),
+            '/a/m/AEGIS/management/import'        => __('dictionary.import'),
+            '/a/m/AEGIS/management/job-titles'    => __('aegis::phrases.job-titles'),
+            '/a/m/AEGIS/management/project-types' => __('aegis::phrases.project-types'),
+            '/a/m/AEGIS/scopes'                   => __('dictionary.scopes'),
+            '/a/m/AEGIS/management/user-grades'   => __('aegis::phrases.user-grades'),
         );
     }
     public static function collect_view_table_filter($args)
@@ -281,6 +334,23 @@ class HooksController extends AEGISController
                 'companies'
             )
         )->render();
+    }
+    public static function collect_hr__view_set_up()
+    {
+        $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
+        return view('aegis::_hooks.set-up-page', compact('permissions'));
+    }
+    public static function filter_documents__pdf_signature_columns(&$data, $module, $signature)
+    {
+        $details   = DocumentApprovalItemDetails::where('approval_item_id', $signature->id)->first();
+        $company   = $details->company->name ?? null;
+        $job_title = $details->job_title->name ?? null;
+        if ($company) {
+            $data[__('dictionary.company')] = $company;
+        }
+        if ($job_title) {
+            $data[__('aegis::phrases.approved-as')] = $job_title;
+        }
     }
     public static function filter_hr__ajax_table_competencies($args)
     {
@@ -303,11 +373,6 @@ class HooksController extends AEGISController
                 'icon'  => 'folder',
                 'link'  => '/a/m/'.$module->getName().'/projects',
                 'title' => __('Projects'),
-            );
-            $data[] = array(
-                'icon'  => 'object-group',
-                'link'  => '/a/m/'.$module->getName().'/scopes',
-                'title' => __('Scopes'),
             );
         }
     }

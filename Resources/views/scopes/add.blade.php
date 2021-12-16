@@ -2,6 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
+            'management'=>__('dictionary.management'),
             $module->getName(),
             $module_base.'scopes' => __('Scopes'),
             __('Add Scope')

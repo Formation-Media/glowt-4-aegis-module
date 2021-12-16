@@ -15,12 +15,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            str_replace($module->getName(),'HR',$module_base)   =>'HR',
-            str_replace($module->getName(),'HR',$module_base).
-                'competencies'                                  =>__('Competencies'),
-            str_replace($module->getName(),'HR',$module_base).
-                'competencies/set-up'                           =>__('Set-up'),
-                                                                __('Companies')
+            'management'=>__('dictionary.management'),
+            $module->getName(),
+            __('Companies')
         ),
         'page_menu'=>$page_menu,
     )
@@ -34,6 +31,12 @@
                 <x-field
                     label="{{ __('Company Name') }}"
                     name="name"
+                    required
+                    type="text"
+                />
+                <x-field
+                    label="{{ __('dictionary.abbreviation') }}"
+                    name="abbreviation"
                     required
                     type="text"
                 />

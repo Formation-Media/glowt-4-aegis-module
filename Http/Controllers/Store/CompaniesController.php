@@ -23,8 +23,9 @@ class CompaniesController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $company->name   = $request->name;
-        $company->status = $request->status ?? 0;
+        $company->abbreviation = $request->abbreviation;
+        $company->name         = $request->name;
+        $company->status       = $request->status ?? 0;
         $company->save();
         return redirect($redirect);
     }

@@ -11,9 +11,10 @@ class CompaniesController extends Controller
     // Ajax
     public function add_company(Request $request)
     {
-        $company         = new Company();
-        $company->name   = $request->name;
-        $company->status = $request->status ?? 0;
+        $company               = new Company();
+        $company->abbreviation = strtoupper($request->abbreviation);
+        $company->name         = $request->name;
+        $company->status       = $request->status ?? 0;
         $company->save();
         return $company;
     }
@@ -37,6 +38,9 @@ class CompaniesController extends Controller
                     'columns'      => 'name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
+                ),
+                __('dictionary.abbreviation') => array(
+                    'columns' => 'abbreviation',
                 ),
                 'Status' => array(
                     'columns'      => 'status',

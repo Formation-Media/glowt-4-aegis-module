@@ -2,7 +2,8 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>'Management',
+            'management'=>__('dictionary.management'),
+            $module->getName(),
             __('Job Titles')
         ),
         'page_menu'=>array(

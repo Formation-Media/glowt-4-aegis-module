@@ -2,16 +2,11 @@
 
 namespace Modules\AEGIS\Http\Controllers;
 
-use App\Helpers\Dates;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class ManagementController extends Controller
 {
-    public function changelog(Request $request)
-    {
-        return parent::view();
-    }
     public function job_titles(Request $request)
     {
         return parent::view();
@@ -20,7 +15,7 @@ class ManagementController extends Controller
     {
         return parent::view();
     }
-    public function types(Request $request)
+    public function project_types(Request $request)
     {
         return parent::view();
     }
