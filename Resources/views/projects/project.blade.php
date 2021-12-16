@@ -78,9 +78,9 @@
                             <x-field
                                 label="{{__('dictionary.name')}}"
                                 name="name"
+                                required
                                 type="text"
                                 value="{{$variant->name}}"
-                                required
                             />
                             <x-field
                                 disabled="{{true}}"

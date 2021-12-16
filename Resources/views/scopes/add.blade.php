@@ -19,12 +19,12 @@
                 required
             />
             <x-field
+                aria-readonly
                 label="{{__('dictionary.reference')}}"
                 name="reference"
-                type="text"
                 note="{{__('aegis::scopes.reference-message')}}"
-                aria-readonly
                 required
+                type="text"
             />
         </x-card>
         <x-field type="actions">
