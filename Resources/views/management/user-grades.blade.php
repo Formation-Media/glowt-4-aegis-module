@@ -2,8 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>'Management',
-                            __('User Grades')
+            'management'=>__('dictionary.management'),
+            $module->getName(),
+            __('User Grades')
         ),
         'page_menu'=>array(
             array(
@@ -19,7 +20,7 @@
 )
 
 @section('content')
-    <x-table selects api="management" method="user-grades" module="AEGIS" />
+    <x-table selects controller="management" method="user-grades" module="AEGIS" />
     <x-modal id="add-user-grade" title="Add User Grade" save-style="success" save-text="Add">
         <x-form name="company">
             <x-field

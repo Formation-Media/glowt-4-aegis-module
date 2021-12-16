@@ -15,25 +15,28 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            str_replace($module->getName(),'HR',$module_base)   =>'HR',
-            str_replace($module->getName(),'HR',$module_base).
-                'competencies'                                  =>__('Competencies'),
-            str_replace($module->getName(),'HR',$module_base).
-                'competencies/set-up'                           =>__('Set-up'),
-                                                                __('Companies')
+            'management'=>__('dictionary.management'),
+            $module->getName(),
+            __('Companies')
         ),
         'page_menu'=>$page_menu,
     )
 )
 
 @section('content')
-    <x-table selects api="companies" method="companies" module="AEGIS" />
+    <x-table selects controller="companies" method="companies" module="AEGIS" />
     @if($permissions['add'])
         <x-modal id="add-competency-company" title="Add Competency Company" save-style="success" save-text="Add">
             <x-form name="company">
                 <x-field
                     label="{{ __('Company Name') }}"
                     name="name"
+                    required
+                    type="text"
+                />
+                <x-field
+                    label="{{ __('dictionary.abbreviation') }}"
+                    name="abbreviation"
                     required
                     type="text"
                 />

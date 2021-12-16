@@ -1,4 +1,3 @@
-const bootstrap = require('bootstrap')
 var companies={
     table:false,
     init:function(){
@@ -24,9 +23,7 @@ var companies={
                                     function(json){
                                         del.parentNode.parentNode.parentNode.remove();
                                     },
-                                    function(json){
-                                        console.log(json);
-                                    },
+                                    null,
                                     function(json){
                                         app.toggle_loader();
                                     }
@@ -40,20 +37,19 @@ var companies={
         }
     },
     watch_modal:function(){
-        var modal=new bootstrap.Modal(document.querySelector('#modal-add-competency-company'));
+        var modal = new bootstrap.Modal(document.querySelector('#modal-add-competency-company'));
         document.querySelector('#modal-add-competency-company .modal-save').addEventListener('click',function(e){
-            var form=document.querySelector('#modal-add-competency-company form');
-            if((data=window.form.validate_form(form,e))!==false){
+            var form = document.querySelector('#modal-add-competency-company form');
+            let data = window.form.validate_form(form,e);
+            if(data){
                 app.ajax(
                     'm/AEGIS/companies/add_company',
                     data,
                     function(json){
                         modal.hide();
-                        tables.load_table_data(document.querySelector('[data-api="companies"]'));
+                        tables.load_table_data(document.querySelector('[data-controller="companies"]'));
                     },
-                    function(json){
-                        console.log(json);
-                    },
+                    null,
                     function(json){
                         app.toggle_loader();
                     }

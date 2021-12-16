@@ -1,4 +1,3 @@
-const bootstrap = require('bootstrap')
 var grades={
     table:false,
     init:function(){
@@ -24,9 +23,7 @@ var grades={
                                     function(json){
                                         del.parentNode.parentNode.parentNode.remove();
                                     },
-                                    function(json){
-                                        console.log(json);
-                                    },
+                                    null,
                                     function(json){
                                         app.toggle_loader();
                                     }
@@ -42,18 +39,17 @@ var grades={
     watch_modal:function(){
         var modal=new bootstrap.Modal(document.querySelector('#modal-add-user-grade'));
         document.querySelector('#modal-add-user-grade .modal-save').addEventListener('click',function(e){
-            var form=document.querySelector('#modal-add-user-grade form');
-            if((data=window.form.validate_form(form,e))!==false){
+            var form = document.querySelector('#modal-add-user-grade form');
+            var data = window.form.validate_form(form,e);
+            if(data){
                 app.ajax(
                     'm/AEGIS/management/add_user_grade',
                     data,
                     function(json){
                         modal.hide();
-                        tables.load_table_data(document.querySelector('[data-api="management"]'));
+                        tables.load_table_data(document.querySelector('[data-controller="management"]'));
                     },
-                    function(json){
-                        console.log(json);
-                    },
+                    null,
                     function(json){
                         app.toggle_loader();
                     }

@@ -1,4 +1,4 @@
-const bootstrap = require('bootstrap')
+
 var titles={
     table:false,
     init:function(){
@@ -24,9 +24,7 @@ var titles={
                                     function(json){
                                         del.parentNode.parentNode.parentNode.remove();
                                     },
-                                    function(json){
-                                        console.log(json);
-                                    },
+                                    null,
                                     function(json){
                                         app.toggle_loader();
                                     }
@@ -42,18 +40,17 @@ var titles={
     watch_modal:function(){
         var modal=new bootstrap.Modal(document.querySelector('#modal-add-job-title'));
         document.querySelector('#modal-add-job-title .modal-save').addEventListener('click',function(e){
-            var form=document.querySelector('#modal-add-job-title form');
-            if((data=window.form.validate_form(form,e))!==false){
+            var form = document.querySelector('#modal-add-job-title form');
+            var data = window.form.validate_form(form,e);
+            if(data){
                 app.ajax(
                     'm/AEGIS/management/add_job_title',
                     data,
                     function(json){
                         modal.hide();
-                        tables.load_table_data(document.querySelector('[data-api="management"]'));
+                        tables.load_table_data(document.querySelector('[data-controller="management"]'));
                     },
-                    function(json){
-                        console.log(json);
-                    },
+                    null,
                     function(json){
                         app.toggle_loader();
                     }

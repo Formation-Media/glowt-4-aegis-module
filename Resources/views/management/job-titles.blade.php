@@ -2,7 +2,8 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>'Management',
+            'management'=>__('dictionary.management'),
+            $module->getName(),
             __('Job Titles')
         ),
         'page_menu'=>array(
@@ -19,7 +20,7 @@
 )
 
 @section('content')
-    <x-table selects api="management" method="job-titles" module="AEGIS" />
+    <x-table selects controller="management" method="job-titles" module="AEGIS" />
     <x-modal id="add-job-title" title="Add Job Title" save-style="success" save-text="Add">
         <x-form name="company">
             <x-field
