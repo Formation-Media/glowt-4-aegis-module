@@ -47,7 +47,6 @@ class AegisUpdate0120 extends Migration
                 $user->save();
             }
         }
-        Schema::enableForeignKeyConstraints();
         Schema::create('m_aegis_document_approval_item_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('approval_item_id')->references('id')->on('m_documents_documents_approval_items')->onDelete('cascade');
@@ -55,6 +54,7 @@ class AegisUpdate0120 extends Migration
             $table->foreignId('job_title_id')->references('id')->on('m_aegis_job_titles')->nullable();
             $table->timestamps();
         });
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
