@@ -18,6 +18,12 @@
                 type="text"
             />
             <x-field
+                label="{{__('dictionary.description')}}"
+                name="description"
+                type="textarea"
+                required
+            />
+            <x-field
                 allow-add
                 controller="Scopes"
                 label="{{__('dictionary.scope')}}"
@@ -37,6 +43,14 @@
                 :options="$types"
                 required
                 type="select"
+            />
+            <x-field
+                label="{{__('dictionary.reference')}}"
+                min="0"
+                name="reference"
+                prefield="{{$scope ? $scope->reference : '???'}}/"
+                type="number"
+                required
             />
         </x-card>
         <x-field type="actions">

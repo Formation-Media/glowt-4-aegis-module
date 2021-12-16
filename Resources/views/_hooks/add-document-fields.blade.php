@@ -8,6 +8,7 @@
         required
     />
     <x-field
+        disabled="{{$selected_variant? true : false}}"
         label="{{ __('Project Variant') }}"
         name="aegis[project_variant]"
         :options="$project_variants ?? [] "
@@ -15,4 +16,20 @@
         :value="$selected_variant? $selected_variant->id : ''"
         required
     />
+    @isset($reference)
+        <x-field
+            disabled="{{true}}"
+            label="{{__('aegis::projects.document-reference')}}"
+            name="aegis[documentreference]"
+            type="text"
+            value="{{$reference?? null}}"
+        />
+    @else
+        <x-field
+            disabled="{{true}}"
+            label="{{__('aegis::projects.project-variant-reference')}}"
+            name="aegis[reference]"
+            type="text"
+        />
+    @endisset
 @endisset

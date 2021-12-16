@@ -1,14 +1,14 @@
-var types={
+var project_types={
     init:function(){
         this.watch_modal();
         this.watch_modal_show();
-        types.add_type_modal=new bootstrap.Modal(document.querySelector('#modal-add-type'));
+        project_types.add_type_modal=new bootstrap.Modal(document.querySelector('#modal-add-type'));
     },
     watch_modal_show:function(){
         var add_type = document.querySelector('.js-add-type');
         if(add_type){
             add_type.addEventListener('click', function(){
-                types.add_type_modal.show();
+                project_types.add_type_modal.show();
             })
         }
     },
@@ -22,7 +22,7 @@ var types={
                     'm/AEGIS/management/add_type',
                     data,
                     function(json){
-                        types.add_type_modal.hide();
+                        project_types.add_type_modal.hide();
                         tables.load_table_data(document.querySelector('[data-controller="management"]'));
                     },
                     null,
@@ -35,5 +35,5 @@ var types={
     }
 }
 document.addEventListener('DOMContentLoaded', function() {
-    types.init();
+    project_types.init();
 }, false);
