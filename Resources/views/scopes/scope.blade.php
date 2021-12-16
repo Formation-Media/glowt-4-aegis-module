@@ -25,6 +25,7 @@
 @section('content')
     <x-tabs name="scope" :tabs="$tabs">
         <x-tab target="{{__('Details')}}">
+            <x-card :details="$scope_details"/>
             <x-form name="scope">
                 <x-card>
                     <x-field

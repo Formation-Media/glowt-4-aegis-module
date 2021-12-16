@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\Toast;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
+use Modules\AEGIS\Models\Scope;
 use Modules\AEGIS\Models\VariantDocument;
 
 class ProjectsController extends Controller
@@ -27,10 +28,32 @@ class ProjectsController extends Controller
     {
         $variants = [];
         if (isset($request->project)) {
-            $project  = Project::find($request->project);
-            $variants = $project->variants->pluck('name', 'id')->toArray();
+            $project         = Project::find($request->project);
+            $reference       = $project->reference;
+            $variants        = $project->variants->pluck('name', 'id')->toArray();
+            $default_variant = $project->variants->where('is_default', true)->pluck('id')->toArray();
         }
-        return compact('variants');
+        return compact(
+            'default_variant',
+            'reference',
+            'variants'
+        );
+    }
+    public function get_scope_ref($request)
+    {
+        $scope = Scope::find($request->id);
+        return array(
+            'prefix' => $scope->reference.'/',
+        );
+    }
+    public function get_variant_ref($request)
+    {
+        if (isset($request->project_variant)) {
+            $project_variant = ProjectVariant::find($request->project_variant);
+        }
+        return array(
+            'ref' => $project_variant->reference,
+        );
     }
 
     public function table_view($request)
@@ -101,7 +124,6 @@ class ProjectsController extends Controller
             }
         );
     }
-
     public function table_variantdocumentsview($request)
     {
         $actions = array(

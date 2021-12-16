@@ -3,6 +3,7 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\DocumentApprovalItemDetails;
@@ -11,6 +12,7 @@ use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Models\Category;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
@@ -71,16 +73,19 @@ class HooksController extends AEGISController
             $selected_variant = $document_variant->project_variant;
             $selected_project = $document_variant->project_variant->project;
             $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
+            $reference        = $document_variant->reference;
         } else {
             $selected_variant = null;
             $selected_project = null;
             $project_variants = [];
+            $reference        = null;
         }
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
                 'projects',
                 'project_variants',
+                'reference',
                 'selected_project',
                 'selected_variant'
             )
@@ -89,9 +94,20 @@ class HooksController extends AEGISController
     public static function collect_documents__add_document($args)
     {
         if (isset($args['request']->aegis['project_variant'])) {
+            $category = Category::find($args['request']->category);
+            $count    = VariantDocument
+                ::where('variant_id', $args['request']->aegis['project_variant'])
+                ->whereHas('document', function (Builder $query) use ($category) {
+                    $query->where('category_id', $category->id);
+                })
+                ->count();
+            $count                         = $count + 1;
+            $count                         = sprintf('%02d', $count);
             $variant_document              = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
+            $project_variant               = ProjectVariant::find($args['request']->aegis['project_variant']);
+            $variant_document->reference   = $project_variant->reference.'/'.$category->prefix.$count;
             $variant_document->save();
         }
     }
