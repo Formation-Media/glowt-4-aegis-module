@@ -79,21 +79,25 @@ class ProjectsController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
+                __('dictionary.reference') => array(
+                    'columns'  => 'reference',
+                    'sortable' => true,
+                ),
                 __('Name') => array(
-                    'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
                 __('Type') => array(
-                    'sortable'     => true,
+                    'sortable' => true,
                 ),
                 __('Added By') => array(
                     'sortable' => true,
                 ),
                 __('Added at') => array(
-                    'columns'  => 'created_at',
-                    'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
-                    'method'   => 'datetime',
+                    'columns'      => 'created_at',
+                    'default_sort' => 'desc',
+                    'sortable'     => true,
+                    'class'        => '\App\Helpers\Dates',
+                    'method'       => 'datetime',
                 ),
                 __('Updated at') => array(
                     'columns'  => 'updated_at',
