@@ -18,6 +18,13 @@
                 label="{{__('Name')}}"
                 required
             />
+            <x-field
+                label="{{__('aegis::projects.variant-number')}}"
+                min="0"
+                name="variant_number"
+                required
+                type="number"
+            />
         </x-card>
         <x-field type="actions">
             <x-slot name="center">
