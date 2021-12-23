@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\Http\Controllers\Ajax;
 
+use App\Helpers\Dates;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Company;
@@ -9,19 +10,16 @@ use Modules\AEGIS\Models\Company;
 class CompaniesController extends Controller
 {
     // Ajax
-    public function add_company(Request $request)
-    {
-        $company               = new Company();
-        $company->abbreviation = strtoupper($request->abbreviation);
-        $company->name         = $request->name;
-        $company->status       = $request->status ?? 0;
-        $company->save();
-        return $company;
-    }
     public function delete_company(Request $request)
     {
         $company = Company::findOrFail($request->id);
         $company->delete();
+        return true;
+    }
+    public function restore_company(Request $request)
+    {
+        $company = Company::withTrashed()->find($request->id);
+        $company->restore();
         return true;
     }
     public function table_companies()
@@ -34,7 +32,7 @@ class CompaniesController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                'Name' => array(
+                __('dictionary.name') => array(
                     'columns'      => 'name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
@@ -42,7 +40,7 @@ class CompaniesController extends Controller
                 __('dictionary.abbreviation') => array(
                     'columns' => 'abbreviation',
                 ),
-                'Status' => array(
+                __('dictionary.status') => array(
                     'columns'      => 'status',
                     'from_boolean' => array(
                         'Enabled',
@@ -50,16 +48,16 @@ class CompaniesController extends Controller
                     ),
                     'sortable' => true,
                 ),
-                'Added' => array(
+                __('dictionary.added') => array(
                     'columns'  => 'created_at',
                     'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
+                    'class'    => Dates::class,
                     'method'   => 'datetime',
                 ),
-                'Updated' => array(
+                __('dictionary.updated') => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
+                    'class'    => Dates::class,
                     'method'   => 'datetime',
                 ),
             ),
@@ -72,17 +70,27 @@ class CompaniesController extends Controller
                     'uri'   => $this->link_base.'company/{{id}}',
                 );
             }
-            if ($permissions['delete']) {
-                $row_structure['actions'][] = array(
-                    'class' => 'js-delete-company',
-                    'id'    => '{{id}}',
-                    'style' => 'danger',
-                    'name'  => 'Delete',
-                );
-            }
         }
-        return parent::to_ajax_table('Company', $row_structure, array(), function ($query) {
-            return $query->orderBy('name');
-        });
+        return parent::to_ajax_table(
+            Company::class,
+            $row_structure,
+            array(),
+            function ($query) {
+                return $query->withTrashed()->orderBy('name');
+            },
+            function ($db, $processed, &$actions) use ($permissions) {
+                if ($permissions['delete']) {
+                    $group      = Company::withTrashed()->find($db['id']);
+                    $is_deleted = $group->trashed();
+                    $actions[]  = array(
+                        'class' => $is_deleted ? 'js-restore-company' : 'js-delete-company',
+                        'id'    => $group->id,
+                        'style' => $is_deleted ? 'info' : 'danger',
+                        'name'  => $is_deleted ? __('dictionary.restore') : __('dictionary.delete'),
+                    );
+                }
+                return $processed;
+            }
+        );
     }
 }
