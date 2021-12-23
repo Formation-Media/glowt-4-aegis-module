@@ -7,11 +7,18 @@ use Illuminate\Http\Request;
 
 class ManagementController extends Controller
 {
-    public function job_titles(Request $request)
+    public function add_scope(Request $request)
     {
         return parent::view();
     }
-    public function user_grades(Request $request)
+    // public function import(Request $request)
+    // {
+    //     if (is_formation() || is_dev()) {
+    //         return parent::view();
+    //     }
+    //     abort(401);
+    // }
+    public function job_titles(Request $request)
     {
         return parent::view();
     }
@@ -19,7 +26,7 @@ class ManagementController extends Controller
     {
         return parent::view();
     }
-    public function add_scope(Request $request)
+    public function user_grades(Request $request)
     {
         return parent::view();
     }
