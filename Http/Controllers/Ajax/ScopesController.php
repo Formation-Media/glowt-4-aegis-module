@@ -12,9 +12,16 @@ class ScopesController extends Controller
 {
     public function add_scope($request)
     {
+        $i         = 0;
+        $reference = strtoupper(substr($request->name, 0, 3));
+        while (Scope::where('reference', $reference.str_pad(++$i, 3, '0', STR_PAD_LEFT))->count() > 0) {
+            // When the loop stops we've got the reference #
+            continue;
+        }
         return Scope::create([
-            'name'     => $request->name,
-            'added_by' => \Auth::id(),
+            'added_by'  => \Auth::id(),
+            'name'      => $request->name,
+            'reference' => $reference.str_pad($i, 3, '0', STR_PAD_LEFT),
         ]);
     }
     public function autocomplete_scopes($request)
