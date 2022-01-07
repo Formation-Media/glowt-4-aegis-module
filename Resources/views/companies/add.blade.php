@@ -27,12 +27,12 @@
                     required
                     type="text"
                 />
-                {{-- <x-field
+                <x-field
                     accept=".pdf"
                     label="{{ __('aegis::phrases.pdf-footer') }}"
                     name="pdf_footer"
                     type="file"
-                /> --}}
+                />
                 <x-field
                     label="{{ __('dictionary.status') }}"
                     name="status"

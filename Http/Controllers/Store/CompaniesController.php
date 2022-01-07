@@ -3,11 +3,11 @@
 namespace Modules\AEGIS\Http\Controllers\Store;
 
 use App\Http\Controllers\Controller;
-// use App\Models\File;
-// use App\Rules\FPDFCompatible;
+use App\Models\File;
+use App\Rules\FPDFCompatible;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-// use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rule;
 use Modules\AEGIS\Models\Company;
 
 class CompaniesController extends Controller
@@ -22,12 +22,12 @@ class CompaniesController extends Controller
                 Rule::unique('m_aegis_companies', 'abbreviation'),
             ],
             'status'       => 'nullable',
-            // 'pdf_footer'   => [
-            //     'nullable',
-            //     'file',
-            //     'max:'.(int) ini_get("upload_max_filesize") * 1024,
-            //     new FPDFCompatible,
-            // ],
+            'pdf_footer'   => [
+                'nullable',
+                'file',
+                'max:'.(int) ini_get("upload_max_filesize") * 1024,
+                new FPDFCompatible,
+            ],
         ]);
         if ($validator->fails()) {
             return redirect($this->link_base.'/add')
@@ -40,15 +40,15 @@ class CompaniesController extends Controller
         $company->name         = $validated['name'];
         $company->status       = $validated['status'] ?? 0;
         $company->save();
-        // if ($request->hasFile('pdf_footer')) {
-        //     if (!$file = $company->pdf_footer) {
-        //         $file = new File();
-        //         $file->store($request->pdf_footer, false);
-        //         $file->model($company);
-        //     }
-        //     $file->name = 'PDF Footer';
-        //     $file->save();
-        // }
+        if ($request->hasFile('pdf_footer')) {
+            if (!$file = $company->pdf_footer) {
+                $file = new File();
+                $file->store($request->pdf_footer, false);
+                $file->model($company);
+            }
+            $file->name = 'PDF Footer';
+            $file->save();
+        }
         return redirect($this->link_base.'company/'.$company->id);
     }
     public function company(Request $request, $id)
@@ -64,12 +64,12 @@ class CompaniesController extends Controller
                 Rule::unique('m_aegis_companies', 'abbreviation')->ignore($id),
             ],
             'status'       => 'nullable',
-            // 'pdf_footer'   => [
-            //     'nullable',
-            //     'file',
-            //     'max:'.(int) ini_get("upload_max_filesize") * 1024,
-            //     new FPDFCompatible,
-            // ],
+            'pdf_footer'   => [
+                'nullable',
+                'file',
+                'max:'.(int) ini_get("upload_max_filesize") * 1024,
+                new FPDFCompatible,
+            ],
         ]);
         if ($validator->fails()) {
             return redirect($redirect)
@@ -81,15 +81,15 @@ class CompaniesController extends Controller
         $company->name         = $validated['name'];
         $company->status       = $validated['status'] ?? 0;
         $company->save();
-        // if ($request->hasFile('pdf_footer')) {
-        //     if (!$file = $company->pdf_footer) {
-        //         $file = new File();
-        //         $file->store($request->pdf_footer, false);
-        //         $file->model($company);
-        //     }
-        //     $file->name = 'PDF Footer';
-        //     $file->save();
-        // }
+        if ($request->hasFile('pdf_footer')) {
+            if (!$file = $company->pdf_footer) {
+                $file = new File();
+                $file->store($request->pdf_footer, false);
+                $file->model($company);
+            }
+            $file->name = 'PDF Footer';
+            $file->save();
+        }
         return redirect($redirect);
     }
 }

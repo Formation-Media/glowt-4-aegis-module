@@ -29,13 +29,13 @@
                     type="text"
                     value="{{ $company->abbreviation }}"
                 />
-                {{-- <x-field
+                <x-field
                     accept=".pdf"
                     :existing="$company->pdf_footer ?? null"
                     label="{{ __('aegis::phrases.pdf-footer') }}"
                     name="pdf_footer"
                     type="file"
-                /> --}}
+                />
                 <x-field
                     checked="{{ $company->status?true:false }}"
                     label="{{ __('Status') }}"

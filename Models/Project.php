@@ -10,9 +10,21 @@ class Project extends Model
 {
     use Base_Model;
     use SoftDeletes;
-    protected $fillable = [];
+
+    protected $fillable = [
+        'added_by',
+        'description',
+        'name',
+        'reference',
+        'scope_id',
+        'type_id',
+    ];
     protected $table = 'm_aegis_projects';
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
     public function scope()
     {
         return $this->belongsTo(Scope::class, 'scope_id', 'id');
