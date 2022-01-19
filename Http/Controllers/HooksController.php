@@ -328,7 +328,7 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
-            // '/a/m/AEGIS/management/import'        => __('dictionary.import'),
+            '/a/m/AEGIS/management/import'        => __('dictionary.import'),
             '/a/m/AEGIS/management/job-titles'    => __('aegis::phrases.job-titles'),
             '/a/m/AEGIS/management/project-types' => __('aegis::phrases.project-types'),
             '/a/m/AEGIS/scopes'                   => __('dictionary.scopes'),
@@ -406,7 +406,7 @@ class HooksController extends AEGISController
             $menu[] = array(
                 'icon'  => 'folder',
                 'link'  => '/a/m/'.$module->getName().'/projects',
-                'title' => __('Projects'),
+                'title' => 'dictionary.projects',
             );
         }
     }

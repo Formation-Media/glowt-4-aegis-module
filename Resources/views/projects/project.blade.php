@@ -72,7 +72,7 @@
         </x-tab>
         @foreach($variants as $i=>$variant)
             @if ($variant->is_default==true)
-                <x-tab target="{{ __('dictionary.default').' ('.$variant->name.')' }}">
+                <x-tab target="{!! __('dictionary.default').' ('.$variant->name.')' !!}">
                     <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field
@@ -105,7 +105,7 @@
                     @endif
                 </x-tab>
             @else
-                <x-tab target="{{ __('dictionary.variant').' '.$i.' ('.$variant->name.')' }}">
+                <x-tab target="{!! __('dictionary.variant').' '.$i.' ('.$variant->name.')' !!}">
                     <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field

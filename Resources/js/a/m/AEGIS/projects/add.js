@@ -5,7 +5,7 @@ var add={
     },
     watch_scope_autocomplete:function() {
         document.getElementById('scope-autocomplete').addEventListener('autocomplete-add', function(e) {
-            app.toggle_loader();
+            app.show_loader();
             app.ajax(
                 'm/AEGIS/scopes/add_scope',
                 {
@@ -13,12 +13,12 @@ var add={
                 },
                 function(json) {
                     if (json.data) {
-                        document.getElementById('scope').value=json.data.id;
+                        document.getElementById('scope').value = json.data.id;
                     }
                 },
                 null,
                 function() {
-                    app.toggle_loader();
+                    app.hide_loader();
                 }
             );
         });
@@ -27,10 +27,8 @@ var add={
         var reference = document.getElementById('reference-outer');
         var group     = reference.querySelector('div.input-group');
         var prefield  = group.querySelector('span.input-group-text');
-        console.log(prefield);
         document.getElementById('scope-autocomplete').addEventListener('autocomplete-select', function(e) {
             app.show_loader();
-
             app.ajax(
                 'm/AEGIS/projects/get_scope_ref',
                 {
