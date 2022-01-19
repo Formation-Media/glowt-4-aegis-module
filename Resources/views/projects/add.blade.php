@@ -12,6 +12,13 @@
     <x-form name="project">
         <x-card>
             <x-field
+                label="{{__('dictionary.company')}}"
+                name="company_id"
+                :options="$companies"
+                required
+                type="select"
+            />
+            <x-field
                 label="{{__('dictionary.name')}}"
                 name="name"
                 required

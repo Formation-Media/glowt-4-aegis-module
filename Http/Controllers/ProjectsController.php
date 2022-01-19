@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Helpers\Modules;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\Scope;
 use Modules\AEGIS\Models\Type;
@@ -24,7 +25,7 @@ class ProjectsController extends Controller
         $tabs                     = [
             ['name' => __('dictionary.details')],
         ];
-        $types    = Type::where('status', true)->pluck('name', 'id')->toArray();
+        $types    = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
         $variants = $project->variants;
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
@@ -48,9 +49,14 @@ class ProjectsController extends Controller
 
     public function add(Request $request, $id = null)
     {
-        $scope = Scope::find($id);
-        $types = Type::where('status', true)->pluck('name', 'id')->toArray();
-        return parent::view(compact('scope', 'types'));
+        $companies = Company::orderBy('name')->pluck('name', 'id')->toArray();
+        $scope     = Scope::find($id);
+        $types     = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
+        return parent::view(compact(
+            'companies',
+            'scope',
+            'types'
+        ));
     }
 
     public function add_variant(Request $request, $id)

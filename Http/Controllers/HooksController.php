@@ -34,7 +34,7 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_add_document_fields()
     {
-        $projects         = Project::all()->pluck('name', 'id')->toArray();
+        $projects         = Project::orderBy('name')->pluck('name', 'id')->toArray();
         $project_variants = null;
         $selected_variant = null;
         $selected_project = null;
@@ -67,7 +67,7 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_document_fields($document)
     {
-        $projects         = Project::all()->pluck('name', 'id')->toArray();
+        $projects         = Project::orderBy('name')->pluck('name', 'id')->toArray();
         $document_variant = VariantDocument::where('document_id', $document->id)->first();
         if ($document_variant) {
             $selected_variant = $document_variant->project_variant;
@@ -328,7 +328,7 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
-            // '/a/m/AEGIS/management/import'        => __('dictionary.import'),
+            '/a/m/AEGIS/management/import'        => __('dictionary.import'),
             '/a/m/AEGIS/management/job-titles'    => __('aegis::phrases.job-titles'),
             '/a/m/AEGIS/management/project-types' => __('aegis::phrases.project-types'),
             '/a/m/AEGIS/scopes'                   => __('dictionary.scopes'),
@@ -354,7 +354,7 @@ class HooksController extends AEGISController
     public static function collect_hr__view_set_up()
     {
         $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
-        return view('aegis::_hooks.set-up-page', compact('permissions'));
+        return view('aegis::_hooks.hr.set-up-page', compact('permissions'));
     }
     public static function filter_documents__pdf_signature_columns(&$data, $module, $signature)
     {
@@ -366,6 +366,19 @@ class HooksController extends AEGISController
         }
         if ($job_title) {
             $data[__('aegis::phrases.approved-as')] = $job_title;
+        }
+    }
+    public static function filter_documents__pdf_signature_header(&$pdf, $module)
+    {
+        $variant_document = VariantDocument::where('document_id', $pdf->document->id)->first();
+        $company          = $variant_document->project_variant->project->company;
+        if ($company && $company->pdf_footer) {
+            $file = storage_path($company->pdf_footer->storage_path);
+            if (is_file($file)) {
+                $pdf->setSourceFile($file);
+                $temp = $pdf->importPage(1);
+                $pdf->useTemplate($temp);
+            }
         }
     }
     public static function filter_hr__ajax_table_competencies($args)
@@ -382,13 +395,18 @@ class HooksController extends AEGISController
         return $args;
     }
 
-    public static function filter_main_menu(&$data, $module)
+    public static function filter_main_menu(&$menu, $module)
     {
         if (Modules::isEnabled('Documents')) {
-            $data[] = array(
+            foreach ($menu as &$item) {
+                if ($item['title'] === 'Documents') {
+                    $item['title'] = 'MDSS';
+                }
+            }
+            $menu[] = array(
                 'icon'  => 'folder',
                 'link'  => '/a/m/'.$module->getName().'/projects',
-                'title' => __('Projects'),
+                'title' => 'dictionary.projects',
             );
         }
     }

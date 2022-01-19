@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Type extends Model
 {
     use Base_Model;
-    protected $fillable = [];
+
+    protected $fillable = [
+        'added_by',
+        'name',
+    ];
     protected $table = 'm_aegis_types';
 
     public function projects()

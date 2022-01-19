@@ -11,13 +11,13 @@ class ManagementController extends Controller
     {
         return parent::view();
     }
-    // public function import(Request $request)
-    // {
-    //     if (is_formation() || is_dev()) {
-    //         return parent::view();
-    //     }
-    //     abort(401);
-    // }
+    public function import(Request $request)
+    {
+        if (is_formation() || is_dev()) {
+            return parent::view();
+        }
+        abort(401);
+    }
     public function job_titles(Request $request)
     {
         return parent::view();

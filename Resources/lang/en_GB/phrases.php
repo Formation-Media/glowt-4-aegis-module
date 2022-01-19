@@ -11,6 +11,7 @@ return array(
 
     'live-document' => 'Live Document',
 
+    'pdf-footer'    => 'PDF Footer',
     'project-types' => 'Project Types',
 
     'user-grades'    => 'User Grades',

@@ -10,9 +10,9 @@ class DocumentApprovalItemDetails extends Model
     use Base_Model;
 
     protected $fillable = [
+        'approval_item_id',
         'company_id',
         'job_title_id',
-        'document_approval_item_id',
     ];
     protected $table = 'm_aegis_document_approval_item_details';
 

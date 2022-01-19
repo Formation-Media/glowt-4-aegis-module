@@ -21,7 +21,7 @@ class AegisUpdate0120 extends Migration
         });
         $company_abbreviations = [];
         $user_abbreviations    = [];
-        if ($companies = Company::all()) {
+        if ($companies = Company::withTrashed()->get()) {
             foreach ($companies as $company) {
                 $abbreviation = $this->company_abbreviation($company->name);
                 $loop         = 1;
@@ -34,7 +34,7 @@ class AegisUpdate0120 extends Migration
                 $company->save();
             }
         }
-        if ($users = User::all()) {
+        if ($users = User::withTrashed()->get()) {
             foreach ($users as $user) {
                 $base_abbreviation = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
                 $loop              = 1;
