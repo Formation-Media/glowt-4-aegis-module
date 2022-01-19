@@ -3,7 +3,9 @@
 namespace Modules\AEGIS\Imports;
 
 use App\Helpers\SSEStream;
+use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Modules\AEGIS\Models\VariantDocument;
 
@@ -79,6 +81,24 @@ class DocumentSignatureImport implements ToCollection
                 strtotime($reviewed_at),
                 strtotime($submitted_at),
             ));
+            if (!isset($this->users[$lower_author]['id'])) {
+                $first_name   = ucwords(substr($lower_author, 0, 1));
+                $last_name    = ucwords(substr($lower_author, 1));
+                $user_details = [
+                    'email'      => $this->users[$lower_author]['email'],
+                    'first_name' => $first_name,
+                    'last_name'  => $last_name,
+                ];
+                if (!($user = User::where('email', $user_details['email'])->first())) {
+                    $user_details['password'] = Hash::make(microtime());
+                    $user_details['status']   = 0;
+                    $user                     = User::create($user_details);
+                    $this->stream->send([
+                        'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+                    ]);
+                }
+                $this->users[$lower_author]['id'] = $user->id;
+            }
             $user_id = $this->users[$lower_author]['id'];
             $temp_data[$document->document_id] = [
                 'agent_id'         => $user_id,

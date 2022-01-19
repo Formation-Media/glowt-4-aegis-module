@@ -22,7 +22,7 @@ class ManagementController extends Controller
 
     public function import(SSEStream $stream, Request $request)
     {
-        ini_set('max_execution_time', 5 * 60);
+        ini_set('max_execution_time', 60 * 60);
         $stream->send([
             'percentage' => 0,
             'message'    => 'Loading required information',
@@ -140,22 +140,22 @@ class ManagementController extends Controller
             }
         }
         $steps = [
-            // 'document_types' => [
-            //     'Processing Document Types&hellip;',
-            //     'Finished Processing Document Types.',
-            // ],
-            // 'projects' => [
-            //     'Processing Projects&hellip;',
-            //     'Finished Processing Projects.',
-            // ],
-            // 'documents' => [
-            //     'Processing Documents&hellip;',
-            //     'Finished Processing Documents.',
-            // ],
-            // 'document_signatures' => [
-            //     'Processing Signatures&hellip;',
-            //     'Finished Processing Signatures.',
-            // ],
+            'document_types' => [
+                'Processing Document Types&hellip;',
+                'Finished Processing Document Types.',
+            ],
+            'projects' => [
+                'Processing Projects&hellip;',
+                'Finished Processing Projects.',
+            ],
+            'documents' => [
+                'Processing Documents&hellip;',
+                'Finished Processing Documents.',
+            ],
+            'document_signatures' => [
+                'Processing Signatures&hellip;',
+                'Finished Processing Signatures.',
+            ],
             'signatures' => [
                 'Processing Signatures&hellip;',
                 'Finished Processing Signatures.',
