@@ -1,4 +1,4 @@
-var add={
+var add = {
     init:function() {
         this.watch_scope_autocomplete();
         this.watch_scope();
