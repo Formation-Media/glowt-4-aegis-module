@@ -6,6 +6,9 @@ return array(
 
     'default-sections' => 'Default "No Knowledge" Sections',
 
+    'feedback-list-type'  => 'Feedback List Type',
+    'feedback-list-types' => 'Feedback List Types',
+
     'job-title'  => 'Job Title',
     'job-titles' => 'Job Titles',
 

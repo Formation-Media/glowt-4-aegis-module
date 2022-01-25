@@ -1,10 +1,24 @@
 var add = {
     init:function() {
+        this.watch_category();
         this.watch_select_project();
         this.watch_select_project_variant();
     },
+    watch_category:function(){
+        let category           = document.querySelector('[name="category-autocomplete"]');
+        let feedback_list_type = document.querySelector('[name="aegis[feedback-list-type]"]');
+        category.addEventListener('autocomplete-select', function(event){
+            if(event.selection.prefix==='FBL'){
+                app.unset_hidden(feedback_list_type.parentNode);
+                form.set_required(feedback_list_type);
+            } else {
+                form.unset_required(feedback_list_type);
+                app.set_hidden(feedback_list_type.parentNode);
+            }
+        })
+    },
     watch_select_project:function() {
-        var variants = document.getElementById('aegisproject-variant');
+        var variants  = document.getElementById('aegisproject-variant');
         var reference = document.getElementById('aegisreference');
         document.getElementById('aegisproject').addEventListener('change',
             function(e) {

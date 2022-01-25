@@ -1,6 +1,13 @@
+<x-field
+    hidden
+    label="aegis::phrases.feedback-list-type"
+    name="aegis[feedback-list-type]"
+    :options="$feedback_list_types"
+    type="select"
+/>
 @isset($projects)
     <x-field
-        label="{{__('Project')}}"
+        label="dictionary.project"
         name="aegis[project]"
         :options="$projects"
         type="select"
