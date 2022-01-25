@@ -80,6 +80,7 @@ class SignatureImport implements ToCollection
             }
             $approval_process = $document->document->category->approval_process;
             $approval_stages  = $approval_process->approval_process_stages();
+            $date             = $this->column('Date');
             $role             = strtolower($this->column('Role(DOC)'));
             if ($approval_stages->count() === 1) {
                 $approval_stage = $approval_stages->first();
@@ -159,7 +160,7 @@ class SignatureImport implements ToCollection
                 $signature_data                     = $temp_data[$document->id];
                 $signature_data['reference']        = $signature_reference;
                 $signature_data['approval_item_id'] = $approval_item->id;
-            } else {
+            } elseif ($date) {
                 $date = $this->date_convert('Date');
                 if (!array_key_exists($user_reference, $this->users)) {
                     $first_name   = ucwords(substr($user_reference, 0, 1));
@@ -174,7 +175,8 @@ class SignatureImport implements ToCollection
                         $user_details['status']   = 0;
                         $user                     = User::create($user_details);
                         $this->stream->send([
-                            'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+                            'percentage' => round(($i + 1) / count($rows) * 100, 1),
+                            'message'    => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
                         ]);
                     }
                     $this->users[$user_reference]['id'] = $user->id;
@@ -182,16 +184,24 @@ class SignatureImport implements ToCollection
                 } else {
                     $user = $this->users[$user_reference];
                 }
-                $signature_data = [
-                    'agent_id'         => $this->users[$user_reference]['id'],
-                    'approval_item_id' => $approval_item->id,
-                    'created_at'       => $date,
-                    'comments'         => [],
-                    'document_id'      => $document->document->id,
-                    'reference'        => $signature_reference,
-                    'status'           => 'Approved',
-                    'updated_at'       => $date,
-                ];
+                if (!array_key_exists('id', $user)) {
+                    \Log::debug([
+                        __FILE__ => __LINE__,
+                        $row,
+                        $user
+                    ]);
+                } else {
+                    $signature_data = [
+                        'agent_id'         => $user['id'],
+                        'approval_item_id' => $approval_item->id,
+                        'created_at'       => $date,
+                        'comments'         => [],
+                        'document_id'      => $document->document->id,
+                        'reference'        => $signature_reference,
+                        'status'           => 'Approved',
+                        'updated_at'       => $date,
+                    ];
+                }
             }
             if (!array_key_exists($job_title, $job_titles)) {
                 $title = JobTitle::create([
@@ -237,7 +247,7 @@ class SignatureImport implements ToCollection
             if ($comments) {
                 foreach ($comments as $comment) {
                     if (!is_numeric($comment['user_id'])) {
-                        $user_reference = $comment['user_id'];
+                        $user_reference = strtolower($comment['user_id']);
                         if (!array_key_exists($user_reference, $this->users)) {
                             $first_name   = ucwords(substr($user_reference, 0, 1));
                             $last_name    = ucwords(substr($user_reference, 1));
@@ -251,7 +261,8 @@ class SignatureImport implements ToCollection
                                 $user_details['status']   = 0;
                                 $user                     = User::create($user_details);
                                 $this->stream->send([
-                                    'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+                                    'percentage' => round(($i + 1) / count($rows) * 100, 1),
+                                    'message'    => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
                                 ]);
                             }
                             $this->users[$user_reference]['id'] = $user->id;
@@ -260,18 +271,26 @@ class SignatureImport implements ToCollection
                             $comment['user_id'] = $this->users[$user_reference]['id'];
                         }
                     }
-                    Comment::firstOrCreate(
-                        [
-                            'content'                   => $comment['content'],
-                            'document_approval_item_id' => $process_item->id,
-                            'document_id'               => $document->document->id,
-                            'user_id'                   => $comment['user_id'],
-                        ],
-                        [
-                            'created_at' => $signature_data['created_at'],
-                            'updated_at' => $signature_data['updated_at'],
-                        ]
-                    );
+                    if (!array_key_exists('user_id', $comment)) {
+                        \Log::debug([
+                            __FILE__ => __LINE__,
+                            $row,
+                            $comment
+                        ]);
+                    } else {
+                        Comment::firstOrCreate(
+                            [
+                                'content'                   => $comment['content'],
+                                'document_approval_item_id' => $process_item->id,
+                                'document_id'               => $document->document->id,
+                                'user_id'                   => $comment['user_id'],
+                            ],
+                            [
+                                'created_at' => $signature_data['created_at'],
+                                'updated_at' => $signature_data['updated_at'],
+                            ]
+                        );
+                    }
                 }
             }
             $approval_item_details['approval_item_id'] = $process_item->id;

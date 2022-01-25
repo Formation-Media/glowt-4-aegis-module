@@ -153,8 +153,8 @@ class ManagementController extends Controller
                 'Finished Processing Documents.',
             ],
             'document_signatures' => [
-                'Processing Signatures&hellip;',
-                'Finished Processing Signatures.',
+                'Processing Document Signatures&hellip;',
+                'Finished Processing Document Signatures.',
             ],
             'signatures' => [
                 'Processing Signatures&hellip;',
