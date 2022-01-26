@@ -9,6 +9,7 @@ use Modules\Documents\Models\Document;
 class VariantDocument extends Model
 {
     use Base_Model;
+
     protected $fillable = [
         'created_at',
         'document_id',
