@@ -49,6 +49,7 @@ class ProjectsController extends Controller
         $redirect                    = url('a/m/AEGIS/projects/project/'.$id);
         $new_variant                 = new ProjectVariant();
         $new_variant->added_by       = \Auth::id();
+        $new_variant->description    = $request->description;
         $new_variant->name           = $request->name;
         $new_variant->is_default     = false;
         $new_variant->project_id     = $id;

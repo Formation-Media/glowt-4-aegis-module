@@ -31,7 +31,7 @@ class DocumentSignatureImport implements ToCollection
         $new_statuses      = [
             'APPROVED'  => 'Approved',
             'REJECTED'  => 'Denied',
-            'REVIEWED'  => 'Denied',
+            'REVIEWED'  => 'Awaiting Decision',
             'SUBMITTED' => 'Awaiting Decision',
         ];
         $this->stream->send([
@@ -67,20 +67,26 @@ class DocumentSignatureImport implements ToCollection
             $comment_reviewer_name  = strtolower($this->column('REVIEWER'));
             $comment_approver       = str_replace('---', '', $this->column('COMMENT-APPROVER'));
             $comment_approver_name  = strtolower($this->column('APPROVER'));
-            $created_at        = $this->date_convert('CREATION-DATE', 'CRE-TIME');
-            $lower_author      = strtolower($this->column('AUTHOR'));
-            $old_status        = $this->column('STATUS');
-            $reject_date       = $this->column('REJECT DATE');
-            $rejected_at       = !$reject_date || $reject_date === '---' ? null : $this->date_convert('REJECT DATE', 'REJ-TIME');
-            $review_date       = $this->column('REVIEW-DATE');
-            $reviewed_at       = !$review_date || $review_date === '---' ? null : $this->date_convert('REVIEW-DATE', 'REV-TIME');
-            $submitted_at      = $this->date_convert('SUBMIT-DATE', 'SUB-TIME');
-            $updated_at        = date('Y-m-d H:i:s', max(
+            $created_at             = $this->date_convert('CREATION-DATE', 'CRE-TIME');
+            $final_feedback_list    = strtolower($this->column('FBL_FINAL'));
+            $is_final_feedback      = $final_feedback_list ? ($final_feedback_list === 'yes' ? true : false) : null;
+            $lower_author           = strtolower($this->column('AUTHOR'));
+            $old_status             = $this->column('STATUS');
+            $reject_date            = $this->column('REJECT DATE');
+            $rejected_at            = !$reject_date || $reject_date === '---' ? null : $this->date_convert('REJECT DATE', 'REJ-TIME');
+            $review_date            = $this->column('REVIEW-DATE');
+            $reviewed_at            = !$review_date || $review_date === '---' ? null : $this->date_convert('REVIEW-DATE', 'REV-TIME');
+            $submitted_at           = $this->date_convert('SUBMIT-DATE', 'SUB-TIME');
+            $updated_at             = date('Y-m-d H:i:s', max(
                 strtotime($created_at),
                 strtotime($rejected_at),
                 strtotime($reviewed_at),
                 strtotime($submitted_at),
             ));
+            if ($is_final_feedback !== null) {
+                $document->document->setMeta('final_feedback_list', $is_final_feedback);
+                $document->document->save();
+            }
             if (!isset($this->users[$lower_author]['id'])) {
                 $first_name   = ucwords(substr($lower_author, 0, 1));
                 $last_name    = ucwords(substr($lower_author, 1));

@@ -76,7 +76,7 @@
                     <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field
-                                label="{{__('dictionary.name')}}"
+                                label="dictionary.name"
                                 name="name"
                                 required
                                 type="text"
@@ -84,7 +84,7 @@
                             />
                             <x-field
                                 disabled="{{true}}"
-                                label="{{__('dictionary.reference')}}"
+                                label="dictionary.reference"
                                 name="reference"
                                 type="text"
                                 value="{{$variant->reference}}"
@@ -109,7 +109,7 @@
                     <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field
-                                label="{{__('dictionary.name')}}"
+                                label="dictionary.name"
                                 name="name"
                                 required
                                 type="text"
@@ -117,17 +117,24 @@
                             />
                             <x-field
                                 disabled="{{true}}"
-                                label="{{__('dictionary.reference')}}"
+                                label="dictionary.reference"
                                 name="reference"
                                 type="text"
                                 value="{{$variant->reference}}"
                             />
                             <x-field
                                 disabled="{{true}}"
-                                label="{{__('aegis::projects.variant-number')}}"
+                                label="aegis::projects.variant-number"
                                 name="variant_number"
                                 type="number"
                                 value="{{$variant->variant_number}}"
+                            />
+                            <x-field
+                                disabled="{{true}}"
+                                label="dictionary.description"
+                                name="description"
+                                type="textarea"
+                                value="{{$variant->description}}"
                             />
                         </x-card>
                         <x-field type="actions">

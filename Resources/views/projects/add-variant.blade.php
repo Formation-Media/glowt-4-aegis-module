@@ -15,15 +15,20 @@
             <x-field
                 name="name"
                 type="text"
-                label="{{__('Name')}}"
+                label="dictionary.name"
                 required
             />
             <x-field
-                label="{{__('aegis::projects.variant-number')}}"
+                label="aegis::projects.variant-number"
                 min="0"
                 name="variant_number"
                 required
                 type="number"
+            />
+            <x-field
+                label="dictionary.description"
+                name="description"
+                type="textarea"
             />
         </x-card>
         <x-field type="actions">

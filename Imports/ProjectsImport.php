@@ -118,6 +118,7 @@ class ProjectsImport implements ToCollection
                     'description' => $variant_description,
                     'name'        => $variant_name ?? ($variant_number === 0 ? 'Default' : 'Variant '.$variant_number),
                     'reference'   => strtoupper($reference.$j),
+                    'description' => strtoupper($reference.$j),
                 ]
             );
             $this->stream->send([

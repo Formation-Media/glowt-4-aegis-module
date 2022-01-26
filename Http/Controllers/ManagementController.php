@@ -11,6 +11,18 @@ class ManagementController extends Controller
     {
         return parent::view();
     }
+    public function feedback_list_types(Request $request)
+    {
+        // $page_menu = [
+        //     [
+        //         'd-bs-toggle' => 'modal',
+        //         'd-bs-target' => '#modal-add-feedback-list-type',
+        //         'icon'        => 'plus',
+        //         'title'       => ['phrases.add', ['item' => __('aegis::phrases.feedback-list-type')]],
+        //     ],
+        // ];
+        return parent::view(/*compact('page_menu')*/);
+    }
     public function import(Request $request)
     {
         if (is_formation() || is_dev()) {

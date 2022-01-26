@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Modules\AEGIS\Models\FeedbackListType;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\VariantDocument;
@@ -29,15 +30,16 @@ class DocumentsImport implements ToCollection
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
         ]);
-        $approval_processes = ApprovalProcess::pluck('id', 'name')->toArray();
-        $categories         = Category::pluck('id', 'name');
-        $documents          = [];
-        $process_lookup     = [];
-        $projectless        = [];
-        $projects           = Project::orderBy('reference')->pluck('id', 'reference');
-        $variant_documents  = [];
-        $variants           = [];
-        $users              = $this->users;
+        $approval_processes  = ApprovalProcess::pluck('id', 'name')->toArray();
+        $categories          = Category::pluck('id', 'name');
+        $documents           = [];
+        $feedback_list_types = FeedbackListType::pluck('id', 'reference')->toArray();
+        $process_lookup      = [];
+        $projectless         = [];
+        $projects            = Project::orderBy('reference')->pluck('id', 'reference');
+        $variant_documents   = [];
+        $variants            = [];
+        $users               = $this->users;
         include \Module::getModulePath('AEGIS').'/Resources/files/import/processes.php';
         foreach ($processes as $process_name => $process) {
             foreach ($process['types'] as $type) {
@@ -68,9 +70,11 @@ class DocumentsImport implements ToCollection
                 $projectless[] = $row[0];
                 continue;
             }
-            $author  = $this->row($row, 'AUTHOR');
-            $type    = $this->row($row, 'DOC-TYPE');
-            $variant = $this->row($row, 'VARIANT NUMBER');
+            $author             = $this->row($row, 'AUTHOR');
+            $issue              = $this->row($row, 'ISSUE');
+            $feedback_list_type = $this->row($row, 'FBL TYPE');
+            $type               = $this->row($row, 'DOC-TYPE');
+            $variant            = $this->row($row, 'VARIANT NUMBER');
             if (array_key_exists($type, $process_lookup)) {
                 $process = $type;
             } else {
@@ -132,12 +136,28 @@ class DocumentsImport implements ToCollection
                     ]
                 );
                 $document_id = $document->id;
+                if ($type === 'Feedback List') {
+                    if (!isset($feedback_list_types[$feedback_list_type])) {
+                        $fbl_type = FeedbackListType::firstOrCreate(
+                            [
+                                'reference' => $feedback_list_type,
+                            ],
+                            [
+                                'name' => $this->row($row, 'PRE-TITLE FBL'),
+                            ]
+                        );
+                        $feedback_list_types[$feedback_list_type] = $fbl_type->id;
+                    }
+                    $document->setMeta('feedback_list_type_id', $feedback_list_types[$feedback_list_type]);
+                    $document->save();
+                }
             }
             if (!isset($variant_documents[$document_id][$variant])) {
                 VariantDocument::firstOrCreate(
                     [
                         'variant_id'  => $variants[$projects[$project_reference]][$variant],
                         'document_id' => $document_id,
+                        'issue'       => $issue,
                     ],
                     [
                         'created_at' => $date,

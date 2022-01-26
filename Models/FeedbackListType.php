@@ -6,17 +6,15 @@ use App\Models\Base_Model;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Documents\Models\Document;
 
-class VariantDocument extends Model
+class FeedbackListType extends Model
 {
     use Base_Model;
 
     protected $fillable = [
-        'created_at',
-        'document_id',
+        'name',
         'reference',
-        'variant_id',
     ];
-    protected $table = 'm_aegis_variant_documents';
+    protected $table = 'm_aegis_feedback_list_types';
 
     public function document()
     {

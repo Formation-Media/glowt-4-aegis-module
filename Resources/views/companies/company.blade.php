@@ -2,10 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            str_replace($module->getName(),'HR',$module_base)                       => 'HR',
-            str_replace($module->getName(),'HR',$module_base).'competencies'        => __('dictionary.competencies'),
-            str_replace($module->getName(),'HR',$module_base).'competencies/set-up' => __('Set-up'),
-            $module_base.'companies'                                                => __('dictionary.companies'),
+            'management'=>__('dictionary.management'),
+            $module->getName(),
+            $module_base.'companies' => __('dictionary.companies'),
             $company->name
         )
     )
