@@ -139,6 +139,16 @@ class ManagementController extends Controller
                 }
             }
         }
+        /*
+            TRUNCATE `glowt_4`.`m_aegis_document_approval_item_details`;
+            TRUNCATE `glowt_4`.`m_aegis_projects`;
+            TRUNCATE `glowt_4`.`m_aegis_project_variants`;
+            TRUNCATE `glowt_4`.`m_aegis_variant_documents`;
+            TRUNCATE `glowt_4`.`m_documents_approval_stages`;
+            TRUNCATE `glowt_4`.`m_documents_comments`;
+            TRUNCATE `glowt_4`.`m_documents_documents`;
+            TRUNCATE `glowt_4`.`m_documents_documents_approval_items`;
+        */
         $steps = [
             'document_types' => [
                 'Processing Document Types&hellip;',
@@ -184,19 +194,28 @@ class ManagementController extends Controller
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;Creating Approval Groups',
         ]);
-        foreach ([
-            'Archived',
-        ] as $group) {
-            Group::firstOrCreate([
-                'name' => $group,
-            ]);
-        }
-        $groups = Group::pluck('id', 'name')->toArray();
         $stream->send([
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;Creating Approval Processes',
         ]);
         include \Module::getModulePath('AEGIS').'/Resources/files/import/processes.php';
+        foreach ($processes as $data) {
+            if (count($data['stages'])) {
+                foreach ($data['stages'] as $stage) {
+                    foreach ($stage['items'] as $item) {
+                        foreach ($item['groups'] as $group) {
+                            Group::firstOrCreate(
+                                [
+                                    'name' => $group,
+                                ],
+                                []
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        $groups = Group::pluck('id', 'name')->toArray();
         foreach ($processes as $approval_process_name => $data) {
             $approval_process = ApprovalProcess::firstOrCreate(
                 [

@@ -8,11 +8,11 @@ $processes = [
                 'name'      => 'Approval',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Approvers'],
                         'required' => false,
                     ],
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Approvers'],
                         'required' => false,
                     ],
                 ],
@@ -26,29 +26,19 @@ $processes = [
         'id'     => null,
         'stages' => [
             [
-                'approvals' => 1,
-                'name'      => 'Author',
-                'items'     => [
-                    [
-                        'groups'   => ['Archived'],
-                        'required' => true,
-                    ],
-                ],
-            ],
-            [
                 'approvals' => 2,
                 'name'      => 'Assessors',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Assessors'],
                         'required' => true,
                     ],
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Assessors'],
                         'required' => false,
                     ],
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Assessors'],
                         'required' => false,
                     ],
                 ],
@@ -58,7 +48,7 @@ $processes = [
                 'name'      => 'Approver',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Approvers'],
                         'required' => true,
                     ],
                 ],
@@ -76,7 +66,7 @@ $processes = [
                 'name'      => 'Approver',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Approvers'],
                         'required' => true,
                     ],
                 ],
@@ -93,20 +83,10 @@ $processes = [
         'stages' => [
             [
                 'approvals' => 1,
-                'name'      => 'Author',
-                'items'     => [
-                    [
-                        'groups'   => ['Archived'],
-                        'required' => true,
-                    ],
-                ],
-            ],
-            [
-                'approvals' => 1,
                 'name'      => 'Approver',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Approvers'],
                         'required' => true,
                     ],
                 ],
@@ -122,20 +102,10 @@ $processes = [
         'stages' => [
             [
                 'approvals' => 1,
-                'name'      => 'Author',
-                'items'     => [
-                    [
-                        'groups'   => ['Archived'],
-                        'required' => true,
-                    ],
-                ],
-            ],
-            [
-                'approvals' => 1,
                 'name'      => 'Checker',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Checkers'],
                         'required' => true,
                     ],
                 ],
@@ -145,7 +115,7 @@ $processes = [
                 'name'      => 'Approver',
                 'items'     => [
                     [
-                        'groups'   => ['Archived'],
+                        'groups'   => ['Approvers'],
                         'required' => true,
                     ],
                 ],

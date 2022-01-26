@@ -13,6 +13,8 @@ use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\Comment;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
+use Modules\Documents\Models\Group;
+use Modules\Documents\Models\UserGroup;
 
 class SignatureImport implements ToCollection
 {
@@ -32,6 +34,11 @@ class SignatureImport implements ToCollection
             'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
         ]);
         $companies         = Company::withTrashed()->pluck('id', 'abbreviation');
+        $groups            = Group::all();
+        foreach ($groups as $group) {
+            $group_data[$group->name]['id']    = $group->id;
+            $group_data[$group->name]['users'] = $group->user_groups()->pluck('id')->toArray();
+        }
         $invalid_documents = [];
         $job_titles        = JobTitle::pluck('id', 'name')->toArray();
         $temp_data         = json_decode(
@@ -231,6 +238,26 @@ class SignatureImport implements ToCollection
                 }
             }
             $comments     = $signature_data['comments'];
+            if (!array_key_exists(ucwords($role.'s'), $group_data)) {
+                $group = Group::firstOrCreate(
+                    [
+                        'name' => ucwords($role.'s'),
+                    ],
+                    []
+                );
+                $group_data[ucwords($role.'s')] = [
+                    'id'    => $group->id,
+                    'users' => [],
+                ];
+            }
+            UserGroup::firstOrCreate(
+                [
+                    'group_id' => $group->id,
+                    'user_id'  => $signature_data['agent_id'],
+                ],
+                []
+            );
+            $group_data[ucwords($role.'s')]['users'][] = $signature_data['agent_id'];
             $process_item = DocumentApprovalProcessItem::firstOrCreate(
                 [
                     'agent_id'         => $signature_data['agent_id'],
