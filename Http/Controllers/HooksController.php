@@ -4,7 +4,6 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
 use App\Helpers\Translations;
-use Illuminate\Database\Eloquent\Builder;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\DocumentApprovalItemDetails;
@@ -341,13 +340,15 @@ class HooksController extends AEGISController
     }
     public static function collect_view_dashboard_content($data, $module)
     {
-        $linkless_documents = Document::whereNull('link')->count();
-        return view(
-            'aegis::_hooks.dashboard-content',
-            compact(
-                'linkless_documents',
-            )
-        )->render();
+        if (Modules::isEnabled('Documents')) {
+            $linkless_documents = Document::whereNull('link')->count();
+            return view(
+                'aegis::_hooks.dashboard-content',
+                compact(
+                    'linkless_documents',
+                )
+            )->render();
+        }
     }
     public static function collect_view_management()
     {
