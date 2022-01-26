@@ -14,6 +14,7 @@ class ProjectVariant extends Model
 
     protected $fillable = [
         'added_by',
+        'description',
         'is_default',
         'name',
         'project_id',
