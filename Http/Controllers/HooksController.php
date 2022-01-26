@@ -3,6 +3,7 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
+use App\Helpers\Translations;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
@@ -14,6 +15,7 @@ use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\Category;
+use Modules\Documents\Models\Document;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
@@ -40,6 +42,7 @@ class HooksController extends AEGISController
         $project_variants    = null;
         $selected_variant    = null;
         $selected_project    = null;
+        $yes_no              = Translations::yes_no();
         if (isset($_GET['project_variant'])) {
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
             $selected_project = $selected_variant->project;
@@ -52,7 +55,8 @@ class HooksController extends AEGISController
                 'projects',
                 'project_variants',
                 'selected_project',
-                'selected_variant'
+                'selected_variant',
+                'yes_no'
             )
         );
     }
@@ -73,6 +77,7 @@ class HooksController extends AEGISController
         $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
         $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
         $document_variant    = VariantDocument::where('document_id', $document->id)->first();
+        $yes_no              = Translations::yes_no();
         if ($document_variant) {
             $selected_variant = $document_variant->project_variant;
             $selected_project = $document_variant->project_variant->project;
@@ -87,12 +92,14 @@ class HooksController extends AEGISController
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
+                'document',
                 'feedback_list_types',
                 'projects',
                 'project_variants',
                 'reference',
                 'selected_project',
-                'selected_variant'
+                'selected_variant',
+                'yes_no',
             )
         );
     }
@@ -101,22 +108,20 @@ class HooksController extends AEGISController
         if (isset($args['request']->aegis['project_variant'])) {
             $category = Category::find($args['request']->category);
             if ($category->prefix === 'FBL') {
-                $args['new_document']->setMeta('feedback_list_type_id', $args['request']->aegis['feedback-list-type']);
+                $args['new_document']->setMeta([
+                    'feedback_list_type_id' => $args['request']->aegis['feedback-list-type'],
+                    'final_feedback_list'   => $args['request']->aegis['final-feedback-list'],
+                ]);
                 $args['new_document']->save();
             }
-            $count = VariantDocument
-                ::where('variant_id', $args['request']->aegis['project_variant'])
-                ->whereHas('document', function (Builder $query) use ($category) {
-                    $query->where('category_id', $category->id);
-                })
-                ->count();
-            $count                         = $count + 1;
-            $count                         = sprintf('%02d', $count);
             $variant_document              = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
             $project_variant               = ProjectVariant::find($args['request']->aegis['project_variant']);
-            $variant_document->reference   = $project_variant->reference.'/'.$category->prefix.$count;
+            $variant_document->reference   = $project_variant->project->reference.'/'.$category->prefix
+                                                .str_pad($args['request']->aegis['reference'], 2, '0', STR_PAD_LEFT);
+            $issue                         = VariantDocument::where('reference', $variant_document->reference)->count();
+            $variant_document->issue       = $issue + 1;
             $variant_document->save();
         }
     }
@@ -333,6 +338,16 @@ class HooksController extends AEGISController
             );
         }
         return $dashboard_charts;
+    }
+    public static function collect_view_dashboard_content($data, $module)
+    {
+        $linkless_documents = Document::whereNull('link')->count();
+        return view(
+            'aegis::_hooks.dashboard-content',
+            compact(
+                'linkless_documents',
+            )
+        )->render();
     }
     public static function collect_view_management()
     {

@@ -4,11 +4,11 @@ namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Notifications\Toast;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\Scope;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Models\Category;
 
 class ProjectsController extends Controller
 {
@@ -23,7 +23,17 @@ class ProjectsController extends Controller
             $project->delete();
         }
     }
-
+    public function get_issue($request)
+    {
+        $category         = Category::find($request->category);
+        $project_variant  = ProjectVariant::find($request->project_variant);
+        $reference        = $project_variant->project->reference.'/'.$category->prefix
+                                .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
+        $issue            = VariantDocument
+            ::where('reference', $reference)
+            ->count();
+        return $issue + 1;
+    }
     public function get_project_variants($request)
     {
         $variants = [];
@@ -31,7 +41,10 @@ class ProjectsController extends Controller
             $project         = Project::find($request->project);
             $reference       = $project->reference;
             $variants        = $project->variants->pluck('name', 'id')->toArray();
-            $default_variant = $project->variants->where('is_default', true)->pluck('id')->toArray();
+            $default_variant = $project->variants->where('is_default', true)->first();
+            if ($default_variant) {
+                $default_variant = $default_variant->id;
+            }
         }
         return compact(
             'default_variant',
@@ -48,11 +61,21 @@ class ProjectsController extends Controller
     }
     public function get_variant_ref($request)
     {
-        if (isset($request->project_variant)) {
-            $project_variant = ProjectVariant::find($request->project_variant);
+        $category         = Category::find($request->category);
+        $project_variant  = ProjectVariant::find($request->project_variant);
+        $reference_prefix = $project_variant->project->reference.'/'.$category->prefix;
+        $last_variant     = VariantDocument
+            ::where('reference', 'like', $reference_prefix.'%')
+            ->orderBy('created_at', 'desc')
+            ->first();
+        if ($last_variant) {
+            $next_reference = str_replace($reference_prefix, '', $last_variant->reference) + 1;
+        } else {
+            $next_reference = 1;
         }
         return array(
-            'ref' => $project_variant->reference,
+            'prefix'    => $reference_prefix,
+            'reference' => str_pad($next_reference, 2, '0', STR_PAD_LEFT),
         );
     }
 

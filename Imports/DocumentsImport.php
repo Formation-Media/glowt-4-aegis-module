@@ -71,6 +71,7 @@ class DocumentsImport implements ToCollection
                 continue;
             }
             $author             = $this->row($row, 'AUTHOR');
+            $issue              = $this->row($row, 'ISSUE');
             $feedback_list_type = $this->row($row, 'FBL TYPE');
             $type               = $this->row($row, 'DOC-TYPE');
             $variant            = $this->row($row, 'VARIANT NUMBER');
@@ -156,6 +157,7 @@ class DocumentsImport implements ToCollection
                     [
                         'variant_id'  => $variants[$projects[$project_reference]][$variant],
                         'document_id' => $document_id,
+                        'issue'       => $issue,
                     ],
                     [
                         'created_at' => $date,
