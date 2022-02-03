@@ -13,6 +13,9 @@ let importer = {
                     progress.ariaValueNow = json.percentage;
                     progress.style.width  = json.percentage + '%';
                     progress.innerText    = json.percentage + '%';
+                    if (json.redirect) {
+                        window.location = json.redirect;
+                    }
                 }
             }
         );

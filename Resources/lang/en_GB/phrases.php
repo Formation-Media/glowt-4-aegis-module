@@ -11,6 +11,8 @@ return array(
     'feedback-list-types' => 'Feedback List Types',
     'final-feedback-list' => 'Final Feedback List?',
 
+    'import-errors' => 'Import Errors',
+
     'job-title'  => 'Job Title',
     'job-titles' => 'Job Titles',
 
