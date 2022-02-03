@@ -84,15 +84,15 @@ var add = {
                 {
                     category: category_id.value
                 },
-                function(json){
+                function(json) {
                     // Call successful
-                    if(json.status){
+                    if (json.status) {
                         // Action successful
                         add.toggle_feedback_list_type(json.data.prefix);
                     }
                 },
                 null,
-                function(){
+                function() {
                     // Success or failed, this'll trigger
                     app.hide_loader();
                 }
