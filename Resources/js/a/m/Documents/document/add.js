@@ -59,24 +59,49 @@ var add = {
             );
         }
     },
-    watch_category:function() {
-        let category            = document.querySelector('[name="category-autocomplete"]');
+    toggle_feedback_list_type:function(prefix) {
         let feedback_list_type  = document.querySelector('[name="aegis[feedback-list-type]"]');
         let final_feedback_list = document.querySelector('[name="aegis[final-feedback-list]"]');
+        if (prefix === 'FBL') {
+            app.unset_hidden(feedback_list_type.parentNode);
+            app.unset_hidden(final_feedback_list.parentNode);
+            form.set_required(feedback_list_type);
+            form.set_required(final_feedback_list);
+        } else {
+            form.unset_required(feedback_list_type);
+            form.unset_required(final_feedback_list);
+            app.set_hidden(feedback_list_type.parentNode);
+            app.set_hidden(final_feedback_list.parentNode);
+        }
+    },
+    watch_category:function() {
+        let category    = document.querySelector('[name="category-autocomplete"]');
+        let category_id = document.querySelector('[name="category"]');
+        if (category_id.value) {
+            app.show_loader();
+            app.ajax(
+                'm/Documents/categories/get-category',
+                {
+                    category: category_id.value
+                },
+                function(json) {
+                    // Call successful
+                    if (json.status) {
+                        // Action successful
+                        add.toggle_feedback_list_type(json.data.prefix);
+                    }
+                },
+                null,
+                function() {
+                    // Success or failed, this'll trigger
+                    app.hide_loader();
+                }
+            );
+        }
         category.addEventListener('autocomplete-select', function(event) {
             add.category    = event.selection.id;
             add.issue.value = 1;
-            if (add.category.prefix === 'FBL') {
-                app.unset_hidden(feedback_list_type.parentNode);
-                app.unset_hidden(final_feedback_list.parentNode);
-                form.set_required(feedback_list_type);
-                form.set_required(final_feedback_list);
-            } else {
-                form.unset_required(feedback_list_type);
-                form.unset_required(final_feedback_list);
-                app.set_hidden(feedback_list_type.parentNode);
-                app.set_hidden(final_feedback_list.parentNode);
-            }
+            add.toggle_feedback_list_type(event.selection.prefix);
         });
     },
     watch_reference: function() {

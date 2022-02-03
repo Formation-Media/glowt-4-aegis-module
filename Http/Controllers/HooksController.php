@@ -338,18 +338,6 @@ class HooksController extends AEGISController
         }
         return $dashboard_charts;
     }
-    public static function collect_view_dashboard_content($data, $module)
-    {
-        if (Modules::isEnabled('Documents')) {
-            $linkless_documents = Document::whereNull('link')->count();
-            return view(
-                'aegis::_hooks.dashboard-content',
-                compact(
-                    'linkless_documents',
-                )
-            )->render();
-        }
-    }
     public static function collect_view_management()
     {
         return array(

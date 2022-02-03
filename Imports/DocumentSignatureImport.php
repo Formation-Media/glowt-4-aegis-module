@@ -11,29 +11,37 @@ use Modules\AEGIS\Models\VariantDocument;
 
 class DocumentSignatureImport implements ToCollection
 {
+    private $errors;
+    private $method;
+    private $projects;
     private $row;
+    private $statuses;
     private $stream;
     private $users;
 
-    public function __construct(SSEStream $stream, $users)
+    public function __construct(SSEStream $stream, $users, $method)
     {
+        $this->method   = $method;
+        $this->statuses = [
+            'APPROVED'  => 'Approved',
+            'REJECTED'  => 'Denied',
+            'REVIEWED'  => 'Awaiting Decision',
+            'SUBMITTED' => 'Awaiting Decision',
+        ];
         $this->stream = $stream;
         $this->users  = $users;
     }
     public function collection(Collection $rows)
     {
+        if ($this->method === 2) {
+            return $this->method_2($rows);
+        }
         $this->stream->send([
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
         ]);
         $temp_data         = [];
         $invalid_documents = [];
-        $new_statuses      = [
-            'APPROVED'  => 'Approved',
-            'REJECTED'  => 'Denied',
-            'REVIEWED'  => 'Awaiting Decision',
-            'SUBMITTED' => 'Awaiting Decision',
-        ];
         $this->stream->send([
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;Processing import file',
@@ -63,7 +71,6 @@ class DocumentSignatureImport implements ToCollection
             }
             $comment_submitter      = str_replace('---', '', $this->column('COMMENT-SUBMITTER'));
             $comment_submitter_name = strtolower($this->column('SUBMITTER-NAME'));
-            $comment_reviewer       = str_replace('---', '', $this->column('COMMENT-REVIEWER'));
             $comment_reviewer_name  = strtolower($this->column('REVIEWER'));
             $comment_approver       = str_replace('---', '', $this->column('COMMENT-APPROVER'));
             $comment_approver_name  = strtolower($this->column('APPROVER'));
@@ -126,7 +133,7 @@ class DocumentSignatureImport implements ToCollection
                 'created_at'  => $created_at,
                 'document_id' => $document->document_id,
                 'reference'   => null,         // Handled by Signature Import
-                'status'      => $new_statuses[$old_status],
+                'status'      => $this->statuses[$old_status],
                 'updated_at'  => $updated_at,
             ];
             // Error on null of anything but reference and approval_item_id
@@ -249,5 +256,152 @@ class DocumentSignatureImport implements ToCollection
         $created_date = date('Y-m-d', $date_as_time);
         $created_time = date('H:i:s', $time * 24 * 60 * 60);
         return $created_date.' '.$created_time;
+    }
+    private function method_2($rows)
+    {
+        $this->stream->send([
+            'percentage' => 0,
+            'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
+        ]);
+        $this->errors = json_decode(
+            \Storage::get('modules/aegis/import/errors.json'),
+            true
+        );
+        $this->projects = json_decode(
+            \Storage::get('modules/aegis/import/projects_and_documents.json'),
+            true
+        );
+        $this->stream->send([
+            'percentage' => 0,
+            'message'    => '&nbsp;&nbsp;&nbsp;Updating data with document signatures',
+        ]);
+        foreach ($rows as $i => $row) {
+            if ($i === 0 || !isset($row[1])) {
+                continue;
+            }
+
+            $this->row = $row;
+
+            $document_reference = $this->column('DOC-IDENTIFICATION');
+            $project_reference  = $this->column('PROJECT IDENTIFICATION');
+
+            if (!isset($this->projects[$project_reference])) {
+                $this->errors['Document Signatures'][$document_reference] = 'Project Not Found';
+                continue;
+            }
+
+            $project_variant = $this->column('VARIANT NUMBER');
+
+            if (!isset($this->projects[$project_reference]['variants'][$project_variant])) {
+                $this->errors['Document Signatures'][$document_reference] = 'Project Variant ('.$project_variant.') not found';
+                continue;
+            }
+            if (!isset($this->projects[$project_reference]['variants'][$project_variant]['documents'])) {
+                $this->errors['Document Signatures'][$document_reference] = 'Project Variant ('.$project_variant.') has no documents';
+                continue;
+            }
+            if (!isset($this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference])) {
+                $this->errors['Document Signatures'][$document_reference] = 'Project Variant ('.$project_variant
+                    .') does not have a document with reference '.$document_reference;
+                continue;
+            }
+
+            $issue = $this->column('ISSUE');
+
+            if (!isset($this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference][$issue])) {
+                $this->errors['Document Signatures'][$document_reference] = 'Project Variant ('.$project_variant
+                    .') does not have a document with reference '.$document_reference.' and issue '.$issue;
+                continue;
+            }
+
+            $approval            = [];
+            $approval_date       = $this->column('APPROVAL-DATE');
+            $assessor_1          = $this->column('ASSESSOR_1');
+            $assessor_2          = $this->column('ASSESSOR_2');
+            $approver_comments   = str_replace('---', '', $this->column('COMMENT-APPROVER'));
+            $approver_reference  = strtolower(str_replace('---', '', $this->column('APPROVER')));
+            $approver_role       = str_replace('---', '', $this->column('APPROVER-ROLE'));
+            $author_role         = str_replace('---', '', $this->column('AUTHOR-ROLE'));
+            $comments            = [];
+            $created_at          = $this->date_convert('CREATION-DATE', 'CRE-TIME');
+            $document            = $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference]
+                [$issue];
+            $review_date         = $this->column('REVIEW-DATE');
+            $reviewer_comments   = str_replace('---', '', $this->column('COMMENT-REVIEWER'));
+            $reviewer_reference  = strtolower(str_replace('---', '', $this->column('REVIEWER')));
+            $reviewer_role       = str_replace('---', '', $this->column('REVIEWER-ROLE'));
+            $status              = $this->statuses[$this->column('STATUS')];
+            $submitted_at        = $this->date_convert('SUBMIT-DATE', 'SUB-TIME');
+            $submitter_comments  = str_replace('---', '', $this->column('COMMENT-SUBMITTER'));
+            $submitter_reference = strtolower($this->column('SUBMITTER-NAME'));
+
+            $approved_at = !$approval_date || $approval_date === '---' ? null : $this->date_convert('APPROVAL-DATE', 'APP-TIME');
+            $reviewed_at = !$review_date || $review_date === '---' ? null : $this->date_convert('REVIEW-DATE', 'REV-TIME');
+
+            if ($reviewer_reference) {
+                $approval['reviewer'][$reviewer_reference] = [
+                    'comments'            => $reviewer_comments,
+                    'created_at'          => $created_at,
+                    'role'                => $reviewer_role,
+                    'signature_reference' => '',
+                    'status'              => $status,
+                    'updated_at'          => $reviewed_at,
+                ];
+            }
+            if ($approver_reference) {
+                $approval['approver'][$approver_reference] = [
+                    'comments'            => $approver_comments,
+                    'created_at'          => $created_at,
+                    'role'                => $approver_role,
+                    'signature_reference' => '',
+                    'status'              => $status,
+                    'updated_at'          => $approved_at,
+                ];
+            }
+            if ($assessor_1) {
+                $approval['assessor'][0][$assessor_1] = [
+                    'created_at' => $created_at,
+                    'status'     => $status,
+                    'updated_at' => $created_at,
+                ];
+            }
+            if ($assessor_2) {
+                $approval['assessor'][1][$assessor_2] = [
+                    'created_at' => $created_at,
+                    'status'     => $status,
+                    'updated_at' => $created_at,
+                ];
+            }
+
+            // Comments
+            if ($submitter_comments) {
+                $comments[] = [
+                    'author'     => $submitter_reference,
+                    'created_at' => $created_at,
+                    'content'    => $submitter_comments,
+                    'updated_at' => $created_at,
+                ];
+            }
+
+            $document['approval']     = $approval;
+            $document['comments']     = $comments;
+            $document['submitted_at'] = $submitted_at;
+            $document['submitted_by'] = $submitter_reference;
+
+            if ($author_role) {
+                $document['author_role'] = $author_role;
+            }
+
+            if ($document['category_prefix'] === 'FBL') {
+                $document['feedback_list']['final'] = strtolower($this->column('FBL_FINAL')) === 'yes' ? true : false;
+            }
+
+            $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference][$issue] = $document;
+            $this->stream->send([
+                'percentage' => round(($i + 1) / count($rows) * 100, 1),
+            ]);
+        }
+        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors));
+        \Storage::put('modules/aegis/import/projects_and_document_signatures.json', json_encode($this->projects));
     }
 }

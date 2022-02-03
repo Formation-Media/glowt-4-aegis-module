@@ -4,13 +4,9 @@ $processes = [
         'id'     => null,
         'stages' => [
             [
-                'approvals' => 1,
-                'name'      => 'Approval',
+                'approvals' => 0,
+                'name'      => 'Archived',
                 'items'     => [
-                    [
-                        'groups'   => ['Approvers'],
-                        'required' => false,
-                    ],
                     [
                         'groups'   => ['Approvers'],
                         'required' => false,
@@ -27,7 +23,7 @@ $processes = [
         'stages' => [
             [
                 'approvals' => 2,
-                'name'      => 'Assessors',
+                'name'      => 'Assessor',
                 'items'     => [
                     [
                         'groups'   => ['Assessors'],

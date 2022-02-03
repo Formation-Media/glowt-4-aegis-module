@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Imports\DocumentSignatureImport;
 use Modules\AEGIS\Imports\DocumentsImport;
+use Modules\AEGIS\Imports\Method2Import;
 use Modules\AEGIS\Imports\ProjectsImport;
 use Modules\AEGIS\Imports\SignatureImport;
 use Modules\Documents\Models\ApprovalItemGroup;
@@ -18,6 +19,7 @@ use Modules\Documents\Models\Group;
 
 class ManagementController extends Controller
 {
+    private $method = 2;
     private $users;
 
     public function import(SSEStream $stream, Request $request)
@@ -140,14 +142,20 @@ class ManagementController extends Controller
             }
         }
         /*
-            TRUNCATE `glowt_4`.`m_aegis_document_approval_item_details`;
-            TRUNCATE `glowt_4`.`m_aegis_projects`;
-            TRUNCATE `glowt_4`.`m_aegis_project_variants`;
-            TRUNCATE `glowt_4`.`m_aegis_variant_documents`;
-            TRUNCATE `glowt_4`.`m_documents_approval_stages`;
-            TRUNCATE `glowt_4`.`m_documents_comments`;
-            TRUNCATE `glowt_4`.`m_documents_documents`;
-            TRUNCATE `glowt_4`.`m_documents_documents_approval_items`;
+            TRUNCATE `m_aegis_document_approval_item_details`;
+            TRUNCATE `m_aegis_projects`;
+            TRUNCATE `m_aegis_project_variants`;
+            TRUNCATE `m_aegis_variant_documents`;
+            TRUNCATE `m_documents_approval_items`;
+            TRUNCATE `m_documents_approval_items_groups`;
+            TRUNCATE `m_documents_approval_processes`;
+            TRUNCATE `m_documents_approval_stages`;
+            TRUNCATE `m_documents_comments`;
+            TRUNCATE `m_documents_documents`;
+            TRUNCATE `m_documents_documents_approval_items`;
+            TRUNCATE `m_documents_groups`;
+            TRUNCATE `m_documents_meta`;
+            TRUNCATE `m_documents_user_groups`;
         */
         $steps = [
             'document_types' => [
@@ -182,9 +190,13 @@ class ManagementController extends Controller
                 'message'    => $messages[1],
             ]);
         }
+        if ($this->method === 2) {
+            $this->method_2($stream);
+        }
         $stream->stop([
-            'percentage' => 100,
             'message'    => 'Finished importing data',
+            'percentage' => 100,
+            'redirect'   => '/a/m/AEGIS/management/import-errors',
         ]);
         exit;
     }
@@ -192,11 +204,7 @@ class ManagementController extends Controller
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Creating Approval Groups',
-        ]);
-        $stream->send([
-            'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Creating Approval Processes',
+            'message'    => '&nbsp;&nbsp;&nbsp;Creating Approval Groups and Processes',
         ]);
         include \Module::getModulePath('AEGIS').'/Resources/files/import/processes.php';
         foreach ($processes as $data) {
@@ -264,7 +272,7 @@ class ManagementController extends Controller
             'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
         \Excel::import(
-            new DocumentsImport($stream, $this->users),
+            new DocumentsImport($stream, $this->users, $this->method),
             \Module::getModulePath('AEGIS').'/Resources/files/import/documents.xlsx'
         );
     }
@@ -275,7 +283,7 @@ class ManagementController extends Controller
             'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
         \Excel::import(
-            new ProjectsImport($stream, $this->users),
+            new ProjectsImport($stream, $this->users, $this->method),
             \Module::getModulePath('AEGIS').'/Resources/files/import/projects.xlsx'
         );
     }
@@ -286,7 +294,7 @@ class ManagementController extends Controller
             'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
         \Excel::import(
-            new DocumentSignatureImport($stream, $this->users),
+            new DocumentSignatureImport($stream, $this->users, $this->method),
             \Module::getModulePath('AEGIS').'/Resources/files/import/document-signatures.xlsx'
         );
     }
@@ -297,8 +305,20 @@ class ManagementController extends Controller
             'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
         \Excel::import(
-            new SignatureImport($stream, $this->users),
+            new SignatureImport($stream, $this->users, $this->method),
             \Module::getModulePath('AEGIS').'/Resources/files/import/signatures.xlsx'
         );
+    }
+    private function method_2($stream)
+    {
+        $stream->send([
+            'percentage' => 0,
+            'message'    => 'Storing Data',
+        ]);
+        new Method2Import($stream, $this->users);
+        $stream->send([
+            'percentage' => 1000,
+            'message'    => 'Finished Storing Data',
+        ]);
     }
 }
