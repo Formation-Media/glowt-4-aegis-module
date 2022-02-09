@@ -305,14 +305,14 @@ class DocumentsImport implements ToCollection
             $created_at = $this->column('CREATION-DATE');
 
             if (!$created_at) {
-                $this->errors['Documents'][$reference] = 'No created date';
-                continue;
+                $created_at = date('Y-m-d H:i:s');
+            } else {
+                $created_at = $this->date_convert('CREATION-DATE', 'CRE-TIME');
             }
 
             $author             = strtolower($this->column('AUTHOR'));
             $category           = $this->column('DOC-TYPE');
             $category_prefix    = $this->column('DOC-LETTER');
-            $created_at         = $this->date_convert('CREATION-DATE', 'CRE-TIME');
             $feedback_list      = null;
             $name               = $this->column('DOC-NAME');
             $issue              = $this->column('ISSUE');

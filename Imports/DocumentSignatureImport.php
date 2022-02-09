@@ -314,6 +314,9 @@ class DocumentSignatureImport implements ToCollection
                 continue;
             }
 
+            $created_at   = $this->column('CREATION-DATE');
+            $submitted_at = $this->column('SUBMIT-DATE');
+
             $approval            = [];
             $approval_date       = $this->column('APPROVAL-DATE');
             $assessor_1          = $this->column('ASSESSOR_1');
@@ -323,7 +326,7 @@ class DocumentSignatureImport implements ToCollection
             $approver_role       = str_replace('---', '', $this->column('APPROVER-ROLE'));
             $author_role         = str_replace('---', '', $this->column('AUTHOR-ROLE'));
             $comments            = [];
-            $created_at          = $this->date_convert('CREATION-DATE', 'CRE-TIME');
+            $created_at          = $created_at !== null ? $this->date_convert('CREATION-DATE', 'CRE-TIME') : date('Y-m-d H:i:s');
             $document            = $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference]
                 [$issue];
             $review_date         = $this->column('REVIEW-DATE');
@@ -331,7 +334,7 @@ class DocumentSignatureImport implements ToCollection
             $reviewer_reference  = strtolower(str_replace('---', '', $this->column('REVIEWER')));
             $reviewer_role       = str_replace('---', '', $this->column('REVIEWER-ROLE'));
             $status              = $this->statuses[$this->column('STATUS')];
-            $submitted_at        = $this->date_convert('SUBMIT-DATE', 'SUB-TIME');
+            $submitted_at        = $submitted_at !== null ? $this->date_convert('SUBMIT-DATE', 'SUB-TIME') : date('Y-m-d H:i:s');
             $submitter_comments  = str_replace('---', '', $this->column('COMMENT-SUBMITTER'));
             $submitter_reference = strtolower($this->column('SUBMITTER-NAME'));
 

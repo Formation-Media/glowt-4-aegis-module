@@ -17,24 +17,39 @@
             @endforeach
         </ol>
     </x-card>
-    <x-card>
+    <x-table type="manual">
+        <x-slot name="thead">
+            <tr>
+                <th>#</th>
+                <th>Section</th>
+                <th>Company</th>
+                <th>Project</th>
+                <th>Document Reference</th>
+                <th>Full Reference</th>
+                <th>Reason</th>
+            </tr>
+        </x-slot>
         @if($sections)
-            <ul>
-                @foreach ($sections as $section => $errors)
-                    <li>{{ $section }}
-                        <ol class="ps-5">
-                            @foreach ($errors as $reference => $message)
-                                <li>
-                                    @if(!is_numeric($reference))
-                                        <strong>{{ $reference }}</strong>
-                                    @endif
-                                    {{ $message }}
-                                </li>
-                            @endforeach
-                        </ol>
-                    </li>
+            @php
+                $i = 0;
+            @endphp
+            @foreach ($sections as $section => $companies)
+                @foreach($companies as $company => $projects)
+                    @foreach($projects as $project => $references)
+                        @foreach($references as $message => $reference)
+                            <tr>
+                                <td>{{ ++$i }}</td>
+                                <td>{{ $section }}</td>
+                                <td>{{ $company }}</td>
+                                <td>{{ $project }}</td>
+                                <td>{{ $reference }}</td>
+                                <td>{{ $company === 'Unknown' ? $reference : $company.'/'.$project.'/'.$reference }}</td>
+                                <td>{{ $message }}</td>
+                            </tr>
+                        @endforeach
+                    @endforeach
                 @endforeach
-            </ul>
+            @endforeach
         @endif
-    </x-card>
+    </x-table>
 @endsection
