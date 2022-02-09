@@ -4,7 +4,7 @@
         'breadcrumbs'=>array(
             $module->getName(),
             $module_base.'projects' => __('dictionary.projects'),
-            $project->id.': '.$project->name
+            $project->reference.': '.$project->name
         ),
         'page_menu'=> array(
             array(
@@ -16,6 +16,7 @@
     )
 )
 @section('content')
+    <x-card :details="$project->details" />
     <x-tabs name="project" :tabs="$tabs">
         <x-tab target="{{__('dictionary.details')}}">
             <x-form name="project">

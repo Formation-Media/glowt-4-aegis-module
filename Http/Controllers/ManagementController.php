@@ -33,11 +33,36 @@ class ManagementController extends Controller
     }
     public function import_errors(Request $request)
     {
-        $error_file = 'modules/aegis/import/errors.json';
-        $sections   = [];
+        $error_file         = 'modules/aegis/import/errors.json';
+        $processed_sections = [];
+        $section_input      = [];
+        $sections           = [];
         if (\Storage::exists($error_file)) {
-            $sections = json_decode(\Storage::get($error_file), true);
+            $section_input = json_decode(\Storage::get($error_file), true);
         }
+        foreach ($section_input as $section => $errors) {
+            foreach ($errors as $reference => $message) {
+                $explosion         = explode('/', $reference);
+                if (count($explosion) > 1) {
+                    $company           = array_shift($explosion);
+                    $project_reference = array_shift($explosion);
+                    $processed_sections[$section][$company][$project_reference][$message] = implode('/', $explosion);
+                } else {
+                    $processed_sections[$section]['Unknown']['Unknown'][$message] = $explosion[0];
+                }
+            }
+        }
+        foreach ($processed_sections as &$section) {
+            ksort($section);
+            foreach ($section as $company => &$projects) {
+                ksort($projects);
+            }
+        }
+        unset(
+            $projects,
+            $section
+        );
+        $sections = $processed_sections;
         $users = User
             ::with('metas')
             ->where('email', 'NOT LIKE', '%@formation%')

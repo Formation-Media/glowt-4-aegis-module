@@ -150,6 +150,8 @@ class ManagementController extends Controller
             TRUNCATE `m_documents_approval_items_groups`;
             TRUNCATE `m_documents_approval_processes`;
             TRUNCATE `m_documents_approval_stages`;
+            TRUNCATE `m_documents_categories`;
+            TRUNCATE `m_documents_category_approval_items`;
             TRUNCATE `m_documents_comments`;
             TRUNCATE `m_documents_documents`;
             TRUNCATE `m_documents_documents_approval_items`;

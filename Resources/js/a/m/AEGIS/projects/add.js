@@ -1,9 +1,38 @@
-var add = {
+let add = {
     init:function() {
-        this.watch_scope_autocomplete();
+        this.watch_company();
         this.watch_scope();
     },
-    watch_scope_autocomplete:function() {
+    watch_company:function() {
+        let reference = document.querySelector('.reference-outer');
+        let next      = reference.querySelector('input');
+        let prefix    = reference.querySelector('.input-group-text');
+        document.querySelector('[name="company_id"]').addEventListener('change', function() {
+            next.value       = '';
+            prefix.innerHTML = '&hellip;/';
+            if (this.value) {
+                app.show_loader();
+                app.ajax(
+                    'm/AEGIS/companies/get-reference',
+                    {
+                        company_id: this.value
+                    },
+                    function(json) {
+                        if (json.status) {
+                            prefix.innerHTML = json.data.prefix + '/';
+                            next.value       = json.data.next;
+                        }
+                    },
+                    null,
+                    function() {
+                        app.hide_loader();
+                    },
+                    '.project .card-body'
+                );
+            }
+        });
+    },
+    watch_scope:function() {
         document.getElementById('scope-autocomplete').addEventListener('autocomplete-add', function(e) {
             app.show_loader();
             app.ajax(
@@ -14,29 +43,6 @@ var add = {
                 function(json) {
                     if (json.data) {
                         document.getElementById('scope').value = json.data.id;
-                    }
-                },
-                null,
-                function() {
-                    app.hide_loader();
-                }
-            );
-        });
-    },
-    watch_scope:function() {
-        var reference = document.getElementById('reference-outer');
-        var group     = reference.querySelector('div.input-group');
-        var prefield  = group.querySelector('span.input-group-text');
-        document.getElementById('scope-autocomplete').addEventListener('autocomplete-select', function(e) {
-            app.show_loader();
-            app.ajax(
-                'm/AEGIS/projects/get_scope_ref',
-                {
-                    id: e.selection.id
-                },
-                function(json) {
-                    if (json.data) {
-                        prefield.innerHTML = json.data.prefix;
                     }
                 },
                 null,

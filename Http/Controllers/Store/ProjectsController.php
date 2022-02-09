@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers\Store;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\Scope;
@@ -17,6 +18,7 @@ class ProjectsController extends Controller
             'reference'  => 'required|max:4|unique:Modules\AEGIS\Models\Project',
             'scope'      => 'required|exists:Modules\AEGIS\Models\Scope,id',
         ]);
+        $company_abbreviation     = Company::find($validated['company_id'])->abbreviation;
         $scope                    = Scope::find($request->scope);
         $user                     = \Auth::user();
         $new_project              = new Project();
@@ -26,7 +28,7 @@ class ProjectsController extends Controller
         $new_project->type_id     = $request->type;
         $new_project->added_by    = $user->id;
         $new_project->description = $request->description;
-        $new_project->reference   = strtoupper($scope->reference.'/'.$validated['reference']);
+        $new_project->reference   = strtoupper($company_abbreviation.'/'.$validated['reference']);
         $new_project->save();
         $default_variant                 = new ProjectVariant();
         $default_variant->name           = $request->name;

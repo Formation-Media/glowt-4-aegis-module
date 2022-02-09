@@ -23,6 +23,16 @@ class Project extends Model
     ];
     protected $table = 'm_aegis_projects';
 
+    public function getDetailsAttribute()
+    {
+        return [
+            'dictionary.reference' => [
+                'icon'  => 'hashtag',
+                'value' => $this->reference,
+            ],
+        ];
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

@@ -5,16 +5,44 @@ namespace Modules\AEGIS\Http\Controllers\Ajax;
 use App\Helpers\Dates;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\Project;
 
 class CompaniesController extends Controller
 {
-    // Ajax
     public function delete_company(Request $request)
     {
         $company = Company::findOrFail($request->id);
         $company->delete();
         return true;
+    }
+    public function get_reference(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            array(
+                'company_id' => 'required|exists:m_aegis_companies,id',
+            )
+        );
+        if ($validator->fails()) {
+            return parent::errors($validator);
+        }
+        $validated = $validator->validated();
+        $prefix    = Company::find($validated['company_id'])->abbreviation;
+        $next      = Project::where('reference', 'like', $prefix.'/%')->orderBy('id', 'desc')->first();
+        if ($next) {
+            $next = substr($next->reference, 4) + 1;
+            while (Project::where('reference', $prefix.'/'.$next)->count()) {
+                $next++;
+            }
+        } else {
+            $next = '001';
+        }
+        return compact(
+            'prefix',
+            'next',
+        );
     }
     public function restore_company(Request $request)
     {
@@ -32,15 +60,15 @@ class CompaniesController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                __('dictionary.name') => array(
+                'dictionary.name' => array(
                     'columns'      => 'name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                __('dictionary.abbreviation') => array(
+                'dictionary.abbreviation' => array(
                     'columns' => 'abbreviation',
                 ),
-                __('dictionary.status') => array(
+                'dictionary.status' => array(
                     'columns'      => 'status',
                     'from_boolean' => array(
                         'Enabled',
@@ -48,13 +76,13 @@ class CompaniesController extends Controller
                     ),
                     'sortable' => true,
                 ),
-                __('dictionary.added') => array(
+                'dictionary.added' => array(
                     'columns'  => 'created_at',
                     'sortable' => true,
                     'class'    => Dates::class,
                     'method'   => 'datetime',
                 ),
-                __('dictionary.updated') => array(
+                'dictionary.updated' => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
                     'class'    => Dates::class,

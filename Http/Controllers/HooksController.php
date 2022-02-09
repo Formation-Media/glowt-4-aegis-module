@@ -62,7 +62,7 @@ class HooksController extends AEGISController
     public static function collect_documents__view_approve_fields()
     {
         $companies  = Company::active()->pluck('name', 'id');
-        $job_titles = JobTitle::whereIn('id', \Auth::user()->getMeta('aegis.discipline'))->formatted();
+        $job_titles = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
         return view(
             'aegis::_hooks.approve-fields',
             compact(
@@ -383,6 +383,54 @@ class HooksController extends AEGISController
             $data[__('aegis::phrases.approved-as')] = $job_title;
         }
     }
+    // public static function filter_card_view_filter(&$query, $module, $request)
+    // {
+    //     if (isset($request->module)
+    //         && $request->module === 'Documents'
+    //         && $request->model === 'Document'
+    //     ) {
+    //         $query
+    //             ->join('m_aegis_variant_documents', 'm_aegis_variant_documents.document_id', 'm_documents_documents.id')
+    //             ->select([
+    //                 'm_documents_documents.*',
+    //                 'm_aegis_variant_documents.reference',
+    //             ])
+    //             ->where('m_documents_documents.category_id', $request->id)
+    //             ->groupBy('m_documents_documents.id');
+    //     }
+    // }
+    public static function filter_card_view_result(&$data, $module)
+    {
+        if (isset($data['request']->module)
+            && $data['request']->module === 'Documents'
+            && $data['request']->model === 'Document'
+        ) {
+            $data['attributes'] = array_merge(
+                [
+                    [
+                        'icon'  => 'hashtag',
+                        'label' => 'dictionary.reference',
+                        'value' => $data['result']->reference,
+                    ],
+                ],
+                $data['attributes']
+            );
+        }
+    }
+    // public static function filter_card_view_search(&$search_columns, $module, $request)
+    // {
+    //     if (isset($request->module)
+    //         && $request->module === 'Documents'
+    //         && $request->model === 'Document'
+    //     ) {
+    //         $search_columns = array_merge(
+    //             [
+    //                 'm_aegis_variant_documents.reference'
+    //             ],
+    //             $search_columns
+    //         );
+    //     }
+    // }
     public static function filter_documents__document_details(&$details, $module, $document)
     {
         if ($document->category->prefix === 'FBL' && ($meta = $document->getMeta('feedback_list_type_id'))) {
@@ -423,7 +471,7 @@ class HooksController extends AEGISController
     {
         if (Modules::isEnabled('Documents')) {
             foreach ($menu as &$item) {
-                if ($item['title'] === 'Documents') {
+                if ($item['title'] === 'dictionary.documents') {
                     $item['title'] = 'MDSS';
                 }
             }
