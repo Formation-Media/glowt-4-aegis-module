@@ -14,7 +14,7 @@ class CompetenciesByCompany
                 'datasets' => array(
                     array(
                         'data'  => array(),
-                        'label' => __('Competencies by Company'),
+                        'label' => ___('Competencies by Company'),
                     ),
                 ),
             ],

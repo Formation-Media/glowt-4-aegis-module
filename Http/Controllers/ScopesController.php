@@ -18,8 +18,8 @@ class ScopesController extends Controller
     {
         $scope         = Scope::findOrFail($id);
         $scope_details = [
-            __('dictionary.reference') => $scope->reference,
-            __('phrases.created-by')   => User::find($scope->added_by)->name,
+            ___('dictionary.reference') => $scope->reference,
+            ___('phrases.created-by')   => User::find($scope->added_by)->name,
         ];
         return parent::view(compact(
             'scope',

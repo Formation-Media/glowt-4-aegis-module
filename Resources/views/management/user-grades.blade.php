@@ -2,9 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('User Grades')
+            ___('User Grades')
         ),
         'page_menu'=>array(
             array(
@@ -24,14 +24,14 @@
     <x-modal id="add-user-grade" title="Add User Grade" save-style="success" save-text="Add">
         <x-form name="company">
             <x-field
-                label="{{ __('Grade Name') }}"
+                label="{{ ___('Grade Name') }}"
                 name="name"
                 required
                 type="text"
             />
             <x-field
                 checked
-                label="{{ __('Status') }}"
+                label="{{ ___('Status') }}"
                 name="status"
                 type="switch"
             />

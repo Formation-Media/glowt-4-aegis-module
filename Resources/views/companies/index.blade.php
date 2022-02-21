@@ -12,9 +12,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('dictionary.companies')
+            ___('dictionary.companies')
         ),
         'page_menu'=>$page_menu,
     )

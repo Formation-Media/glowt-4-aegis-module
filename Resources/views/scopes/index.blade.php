@@ -3,16 +3,16 @@
     $page_menu[]=array(
         'href' =>'/a/m/AEGIS/scopes/add',
         'icon' =>'file-plus',
-        'title'=>__('Add Scope')
+        'title'=>___('Add Scope')
     );
 @endphp
 @extends(
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('Scopes')
+            ___('Scopes')
         ),
         'page_menu'=> $page_menu
     )

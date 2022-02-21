@@ -3,7 +3,7 @@
         array(
             'class'=> 'js-add-type',
             'icon' =>'plus',
-            'title'=>__('Add Type')
+            'title'=>___('Add Type')
         )
     );
 @endphp
@@ -11,19 +11,19 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('Types')
+            ___('Types')
         ),
         'page_menu'=> $page_menu
     )
 )
 @section('content')
     <x-table selects controller="management" method="types" type="classic" module="AEGIS"/>
-    <x-modal id="add-type" title="{{__('Add Type')}}" save-style="success" save-text="Add">
+    <x-modal id="add-type" title="{{___('Add Type')}}" save-style="success" save-text="Add">
         <x-form name="types">
             <x-field
-                label="{{ __('Name') }}"
+                label="{{ ___('Name') }}"
                 name="name"
                 required
                 type="text"

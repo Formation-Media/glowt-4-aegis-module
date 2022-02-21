@@ -1,6 +1,6 @@
 @if($method!=='profile' && $competency_sections)
     <x-field
-        label="{!! __('aegis::phrases.default-sections') !!}"
+        label="{!! ___('aegis::phrases.default-sections') !!}"
         name="aegis[default-sections][]"
         multiple
         :options="$competency_sections"
@@ -11,7 +11,7 @@
 @if(count($grades))
     <x-field
         disabled="{{ $method==='profile' }}"
-        label="{{ __('dictionary.grade') }}"
+        label="{{ ___('dictionary.grade') }}"
         name="aegis[grade]"
         :options="$grades"
         required
@@ -22,7 +22,7 @@
 @if(count($job_titles))
     <x-field
         disabled="{{ $method==='profile' }}"
-        label="{{ __('aegis::phrases.job-title') }}"
+        label="{{ ___('aegis::phrases.job-title') }}"
         multiple
         name="aegis[discipline][]"
         :options="$job_titles"
@@ -33,7 +33,7 @@
 @endif
 @if($method!=='profile')
     <x-field
-        label="{{ __('aegis::phrases.live-document') }}"
+        label="{{ ___('aegis::phrases.live-document') }}"
         name="aegis[live-document]"
         type="url"
         value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.live-document')?$user->getMeta('aegis.live-document'):'' }}"
@@ -41,7 +41,7 @@
 @endif
 <x-field
     disabled="{{ $method==='profile' }}"
-    label="{{ __('dictionary.type') }}"
+    label="{{ ___('dictionary.type') }}"
     name="aegis[type]"
     :options="$types"
     required
@@ -50,7 +50,7 @@
 />
 @if($method!=='profile')
     <x-field
-        label="{{ __('aegis::phrases.user-reference') }}"
+        label="{{ ___('aegis::phrases.user-reference') }}"
         max="3"
         name="aegis[user-reference]"
         type="text"

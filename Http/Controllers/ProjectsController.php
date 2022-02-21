@@ -23,16 +23,16 @@ class ProjectsController extends Controller
         $project                  = Project::find($id);
         $scope                    = $project->scope ?? null;
         $tabs                     = [
-            ['name' => __('dictionary.details')],
+            ['name' => ___('dictionary.details')],
         ];
         $types    = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
         $variants = $project->variants;
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
                 $default_variant = $variant;
-                $tabs[]          = ['name' => __('dictionary.default').' ('.$variant->name.')'];
+                $tabs[]          = ['name' => ___('dictionary.default').' ('.$variant->name.')'];
             } else {
-                $tabs[] = ['name' => __('dictionary.variant').' '.($i).' ('.$variant->name.')'];
+                $tabs[] = ['name' => ___('dictionary.variant').' '.($i).' ('.$variant->name.')'];
             }
         }
 

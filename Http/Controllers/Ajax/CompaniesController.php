@@ -114,7 +114,7 @@ class CompaniesController extends Controller
                         'class' => $is_deleted ? 'js-restore-company' : 'js-delete-company',
                         'id'    => $group->id,
                         'style' => $is_deleted ? 'info' : 'danger',
-                        'name'  => $is_deleted ? __('dictionary.restore') : __('dictionary.delete'),
+                        'name'  => $is_deleted ? ___('dictionary.restore') : ___('dictionary.delete'),
                     );
                 }
                 return $processed;

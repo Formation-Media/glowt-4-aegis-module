@@ -122,7 +122,7 @@ class ScopesController extends Controller
         $actions        = array(
             array(
                 'style' => 'primary',
-                'name'  => __('View'),
+                'name'  => ___('View'),
                 'uri'   => '/a/m/AEGIS/scopes/scope/{{id}}',
             ),
         );
@@ -132,19 +132,19 @@ class ScopesController extends Controller
                     'action' => 'enable-scope',
                     'icon'   => 'square-check',
                     'style'  => 'success',
-                    'title'  => __('dictionary.enable'),
+                    'title'  => ___('dictionary.enable'),
                 ),
                 array(
                     'action' => 'disable-scope',
                     'icon'   => 'square-xmark',
                     'style'  => 'warning',
-                    'title'  => __('dictionary.disable'),
+                    'title'  => ___('dictionary.disable'),
                 ),
                 array(
                     'action' => 'delete-scope',
                     'icon'   => 'square-xmark',
                     'style'  => 'danger',
-                    'title'  => __('dictionary.delete'),
+                    'title'  => ___('dictionary.delete'),
                 ),
             );
         }
@@ -155,26 +155,26 @@ class ScopesController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                __('dictionary.name') => array(
+                ___('dictionary.name') => array(
                     'columns'      => 'name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                __('dictionary.reference') => array(
+                ___('dictionary.reference') => array(
                     'columns'      => 'reference',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                __('phrases.added-by') => array(
+                ___('phrases.added-by') => array(
                     'sortable' => true,
                 ),
-                __('phrases.added-at') => array(
+                ___('phrases.added-at') => array(
                     'columns'  => 'created_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
                     'method'   => 'datetime',
                 ),
-                __('phrases.updated-at') => array(
+                ___('phrases.updated-at') => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
@@ -193,7 +193,7 @@ class ScopesController extends Controller
             function ($in, $out) {
                 $scope                       = Scope::where('id', $in['id'])->first();
                 $added_by                    = User::where('id', $scope->added_by)->first();
-                $out[__('phrases.added-by')] = $added_by->name;
+                $out[___('phrases.added-by')] = $added_by->name;
                 return $out;
             }
         );

@@ -3,9 +3,9 @@
     array(
         'breadcrumbs'=>array(
             $module->getName(),
-            $module_base.'projects' => __('Projects'),
+            $module_base.'projects' => ___('Projects'),
             'project/'.$project->id => $project->name,
-            __('Add Variant')
+            ___('Add Variant')
         ),
     )
 )
@@ -33,7 +33,7 @@
         </x-card>
         <x-field type="actions">
             <x-slot name="center">
-                <x-field label="{{ __('Add') }}" name="add" type="submit" style="success"/>
+                <x-field label="{{ ___('Add') }}" name="add" type="submit" style="success"/>
             </x-slot>
         </x-field>
     </x-form>

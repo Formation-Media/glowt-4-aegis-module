@@ -27,7 +27,7 @@
     />
     <x-field
         disabled="{{$selected_variant? true : false}}"
-        label="{{ __('Project Variant') }}"
+        label="{{ ___('Project Variant') }}"
         name="aegis[project_variant]"
         :options="$project_variants ?? [] "
         type="select"

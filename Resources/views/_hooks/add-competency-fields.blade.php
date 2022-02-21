@@ -1,7 +1,7 @@
 @if (count($companies))
     <x-field
         disabled="{{ isset($competency) && $competency->status>2 }}"
-        label="{{ __('Competency Company') }}"
+        label="{{ ___('Competency Company') }}"
         name="aegis[company]"
         :options="$companies"
         required

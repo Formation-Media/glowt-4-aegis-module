@@ -2,9 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('aegis::phrases.feedback-list-types')
+            ___('aegis::phrases.feedback-list-types')
         ),
     )
 )
@@ -14,7 +14,7 @@
         module="AEGIS"
         view="row"
     />
-    {{-- <x-modal id="add-feedback-list-type" :title="['phrases.add', ['item' => __('aegis::phrases.feedback-list-type')]]" save-style="success" save-text="dictionary.add">
+    {{-- <x-modal id="add-feedback-list-type" :title="['phrases.add', ['item' => ___('aegis::phrases.feedback-list-type')]]" save-style="success" save-text="dictionary.add">
         <x-form name="types">
             <x-field
                 label="dictionary.name"

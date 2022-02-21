@@ -3,20 +3,20 @@
     $page_menu[]=array(
         'href' =>'/a/m/AEGIS/projects/add/'.$scope->id,
         'icon' =>'file-plus',
-        'title'=>__('Add Project to Scope')
+        'title'=>___('Add Project to Scope')
     );
     $tabs = [
-        ['name' => __('dictionary.details')],
-        ['name' => __('dictionary.projects')],
+        ['name' => ___('dictionary.details')],
+        ['name' => ___('dictionary.projects')],
     ]
 @endphp
 @extends(
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            $module_base.'scopes' => __('Scopes'),
+            $module_base.'scopes' => ___('Scopes'),
             $scope->name
         ),
         'page_menu'=> $page_menu
@@ -24,13 +24,13 @@
 )
 @section('content')
     <x-tabs name="scope" :tabs="$tabs">
-        <x-tab target="{{__('Details')}}">
+        <x-tab target="{{___('Details')}}">
             <x-card :details="$scope_details"/>
             <x-form name="scope">
                 <x-card>
                     <x-field
                         name="name"
-                        label="{{__('Name')}}"
+                        label="{{___('Name')}}"
                         type="text"
                         value="{{ $scope->name}}"
                         required
@@ -38,12 +38,12 @@
                 </x-card>
                 <x-field type="actions">
                     <x-slot name="center">
-                        <x-field label="{{ __('Update') }}" name="add" type="submit" style="primary"/>
+                        <x-field label="{{ ___('Update') }}" name="add" type="submit" style="primary"/>
                     </x-slot>
                 </x-field>
             </x-form>
         </x-tab>
-        <x-tab target="{{__('Projects')}}">
+        <x-tab target="{{___('Projects')}}">
             <x-table selects controller="Projects" module="AEGIS" method="view" type="classic" id="{{$scope->id}}" />
         </x-tab>
     </x-tabs>

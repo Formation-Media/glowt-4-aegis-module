@@ -2,9 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('Job Titles')
+            ___('Job Titles')
         ),
         'page_menu'=>array(
             array(
@@ -24,14 +24,14 @@
     <x-modal id="add-job-title" title="Add Job Title" save-style="success" save-text="Add">
         <x-form name="company">
             <x-field
-                label="{{ __('Job Title') }}"
+                label="{{ ___('Job Title') }}"
                 name="name"
                 required
                 type="text"
             />
             <x-field
                 checked
-                label="{{ __('Status') }}"
+                label="{{ ___('Status') }}"
                 name="status"
                 type="switch"
             />

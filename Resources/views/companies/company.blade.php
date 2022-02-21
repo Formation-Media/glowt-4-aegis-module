@@ -2,9 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            $module_base.'companies' => __('dictionary.companies'),
+            $module_base.'companies' => ___('dictionary.companies'),
             $company->name
         )
     )
@@ -15,14 +15,14 @@
         <x-card>
             <div class="grid-md-2">
                 <x-field
-                    label="{{ __('Name') }}"
+                    label="{{ ___('Name') }}"
                     name="name"
                     required
                     type="text"
                     value="{{ $company->name }}"
                 />
                 <x-field
-                    label="{{ __('dictionary.abbreviation') }}"
+                    label="{{ ___('dictionary.abbreviation') }}"
                     name="abbreviation"
                     required
                     type="text"
@@ -31,13 +31,13 @@
                 <x-field
                     accept=".pdf"
                     :existing="$company->pdf_footer ?? null"
-                    label="{{ __('aegis::phrases.pdf-footer') }}"
+                    label="{{ ___('aegis::phrases.pdf-footer') }}"
                     name="pdf_footer"
                     type="file"
                 />
                 <x-field
                     checked="{{ $company->status?true:false }}"
-                    label="{{ __('Status') }}"
+                    label="{{ ___('Status') }}"
                     name="status"
                     type="switch"
                 />
@@ -45,7 +45,7 @@
         </x-card>
         <x-field type="actions">
             <x-slot name="right">
-                <x-field label="{{ __('Update') }}" name="save" type="submit" style="primary"/>
+                <x-field label="{{ ___('Update') }}" name="save" type="submit" style="primary"/>
             </x-slot>
         </x-field>
     </x-form>

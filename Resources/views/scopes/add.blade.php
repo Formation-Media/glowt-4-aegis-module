@@ -2,10 +2,10 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            $module_base.'scopes' => __('dictionary.scopes'),
-            __('dictionary.add')
+            $module_base.'scopes' => ___('dictionary.scopes'),
+            ___('dictionary.add')
         ),
     )
 )
@@ -14,22 +14,22 @@
         <x-card >
             <x-field
                 name="name"
-                label="{{__('dictionary.name')}}"
+                label="{{___('dictionary.name')}}"
                 type="text"
                 required
             />
             <x-field
                 aria-readonly
-                label="{{__('dictionary.reference')}}"
+                label="{{___('dictionary.reference')}}"
                 name="reference"
-                note="{{__('aegis::scopes.reference-message')}}"
+                note="{{___('aegis::scopes.reference-message')}}"
                 required
                 type="text"
             />
         </x-card>
         <x-field type="actions">
             <x-slot name="center">
-                <x-field label="{{ __('dictionary.add') }}" name="add" type="submit" style="success"/>
+                <x-field label="{{ ___('dictionary.add') }}" name="add" type="submit" style="success"/>
             </x-slot>
         </x-field>
     </x-form>
