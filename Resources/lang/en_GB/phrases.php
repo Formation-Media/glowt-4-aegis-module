@@ -1,6 +1,7 @@
 <?php
 
 return array(
+    'all-companies'   => 'All Companies',
     'approve-as-role' => 'Approve As Role',
     'approved-as'     => 'Approved As',
 

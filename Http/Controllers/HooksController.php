@@ -17,7 +17,9 @@ use Modules\Documents\Models\Category;
 use Modules\Documents\Models\Document;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
+use Modules\HR\Models\CompetencySkill;
 use Modules\HR\Models\CompetencySubjectAchievement;
+use Modules\HR\Models\CompetencySubjectAchievementSkill;
 
 class HooksController extends AEGISController
 {
@@ -26,7 +28,7 @@ class HooksController extends AEGISController
         return array(
             'method' => 'competencies_by_company',
             'module' => 'AEGIS',
-            'title'  => __('Competencies by Company'),
+            'title'  => ___('Competencies by Company'),
             'type'   => 'donut',
         );
     }
@@ -228,8 +230,8 @@ class HooksController extends AEGISController
         }
         $live_document = \Auth::user()->getMeta('aegis.live-document');
         if ($live_document) {
-            $details[__('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
-                .__('dictionary.view').'</a>';
+            $details[___('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
+                .___('dictionary.view').'</a>';
         }
         return view(
             'aegis::_hooks.add-competency-fields',
@@ -246,8 +248,8 @@ class HooksController extends AEGISController
         $details       = [];
         $live_document = $competency->user->getMeta('aegis.live-document');
         if ($live_document) {
-            $details[__('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
-                .__('dictionary.view').'</a>';
+            $details[___('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
+                .___('dictionary.view').'</a>';
         }
         $value = CompetencyCompany::where('competency_id', $competency->id)->first();
         if ($value) {
@@ -277,8 +279,8 @@ class HooksController extends AEGISController
         $details       = [];
         $live_document = $competency->user->getMeta('aegis.live-document');
         if ($live_document) {
-            $details[__('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
-                .__('dictionary.view').'</a>';
+            $details[___('aegis::phrases.live-document')] = '<a href="'.$live_document.'" target="_blank">'
+                .___('dictionary.view').'</a>';
         }
         if ($bio = $competency->user->getMeta('hr.bio') ?? null) {
             $bio = nl2br($bio);
@@ -352,18 +354,31 @@ class HooksController extends AEGISController
     }
     public static function collect_view_table_filter($args)
     {
-        $companies = array();
-        if ($competency_companies = Company::all()) {
-            foreach ($competency_companies as $company) {
-                $companies[$company->id] = $company->name;
+        $compact = [
+            'args'
+        ];
+        if ($args['module'] == 'HR' && $args['method'] == 'table_competencies') {
+            $companies = array();
+            $company   = isset($args['request']['filter']['company']) ? $args['request']['filter']['company'] : false;
+
+            if ($competency_companies = Company::all()) {
+                foreach ($competency_companies as $company) {
+                    $companies[$company->id] = $company->name;
+                }
             }
+
+            $compact = array_merge(
+                $compact,
+                [
+                    'args',
+                    'companies',
+                    'company',
+                ]
+            );
         }
         return view(
             'aegis::_hooks.table-filter',
-            compact(
-                'args',
-                'companies'
-            )
+            compact(...$compact)
         )->render();
     }
     public static function collect_hr__view_set_up()
@@ -377,10 +392,10 @@ class HooksController extends AEGISController
         $company   = $details->company->name ?? null;
         $job_title = $details->job_title->name ?? null;
         if ($company) {
-            $data[__('dictionary.company')] = $company;
+            $data[___('dictionary.company')] = $company;
         }
         if ($job_title) {
-            $data[__('aegis::phrases.approved-as')] = $job_title;
+            $data[___('aegis::phrases.approved-as')] = $job_title;
         }
     }
     // public static function filter_card_view_filter(&$query, $module, $request)
@@ -458,8 +473,9 @@ class HooksController extends AEGISController
         $request = $args['request'];
         if ($request->filter) {
             if (isset($request->filter['company'])) {
-                if ($ids = CompetencyCompany::select('competency_id')->where('company_id', $request->filter['company'])->get()) {
-                    $ids = array_column($ids->toArray(), 'competency_id');
+                $companies = CompetencyCompany::select('competency_id')->where('company_id', $request->filter['company']);
+                if ($companies->count()) {
+                    $ids = array_column($companies->get()->toArray(), 'competency_id');
                     $args['query']->whereIn('m_hr_competencies.id', $ids);
                 }
             }
