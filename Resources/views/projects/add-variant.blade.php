@@ -3,8 +3,8 @@
     array(
         'breadcrumbs'=>array(
             $module->getName(),
-            $module_base.'projects' => ___('Projects'),
-            'project/'.$project->id => $project->name,
+            $module_base.'projects'                       => ___('Projects'),
+            $module_base.'projects/project/'.$project->id => $project->reference.': '.$project->name,
             ___('Add Variant')
         ),
     )
