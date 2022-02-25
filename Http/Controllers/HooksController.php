@@ -343,12 +343,13 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
+            'https://docs.google.com/spreadsheets/d/1eLkArAaq6EjZlpqFrnoEaYgg36LUqO7XzwC7VaT8-bQ/edit#gid=0' => '- Formation Query Log',
             '/a/m/AEGIS/companies'                      => 'dictionary.companies',
+            '/a/m/AEGIS/customers'                      => 'dictionary.customers',
             '/a/m/AEGIS/management/feedback-list-types' => 'aegis::phrases.feedback-list-types',
             '/a/m/AEGIS/management/import'              => 'dictionary.import',
             '/a/m/AEGIS/management/job-titles'          => 'aegis::phrases.job-titles',
             '/a/m/AEGIS/management/project-types'       => 'aegis::phrases.project-types',
-            '/a/m/AEGIS/scopes'                         => 'dictionary.scopes',
             '/a/m/AEGIS/management/user-grades'         => 'aegis::phrases.user-grades',
         );
     }
@@ -420,7 +421,7 @@ class HooksController extends AEGISController
             && $data['request']->module === 'Documents'
             && $data['request']->model === 'Document'
         ) {
-            $data['attributes'] = array_merge(
+            $data['details'] = array_merge(
                 [
                     [
                         'icon'  => 'hashtag',
@@ -428,7 +429,7 @@ class HooksController extends AEGISController
                         'value' => $data['result']->reference,
                     ],
                 ],
-                $data['attributes']
+                $data['details']
             );
         }
     }

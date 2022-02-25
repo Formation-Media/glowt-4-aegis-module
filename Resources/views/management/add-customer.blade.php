@@ -4,13 +4,13 @@
         'breadcrumbs'=>array(
             'management'=>___('dictionary.management'),
             $module->getName(),
-            $module_base.'scopes' => ___('Scopes'),
-            ___('Add Scope')
+            $module_base.'customers' => ___('Customers'),
+            ___('Add Customer')
         ),
     )
 )
 @section('content')
-    <x-form name="scope">
+    <x-form name="customer">
         <x-card >
             <x-field
                 name="name"

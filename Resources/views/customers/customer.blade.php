@@ -1,9 +1,9 @@
 @php
     $page_menu=array();
     $page_menu[]=array(
-        'href' =>'/a/m/AEGIS/projects/add/'.$scope->id,
+        'href' =>'/a/m/AEGIS/projects/add/'.$customer->id,
         'icon' =>'file-plus',
-        'title'=>___('Add Project to Scope')
+        'title'=>___('Add Project to Customer')
     );
     $tabs = [
         ['name' => ___('dictionary.details')],
@@ -16,23 +16,23 @@
         'breadcrumbs'=>array(
             'management'=>___('dictionary.management'),
             $module->getName(),
-            $module_base.'scopes' => ___('Scopes'),
-            $scope->name
+            $module_base.'customers' => ___('Customers'),
+            $customer->name
         ),
         'page_menu'=> $page_menu
     )
 )
 @section('content')
-    <x-tabs name="scope" :tabs="$tabs">
+    <x-tabs name="customer" :tabs="$tabs">
         <x-tab target="{{___('Details')}}">
-            <x-card :details="$scope_details"/>
-            <x-form name="scope">
+            <x-card :details="$customer_details"/>
+            <x-form name="customer">
                 <x-card>
                     <x-field
                         name="name"
                         label="{{___('Name')}}"
                         type="text"
-                        value="{{ $scope->name}}"
+                        value="{{ $customer->name}}"
                         required
                     />
                 </x-card>
@@ -44,7 +44,7 @@
             </x-form>
         </x-tab>
         <x-tab target="{{___('Projects')}}">
-            <x-table selects controller="Projects" module="AEGIS" method="view" type="classic" id="{{$scope->id}}" />
+            <x-table selects controller="Projects" module="AEGIS" method="view" type="classic" id="{{$customer->id}}" />
         </x-tab>
     </x-tabs>
 @endsection

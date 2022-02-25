@@ -37,9 +37,9 @@ class Project extends Model
     {
         return $this->belongsTo(Company::class);
     }
-    public function scope()
+    public function customer()
     {
-        return $this->belongsTo(Scope::class, 'scope_id', 'id');
+        return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
     public function type()
     {

@@ -236,7 +236,7 @@ class ManagementController extends Controller
             array(
                 'style' => 'primary',
                 'name'  => 'View',
-                'uri'   => '/a/m/AEGIS/scopes/scope/{{id}}',
+                'uri'   => '/a/m/AEGIS/customers/customer/{{id}}',
             ),
         );
         if ($user->has_role('core::Adminstrator') || $user->has_role('core::Manager')) {
@@ -300,8 +300,8 @@ class ManagementController extends Controller
                 return $query;
             },
             function ($in, $out) {
-                $scope    = Type::where('id', $in['id'])->first();
-                $added_by = User::where('id', $scope->added_by)->first();
+                $customer = Type::where('id', $in['id'])->first();
+                $added_by = User::where('id', $customer->added_by)->first();
                 $out['Added By'] = $added_by->name;
                 return $out;
             }

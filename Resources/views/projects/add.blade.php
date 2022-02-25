@@ -32,16 +32,16 @@
             />
             <x-field
                 allow-add
-                controller="Scopes"
-                label="dictionary.scope"
-                method="scopes"
+                controller="Customers"
+                label="dictionary.customer"
+                method="customers"
                 module="AEGIS"
-                name="scope"
+                name="customer"
                 required
                 type="autocomplete"
                 :value="[
-                    'text'  => $scope->name ?? null,
-                    'value' => $scope->id ?? null
+                    'text'  => $customer->name ?? null,
+                    'value' => $customer->id ?? null
                 ]"
             />
             <x-field
@@ -55,7 +55,7 @@
                 label="dictionary.reference"
                 min="0"
                 name="reference"
-                prefield="{!! $scope ? $scope->reference : '&hellip;' !!}/"
+                prefield="{!! $customer ? $customer->reference : '&hellip;' !!}/"
                 type="number"
                 required
             />

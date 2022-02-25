@@ -1,9 +1,9 @@
 @php
     $page_menu=array();
     $page_menu[]=array(
-        'href' =>'/a/m/AEGIS/scopes/add',
+        'href' =>'/a/m/AEGIS/customers/add',
         'icon' =>'file-plus',
-        'title'=>___('Add Scope')
+        'title'=>___('Add Customer')
     );
 @endphp
 @extends(
@@ -12,11 +12,11 @@
         'breadcrumbs'=>array(
             'management'=>___('dictionary.management'),
             $module->getName(),
-            ___('Scopes')
+            ___('Customers')
         ),
         'page_menu'=> $page_menu
     )
 )
 @section('content')
-    <x-table selects controller="scopes" method="view" type="classic" module="AEGIS"/>
+    <x-table selects controller="customers" method="view" type="classic" module="AEGIS"/>
 @endsection

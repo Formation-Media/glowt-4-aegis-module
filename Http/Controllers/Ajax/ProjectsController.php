@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
-use Modules\AEGIS\Models\Scope;
+use Modules\AEGIS\Models\Customer;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\Category;
 
@@ -52,11 +52,11 @@ class ProjectsController extends Controller
             'variants'
         );
     }
-    public function get_scope_ref($request)
+    public function get_customer_ref($request)
     {
-        $scope = Scope::find($request->id);
+        $customer = Customer::find($request->id);
         return array(
-            'prefix' => $scope->reference.'/',
+            'prefix' => $customer->reference.'/',
         );
     }
     public function get_variant_ref($request)
@@ -107,7 +107,8 @@ class ProjectsController extends Controller
                     'sortable' => true,
                 ),
                 ___('Name') => array(
-                    'sortable'     => true,
+                    'columns'  => 'name',
+                    'sortable' => true,
                 ),
                 ___('Type') => array(
                     'sortable' => true,
@@ -135,17 +136,15 @@ class ProjectsController extends Controller
             $row_structure,
             $global_actions,
             function ($query) use ($request) {
-
                 if ($request->id) {
                     return $query->where('scope_id', $request->id);
                 }
                 return $query;
             },
             function ($in, $out) {
-                $project             = Project::where('id', $in['id'])->first();
-                $added_by            = User::where('id', $project->added_by)->first();
+                $project              = Project::where('id', $in['id'])->first();
+                $added_by             = User::where('id', $project->added_by)->first();
                 $out[___('Added By')] = $added_by->name;
-                $out[___('Name')]     = $project->id.': '.$project->name;
                 $out[___('Type')]     = $project->type->name;
                 return $out;
             }

@@ -1,7 +1,7 @@
 let add = {
     init:function() {
         this.watch_company();
-        this.watch_scope();
+        this.watch_customer();
     },
     watch_company:function() {
         let reference = document.querySelector('.reference-outer');
@@ -32,17 +32,17 @@ let add = {
             }
         });
     },
-    watch_scope:function() {
-        document.getElementById('scope-autocomplete').addEventListener('autocomplete-add', function(e) {
+    watch_customer:function() {
+        document.getElementById('customer-autocomplete').addEventListener('autocomplete-add', function(e) {
             app.show_loader();
             app.ajax(
-                'm/AEGIS/scopes/add_scope',
+                'm/AEGIS/customers/add_customer',
                 {
                     name:e.value
                 },
                 function(json) {
                     if (json.data) {
-                        document.getElementById('scope').value = json.data.id;
+                        document.getElementById('customer').value = json.data.id;
                     }
                 },
                 null,

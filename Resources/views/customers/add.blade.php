@@ -4,13 +4,13 @@
         'breadcrumbs'=>array(
             'management'=>___('dictionary.management'),
             $module->getName(),
-            $module_base.'scopes' => ___('dictionary.scopes'),
+            $module_base.'customers' => ___('dictionary.customers'),
             ___('dictionary.add')
         ),
     )
 )
 @section('content')
-    <x-form name="scope">
+    <x-form name="customer">
         <x-card >
             <x-field
                 name="name"
@@ -22,7 +22,7 @@
                 aria-readonly
                 label="{{___('dictionary.reference')}}"
                 name="reference"
-                note="{{___('aegis::scopes.reference-message')}}"
+                note="{{___('aegis::customers.reference-message')}}"
                 required
                 type="text"
             />

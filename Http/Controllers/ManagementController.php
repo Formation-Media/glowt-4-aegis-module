@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ManagementController extends Controller
 {
-    public function add_scope(Request $request)
+    public function add_customer(Request $request)
     {
         return parent::view();
     }

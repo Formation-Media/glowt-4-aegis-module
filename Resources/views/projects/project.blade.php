@@ -36,15 +36,15 @@
                         value="{{$project->description}}"
                     />
                     <x-field
-                        controller="Scopes"
-                        label="{{___('dictionary.scope')}}"
-                        name="scope"
+                        controller="Customers"
+                        label="{{___('dictionary.customer')}}"
+                        name="customer"
                         type="autocomplete"
-                        method="scopes"
+                        method="customers"
                         module="AEGIS"
                         :value="[
-                            'text' => $scope->name ?? null,
-                            'value' => $scope->id ?? null
+                            'text'  => $customer->name ?? null,
+                            'value' => $customer->id ?? null
                         ]"
                         required
                     />
@@ -88,7 +88,7 @@
                                 label="dictionary.reference"
                                 name="reference"
                                 type="text"
-                                value="{{$variant->reference}}"
+                                value="{{ $variant->reference }}"
                             />
                         </x-card>
                         <x-field type="actions">
@@ -146,6 +146,11 @@
                     </x-form>
                     <h2>{{___('dictionary.documents')}}</h2>
                     <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
+                    @if($documents_module_enabled)
+                        <div class="text-center">
+                            <x-link style="primary" title="{{___('aegis::projects.add-document')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
+                        </div>
+                    @endif
                 </x-tab>
             @endif
         @endforeach

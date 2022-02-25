@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
-use Modules\AEGIS\Models\Scope;
+use Modules\AEGIS\Models\Customer;
 use Modules\AEGIS\Models\Type;
 
 class ProjectsController extends Controller
@@ -21,7 +21,7 @@ class ProjectsController extends Controller
     {
         $documents_module_enabled = Modules::isEnabled('Documents');
         $project                  = Project::find($id);
-        $scope                    = $project->scope ?? null;
+        $customer                 = $project->customer ?? null;
         $tabs                     = [
             ['name' => ___('dictionary.details')],
         ];
@@ -40,7 +40,7 @@ class ProjectsController extends Controller
             'default_variant',
             'documents_module_enabled',
             'project',
-            'scope',
+            'customer',
             'tabs',
             'types',
             'variants'
@@ -50,11 +50,11 @@ class ProjectsController extends Controller
     public function add(Request $request, $id = null)
     {
         $companies = Company::orderBy('name')->pluck('name', 'id')->toArray();
-        $scope     = Scope::find($id);
+        $customer  = Customer::find($id);
         $types     = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
         return parent::view(compact(
             'companies',
-            'scope',
+            'customer',
             'types'
         ));
     }
