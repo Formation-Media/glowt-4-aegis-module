@@ -315,7 +315,6 @@ class DocumentsImport implements ToCollection
             $category_prefix    = $this->column('DOC-LETTER');
             $feedback_list      = null;
             $name               = $this->column('DOC-NAME');
-            $issue              = $this->column('ISSUE');
 
             if (strlen($name) > 191) {
                 $name = substr($name, 0, 188).'...';
@@ -330,7 +329,7 @@ class DocumentsImport implements ToCollection
                 ];
             }
 
-            $this->projects[$project_reference]['variants'][$variant_number]['documents'][$reference][$issue] = [
+            $this->projects[$project_reference]['variants'][$variant_number]['documents'][$reference] = [
                 'approval'        => [],
                 'category'        => $category,
                 'category_prefix' => $category_prefix,
@@ -338,6 +337,7 @@ class DocumentsImport implements ToCollection
                 'created_at'      => $created_at,
                 'created_by'      => $author,
                 'feedback_list'   => $feedback_list,
+                'issues'          => [],
                 'name'            => $name,
                 'status'          => 'Approved',
             ];

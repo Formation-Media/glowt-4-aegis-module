@@ -306,18 +306,10 @@ class DocumentSignatureImport implements ToCollection
                 continue;
             }
 
-            $issue = $this->column('ISSUE');
-
-            if (!isset($this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference][$issue])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project Variant ('.$project_variant
-                    .') does not have a document with reference '.$document_reference.' and issue '.$issue;
-                continue;
-            }
-
             $created_at   = $this->column('CREATION-DATE');
+            $issue        = $this->column('ISSUE');
             $submitted_at = $this->column('SUBMIT-DATE');
 
-            $approval            = [];
             $approval_date       = $this->column('APPROVAL-DATE');
             $assessor_1          = $this->column('ASSESSOR_1');
             $assessor_2          = $this->column('ASSESSOR_2');
@@ -327,8 +319,7 @@ class DocumentSignatureImport implements ToCollection
             $author_role         = str_replace('---', '', $this->column('AUTHOR-ROLE'));
             $comments            = [];
             $created_at          = $created_at !== null ? $this->date_convert('CREATION-DATE', 'CRE-TIME') : date('Y-m-d H:i:s');
-            $document            = $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference]
-                [$issue];
+            $document            = $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference];
             $review_date         = $this->column('REVIEW-DATE');
             $reviewer_comments   = str_replace('---', '', $this->column('COMMENT-REVIEWER'));
             $reviewer_reference  = strtolower(str_replace('---', '', $this->column('REVIEWER')));
@@ -342,7 +333,7 @@ class DocumentSignatureImport implements ToCollection
             $reviewed_at = !$review_date || $review_date === '---' ? null : $this->date_convert('REVIEW-DATE', 'REV-TIME');
 
             if ($reviewer_reference) {
-                $approval['reviewer'][$reviewer_reference] = [
+                $document['approval']['reviewer'][$issue][0][$reviewer_reference] = [
                     'comments'            => $reviewer_comments,
                     'created_at'          => $created_at,
                     'role'                => $reviewer_role,
@@ -352,7 +343,7 @@ class DocumentSignatureImport implements ToCollection
                 ];
             }
             if ($approver_reference) {
-                $approval['approver'][$approver_reference] = [
+                $document['approval']['approver'][$issue][0][$approver_reference] = [
                     'comments'            => $approver_comments,
                     'created_at'          => $created_at,
                     'role'                => $approver_role,
@@ -362,14 +353,14 @@ class DocumentSignatureImport implements ToCollection
                 ];
             }
             if ($assessor_1) {
-                $approval['assessor'][0][$assessor_1] = [
+                $document['approval']['assessor'][$issue][0][$assessor_1] = [
                     'created_at' => $created_at,
                     'status'     => $status,
                     'updated_at' => $created_at,
                 ];
             }
             if ($assessor_2) {
-                $approval['assessor'][1][$assessor_2] = [
+                $document['approval']['assessor'][$issue][1][$assessor_2] = [
                     'created_at' => $created_at,
                     'status'     => $status,
                     'updated_at' => $created_at,
@@ -386,8 +377,8 @@ class DocumentSignatureImport implements ToCollection
                 ];
             }
 
-            $document['approval']     = $approval;
             $document['comments']     = $comments;
+            $document['issues'][]     = $issue;
             $document['submitted_at'] = $submitted_at;
             $document['submitted_by'] = $submitter_reference;
 
@@ -399,7 +390,8 @@ class DocumentSignatureImport implements ToCollection
                 $document['feedback_list']['final'] = strtolower($this->column('FBL_FINAL')) === 'yes' ? true : false;
             }
 
-            $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference][$issue] = $document;
+            $this->projects[$project_reference]['variants'][$project_variant]['documents'][$document_reference] = $document;
+
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
             ]);

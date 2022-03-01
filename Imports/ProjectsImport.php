@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
-use Modules\AEGIS\Models\Scope;
+use Modules\AEGIS\Models\Customer;
 use Modules\AEGIS\Models\Type;
 
 class ProjectsImport implements ToCollection
@@ -34,7 +34,7 @@ class ProjectsImport implements ToCollection
         ]);
         $companies          = Company::withTrashed()->pluck('id', 'abbreviation');
         $projects           = Project::pluck('id', 'reference');
-        $scopes             = Scope::pluck('id', 'name');
+        $customers          = Customer::pluck('id', 'name');
         $types              = Type::pluck('id', 'name');
         $variant_references = ProjectVariant::pluck('reference')->toArray();
         $this->stream->send([
@@ -49,30 +49,30 @@ class ProjectsImport implements ToCollection
             $project_name        = $this->row($row, 'PROJECT NAME');
             $project_reference   = $this->row($row, 'PROJECT IDENTIFICATION');
             $project_type        = $this->row($row, 'PROJECT TYPE');
-            $scope_name          = $this->row($row, 'CUSTOMER/SCOPE');
+            $customer_name       = $this->row($row, 'CUSTOMER/SCOPE');
             $variant_description = $this->row($row, 'VARIANT DESCRIPTION');
             $variant_name        = $this->row($row, 'VARIANT NAME');
             $variant_number      = $this->row($row, 'VARIANT NUMBER');
             $project_company     = explode('/', $project_reference)[0];
-            if (array_key_exists($scope_name, $scopes)) {
-                $scope_id = $scopes[$scope_name];
+            if (array_key_exists($customer_name, $customers)) {
+                $customer_id = $customers[$customer_name];
             } else {
                 $j         = 1;
-                $reference = substr(str_replace(' ', '', $scope_name), 0, 3);
-                while (Scope::where(['reference' => $reference.$j])->first()) {
+                $reference = substr(str_replace(' ', '', $customer_name), 0, 3);
+                while (Customer::where(['reference' => $reference.$j])->first()) {
                     $j++;
                 }
-                $scope = Scope::firstOrCreate(
+                $customer = Customer::firstOrCreate(
                     [
-                        'name' => $scope_name,
+                        'name' => $customer_name,
                     ],
                     [
                         'reference' => strtoupper($reference.$j),
                         'added_by'  => \Auth::id(),
                     ]
                 );
-                $scope_id            = $scope->id;
-                $scopes[$scope_name] = $scope_id;
+                $customer_id               = $customer->id;
+                $customers[$customer_name] = $customer_id;
             }
             if (array_key_exists($project_type, $types)) {
                 $type_id = $types[$project_type];
@@ -89,8 +89,8 @@ class ProjectsImport implements ToCollection
                 $type_id      = $type->id;
                 $types[$name] = $type_id;
             }
-            if (array_key_exists($scope_name, $scopes)) {
-                $scope_id = $scopes[$scope_name];
+            if (array_key_exists($customer_name, $customers)) {
+                $customer_id = $customers[$customer_name];
             } else {
                 $project = Project::firstOrCreate(
                     [
@@ -101,7 +101,7 @@ class ProjectsImport implements ToCollection
                         'company_id'  => $companies[$project_company],
                         'description' => $project_description ?? '',
                         'name'        => strlen($project_name) > 191 ? substr($project_name, 0, 188).'...' : $project_name,
-                        'scope_id'    => $scope_id,
+                        'customer_id' => $customer_id,
                         'type_id'     => $type_id,
                     ]
                 );
@@ -156,7 +156,7 @@ class ProjectsImport implements ToCollection
             $project_name        = $this->row($row, 'PROJECT NAME');
             $project_reference   = $this->row($row, 'PROJECT IDENTIFICATION');
             $project_type        = $this->row($row, 'PROJECT TYPE');
-            $scope               = $this->row($row, 'CUSTOMER/SCOPE');
+            $customer            = $this->row($row, 'CUSTOMER/SCOPE');
             $variant_description = $this->row($row, 'VARIANT DESCRIPTION');
             $variant_number      = $this->row($row, 'VARIANT NUMBER');
 
@@ -170,7 +170,7 @@ class ProjectsImport implements ToCollection
             $this->projects[$project_reference]['company']     = $project_company;
             $this->projects[$project_reference]['description'] = $project_description ?? '';
             $this->projects[$project_reference]['name']        = $project_name;
-            $this->projects[$project_reference]['scope']       = $scope;
+            $this->projects[$project_reference]['customer']    = $customer;
             $this->projects[$project_reference]['type']        = $project_type ?? 'Other';
 
             $this->projects[$project_reference]['variants'][$variant_number]['description'] = $variant_description;

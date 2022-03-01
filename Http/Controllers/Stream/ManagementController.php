@@ -160,26 +160,26 @@ class ManagementController extends Controller
             TRUNCATE `m_documents_user_groups`;
         */
         $steps = [
-            'document_types' => [
-                'Processing Document Types&hellip;',
-                'Finished Processing Document Types.',
-            ],
-            'projects' => [
-                'Processing Projects&hellip;',
-                'Finished Processing Projects.',
-            ],
-            'documents' => [
-                'Processing Documents&hellip;',
-                'Finished Processing Documents.',
-            ],
-            'document_signatures' => [
-                'Processing Document Signatures&hellip;',
-                'Finished Processing Document Signatures.',
-            ],
-            'signatures' => [
-                'Processing Signatures&hellip;',
-                'Finished Processing Signatures.',
-            ],
+            // 'document_types' => [
+            //     'Processing Document Types&hellip;',
+            //     'Finished Processing Document Types.',
+            // ],
+            // 'projects' => [
+            //     'Processing Projects&hellip;',
+            //     'Finished Processing Projects.',
+            // ],
+            // 'documents' => [
+            //     'Processing Documents&hellip;',
+            //     'Finished Processing Documents.',
+            // ],
+            // 'document_signatures' => [
+            //     'Processing Document Signatures&hellip;',
+            //     'Finished Processing Document Signatures.',
+            // ],
+            // 'signatures' => [
+            //     'Processing Signatures&hellip;',
+            //     'Finished Processing Signatures.',
+            // ],
         ];
         foreach ($steps as $method => $messages) {
             $stream->send([
