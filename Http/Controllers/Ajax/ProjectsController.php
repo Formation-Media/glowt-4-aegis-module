@@ -4,10 +4,11 @@ namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Notifications\Toast;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
+use Modules\AEGIS\Models\Scope;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Models\Category;
 
 class ProjectsController extends Controller
 {
@@ -22,15 +23,60 @@ class ProjectsController extends Controller
             $project->delete();
         }
     }
-
+    public function get_issue($request)
+    {
+        $category         = Category::find($request->category);
+        $project_variant  = ProjectVariant::find($request->project_variant);
+        $reference        = $project_variant->project->reference.'/'.$category->prefix
+                                .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
+        $issue            = VariantDocument
+            ::where('reference', $reference)
+            ->count();
+        return $issue + 1;
+    }
     public function get_project_variants($request)
     {
         $variants = [];
         if (isset($request->project)) {
-            $project  = Project::find($request->project);
-            $variants = $project->variants->pluck('name', 'id')->toArray();
+            $project         = Project::find($request->project);
+            $reference       = $project->reference;
+            $variants        = $project->variants->pluck('name', 'id')->toArray();
+            $default_variant = $project->variants->where('is_default', true)->first();
+            if ($default_variant) {
+                $default_variant = $default_variant->id;
+            }
         }
-        return compact('variants');
+        return compact(
+            'default_variant',
+            'reference',
+            'variants'
+        );
+    }
+    public function get_scope_ref($request)
+    {
+        $scope = Scope::find($request->id);
+        return array(
+            'prefix' => $scope->reference.'/',
+        );
+    }
+    public function get_variant_ref($request)
+    {
+        $category         = Category::find($request->category);
+        $project_variant  = ProjectVariant::find($request->project_variant);
+        $reference_prefix = $project_variant->project->reference.'/'.$category->prefix;
+        $last_variant     = VariantDocument
+            ::where('reference', 'like', $reference_prefix.'%')
+            ->orderBy('created_at', 'desc')
+            ->first();
+        if ($last_variant) {
+            $next_reference = str_replace($reference_prefix, '', $last_variant->reference) + 1;
+        } else {
+            $next_reference = 1;
+        }
+        return array(
+            'prefix'    => $reference_prefix,
+            'reference' => str_pad($next_reference, 2, '0', STR_PAD_LEFT),
+        );
     }
 
     public function table_view($request)
@@ -56,21 +102,25 @@ class ProjectsController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
+                __('dictionary.reference') => array(
+                    'columns'  => 'reference',
+                    'sortable' => true,
+                ),
                 __('Name') => array(
-                    'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
                 __('Type') => array(
-                    'sortable'     => true,
+                    'sortable' => true,
                 ),
                 __('Added By') => array(
                     'sortable' => true,
                 ),
                 __('Added at') => array(
-                    'columns'  => 'created_at',
-                    'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
-                    'method'   => 'datetime',
+                    'columns'      => 'created_at',
+                    'default_sort' => 'desc',
+                    'sortable'     => true,
+                    'class'        => '\App\Helpers\Dates',
+                    'method'       => 'datetime',
                 ),
                 __('Updated at') => array(
                     'columns'  => 'updated_at',
@@ -101,7 +151,6 @@ class ProjectsController extends Controller
             }
         );
     }
-
     public function table_variantdocumentsview($request)
     {
         $actions = array(

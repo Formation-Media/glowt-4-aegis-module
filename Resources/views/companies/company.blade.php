@@ -2,46 +2,45 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            str_replace($module->getName(),'HR',$module_base)   =>'HR',
-            str_replace($module->getName(),'HR',$module_base).
-                'competencies'                                  =>__('Competencies'),
-            str_replace($module->getName(),'HR',$module_base).
-                'competencies/set-up'                           =>__('Set-up'),
-            $module_base.'companies'                            =>__('Companies'),
-                                                                  $company->name
-        ),
-        'page_menu'=>array(
-            array(
-                'data' =>array(
-                    'bs-target'=>'#modal-add-competency-company',
-                    'bs-toggle'=>'modal'
-                ),
-                'icon' =>'plus',
-                'title'=>'Add Competency Company'
-            )
-        ),
+            'management'=>__('dictionary.management'),
+            $module->getName(),
+            $module_base.'companies' => __('dictionary.companies'),
+            $company->name
+        )
     )
 )
 
 @section('content')
     <x-form name="company">
         <x-card>
-            <div class="row">
-                <div class="col-md-6">
-                    <x-field
-                        label="{{ __('Name') }}"
-                        name="name"
-                        required
-                        type="text"
-                        value="{{ $company->name }}"
-                    />
-                    <x-field
-                        checked="{{ $company->status?true:false }}"
-                        label="{{ __('Status') }}"
-                        name="status"
-                        type="switch"
-                    />
-                </div>
+            <div class="grid-md-2">
+                <x-field
+                    label="{{ __('Name') }}"
+                    name="name"
+                    required
+                    type="text"
+                    value="{{ $company->name }}"
+                />
+                <x-field
+                    label="{{ __('dictionary.abbreviation') }}"
+                    name="abbreviation"
+                    required
+                    type="text"
+                    value="{{ $company->abbreviation }}"
+                />
+                <x-field
+                    accept=".pdf"
+                    :existing="$company->pdf_footer ?? null"
+                    label="{{ __('aegis::phrases.pdf-footer') }}"
+                    name="pdf_footer"
+                    type="file"
+                />
+                <x-field
+                    checked="{{ $company->status?true:false }}"
+                    label="{{ __('Status') }}"
+                    name="status"
+                    type="switch"
+                />
             </div>
         </x-card>
         <x-field type="actions">

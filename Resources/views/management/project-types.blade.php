@@ -11,7 +11,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>'Management',
+            'management'=>__('dictionary.management'),
             $module->getName(),
             __('Types')
         ),

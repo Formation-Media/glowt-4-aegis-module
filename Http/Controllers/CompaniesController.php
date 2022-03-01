@@ -8,6 +8,10 @@ use Modules\AEGIS\Models\Company;
 
 class CompaniesController extends Controller
 {
+    public function add()
+    {
+        return parent::view();
+    }
     public function company(Request $request, int $id)
     {
         $company = Company::find($id);

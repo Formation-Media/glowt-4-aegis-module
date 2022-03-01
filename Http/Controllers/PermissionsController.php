@@ -54,6 +54,30 @@ class PermissionsController
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => true),
                 ),
+                'feedback-list-types' => array(
+                    \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
+                    \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
+                    \Config('roles.by_name.core.staff')             => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => true),
+                ),
+                'import' => array(
+                    \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
+                    \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
+                    \Config('roles.by_name.core.staff')             => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => true),
+                ),
+                'import-errors' => array(
+                    \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
+                    \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
+                    \Config('roles.by_name.core.staff')             => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => true),
+                ),
                 'job-titles' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
                     \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
@@ -89,6 +113,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'add-variant' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -97,6 +122,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'project' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -105,6 +131,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'delete' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -113,6 +140,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'index' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -121,6 +149,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
             ),
             'Scopes' => array(
@@ -131,6 +160,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'delete' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -139,6 +169,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'index' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -147,6 +178,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
                 'scope' => array(
                     \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
@@ -155,6 +187,7 @@ class PermissionsController
                     \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
                     \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
             ),
         );

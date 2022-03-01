@@ -4,7 +4,7 @@
         'breadcrumbs'=>array(
             $module->getName(),
             $module_base.'projects' => __('dictionary.projects'),
-            $project->id.': '.$project->name
+            $project->reference.': '.$project->name
         ),
         'page_menu'=> array(
             array(
@@ -16,21 +16,29 @@
     )
 )
 @section('content')
+    <x-card :details="$project->details" />
     <x-tabs name="project" :tabs="$tabs">
         <x-tab target="{{__('dictionary.details')}}">
             <x-form name="project">
                 <x-card>
                     <x-field
-                        name="name"
                         label="{{__('dictionary.name')}}"
+                        name="name"
                         type="text"
                         value="{{$project->name}}"
                         required
                     />
                     <x-field
+                        label="{{__('dictionary.description')}}"
+                        name="description"
+                        required
+                        type="textarea"
+                        value="{{$project->description}}"
+                    />
+                    <x-field
                         controller="Scopes"
-                        name="scope"
                         label="{{__('dictionary.scope')}}"
+                        name="scope"
                         type="autocomplete"
                         method="scopes"
                         module="AEGIS"
@@ -41,12 +49,19 @@
                         required
                     />
                     <x-field
-                        name="type"
                         label="{{__('dictionary.type')}}"
+                        name="type"
                         type="select"
                         :options="$types"
                         value="{{$project->type->id?? null}}"
                         required
+                    />
+                    <x-field
+                        disabled="{{ true }}"
+                        label="{{__('dictionary.reference')}}"
+                        name="reference"
+                        type="text"
+                        value="{{$project->reference}}"
                     />
                 </x-card>
                 <x-field type="actions">
@@ -58,15 +73,22 @@
         </x-tab>
         @foreach($variants as $i=>$variant)
             @if ($variant->is_default==true)
-                <x-tab target="{{ __('dictionary.default').' ('.$variant->name.')' }}">
+                <x-tab target="{!! __('dictionary.default').' ('.$variant->name.')' !!}">
                     <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field
-                                label="{{__('dictionary.name')}}"
+                                label="dictionary.name"
                                 name="name"
                                 required
                                 type="text"
                                 value="{{$variant->name}}"
+                            />
+                            <x-field
+                                disabled="{{true}}"
+                                label="dictionary.reference"
+                                name="reference"
+                                type="text"
+                                value="{{$variant->reference}}"
                             />
                         </x-card>
                         <x-field type="actions">
@@ -77,20 +99,43 @@
                     </x-form>
                     <h2>{{__('dictionary.documents')}}</h2>
                     <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
-                    <div class="text-center">
-                        <x-link style="primary" title="{{ __('phrases.add',['item'=>__('dictionary.document')]) }}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id) }}"/>
-                    </div>
+                    @if($documents_module_enabled)
+                        <div class="text-center">
+                            <x-link style="primary" title="{{__('aegis::projects.add-document')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
+                        </div>
+                    @endif
                 </x-tab>
             @else
-                <x-tab target="{{ __('dictionary.variant').' '.$i.' ('.$variant->name.')' }}">
+                <x-tab target="{!! __('dictionary.variant').' '.$i.' ('.$variant->name.')' !!}">
                     <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field
-                                label="{{__('dictionary.name')}}"
+                                label="dictionary.name"
                                 name="name"
                                 required
                                 type="text"
                                 value="{{$variant->name}}"
+                            />
+                            <x-field
+                                disabled="{{true}}"
+                                label="dictionary.reference"
+                                name="reference"
+                                type="text"
+                                value="{{$variant->reference}}"
+                            />
+                            <x-field
+                                disabled="{{true}}"
+                                label="aegis::projects.variant-number"
+                                name="variant_number"
+                                type="number"
+                                value="{{$variant->variant_number}}"
+                            />
+                            <x-field
+                                disabled="{{true}}"
+                                label="dictionary.description"
+                                name="description"
+                                type="textarea"
+                                value="{{$variant->description}}"
                             />
                         </x-card>
                         <x-field type="actions">

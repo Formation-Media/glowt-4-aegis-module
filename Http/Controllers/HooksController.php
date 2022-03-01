@@ -3,14 +3,19 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
+use App\Helpers\Translations;
 use Modules\AEGIS\Models\CompetencyCompany;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\DocumentApprovalItemDetails;
+use Modules\AEGIS\Models\FeedbackListType;
 use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
-// use Modules\Documents\Models\DocumentApprovalProcessItem;
+use Modules\Documents\Models\Category;
+use Modules\Documents\Models\Document;
+use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
 
@@ -29,13 +34,14 @@ class HooksController extends AEGISController
     {
         self::collect_store_user($args);
     }
-
     public static function collect_documents__view_add_document_fields()
     {
-        $projects         = Project::all()->pluck('name', 'id')->toArray();
-        $project_variants = null;
-        $selected_variant = null;
-        $selected_project = null;
+        $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
+        $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
+        $project_variants    = null;
+        $selected_variant    = null;
+        $selected_project    = null;
+        $yes_no              = Translations::yes_no();
         if (isset($_GET['project_variant'])) {
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
             $selected_project = $selected_variant->project;
@@ -44,64 +50,112 @@ class HooksController extends AEGISController
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
+                'feedback_list_types',
                 'projects',
                 'project_variants',
                 'selected_project',
-                'selected_variant'
+                'selected_variant',
+                'yes_no'
+            )
+        );
+    }
+    public static function collect_documents__view_approve_fields()
+    {
+        $companies  = Company::active()->pluck('name', 'id');
+        $job_titles = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
+        return view(
+            'aegis::_hooks.approve-fields',
+            compact(
+                'companies',
+                'job_titles',
             )
         );
     }
     public static function collect_documents__view_document_fields($document)
     {
-        $projects         = Project::all()->pluck('name', 'id')->toArray();
-        $document_variant = VariantDocument::where('document_id', $document->id)->first();
+        $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
+        $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
+        $document_variant    = VariantDocument::where('document_id', $document->id)->first();
+        $yes_no              = Translations::yes_no();
         if ($document_variant) {
             $selected_variant = $document_variant->project_variant;
             $selected_project = $document_variant->project_variant->project;
             $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
+            $reference        = $document_variant->reference;
         } else {
             $selected_variant = null;
             $selected_project = null;
             $project_variants = [];
+            $reference        = null;
         }
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
+                'document',
+                'feedback_list_types',
                 'projects',
                 'project_variants',
+                'reference',
                 'selected_project',
-                'selected_variant'
+                'selected_variant',
+                'yes_no',
             )
         );
     }
     public static function collect_documents__add_document($args)
     {
         if (isset($args['request']->aegis['project_variant'])) {
+            $category = Category::find($args['request']->category);
+            if ($category->prefix === 'FBL') {
+                $args['new_document']->setMeta([
+                    'feedback_list_type_id' => $args['request']->aegis['feedback-list-type'],
+                    'final_feedback_list'   => $args['request']->aegis['final-feedback-list'],
+                ]);
+                $args['new_document']->save();
+            }
             $variant_document              = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
+            $project_variant               = ProjectVariant::find($args['request']->aegis['project_variant']);
+            $variant_document->reference   = $project_variant->project->reference.'/'.$category->prefix
+                                                .str_pad($args['request']->aegis['reference'], 2, '0', STR_PAD_LEFT);
+            $issue                         = VariantDocument::where('reference', $variant_document->reference)->count();
+            $variant_document->issue       = $issue + 1;
             $variant_document->save();
-            // $items              = DocumentApprovalProcessItem::where('document_id', $variant_document->document_id)->get();
-            // $user               = \Auth::user();
-            // $previous_reference = DocumentApprovalProcessItem
-            //     ::where([
-            //         ['agent_id', $user->id],
-            //         ['document_id', '!=', $variant_document->document_id],
-            //     ])
-            //     ->orderBy('id', 'desc')
-            //     ->first();
-            // if ($previous_reference) {
-            //     $previous_reference = substr($previous_reference->reference, 7);
-            // }
-            /*// dd(substr($previous_reference, 7));
-            // foreach ($items as $item) {
-            //     $item->reference = 'FOR-JAS-';
-            // }
-            // dd([
-            //     $args,
-            //     $user,
-            // ]);*/
         }
+    }
+    public static function collect_documents__approve_deny($args)
+    {
+        $document           = $args['document'];
+        $item               = $args['item'];
+        $request            = $args['request'];
+        $user               = $args['user'];
+        $company            = Company::find($request->aegis['company']);
+        $user_reference     = $user->getMeta('aegis.user-reference');
+        $previous_reference = DocumentApprovalProcessItem
+            ::where([
+                ['agent_id', $user->id],
+                ['document_id', '!=', $document->id],
+            ])
+            ->orderBy('id', 'desc')
+            ->first();
+        if ($previous_reference) {
+            $previous_reference = $previous_reference->reference;
+        } else {
+            $previous_reference = $company->abbreviation.'-'.$user_reference.'-0';
+        }
+        list($company_reference, $user, $increment) = explode('-', $previous_reference);
+        $item->reference                            = implode('-', [$company_reference, $user, $increment + 1]);
+        DocumentApprovalItemDetails::updateOrInsert(
+            ['approval_item_id' => $item->id],
+            [
+                'company_id'   => $company->id,
+                'job_title_id' => $request->aegis['role'],
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ],
+        );
+        $item->save();
     }
     public static function collect_documents__edit_document($args)
     {
@@ -241,24 +295,24 @@ class HooksController extends AEGISController
     {
         $aegis = $args['request']->aegis;
         $user  = $args['user'];
-        // if (!$aegis['user-reference']) {
-        //     $i                       = 0;
-        //     $name                    = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
-        //     $aegis['user-reference'] = $name.$i;
-        //     while (\DB::table('users_meta')->where([
-        //         'key'   => 'aegis.user-reference',
-        //         'value' => $aegis['user-reference'],
-        //     ])->count()) {
-        //         $aegis['user-reference'] = $name.$i++;
-        //     }
-        // }
+        if (!$aegis['user-reference']) {
+            $i                       = 0;
+            $name                    = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
+            $aegis['user-reference'] = $name.$i;
+            while (\DB::table('users_meta')->where([
+                'key'   => 'aegis.user-reference',
+                'value' => $aegis['user-reference'],
+            ])->count()) {
+                $aegis['user-reference'] = $name.$i++;
+            }
+        }
         $user->setMeta([
             'aegis.default-sections' => $aegis['default-sections'] ?? null,
             'aegis.discipline'       => $aegis['discipline'],
             'aegis.grade'            => $aegis['grade'] ?? null,
             'aegis.live-document'    => $aegis['live-document'] ?? null,
             'aegis.type'             => $aegis['type'],
-            // 'aegis.user-reference'   => $aegis['user-reference'],
+            'aegis.user-reference'   => $aegis['user-reference'],
         ]);
         $user->save();
     }
@@ -287,11 +341,13 @@ class HooksController extends AEGISController
     public static function collect_view_management()
     {
         return array(
-            '/a/m/AEGIS/companies'                => __('dictionary.companies'),
-            '/a/m/AEGIS/scopes'                   => __('Scopes'),
-            '/a/m/AEGIS/management/job-titles'    => __('Job Titles'),
-            '/a/m/AEGIS/management/user-grades'   => __('User Grades'),
-            '/a/m/AEGIS/management/project-types' => __('Project Types'),
+            '/a/m/AEGIS/companies'                      => 'dictionary.companies',
+            '/a/m/AEGIS/management/feedback-list-types' => 'aegis::phrases.feedback-list-types',
+            '/a/m/AEGIS/management/import'              => 'dictionary.import',
+            '/a/m/AEGIS/management/job-titles'          => 'aegis::phrases.job-titles',
+            '/a/m/AEGIS/management/project-types'       => 'aegis::phrases.project-types',
+            '/a/m/AEGIS/scopes'                         => 'dictionary.scopes',
+            '/a/m/AEGIS/management/user-grades'         => 'aegis::phrases.user-grades',
         );
     }
     public static function collect_view_table_filter($args)
@@ -310,6 +366,93 @@ class HooksController extends AEGISController
             )
         )->render();
     }
+    public static function collect_hr__view_set_up()
+    {
+        $permissions = \Auth::user()->feature_permissions('AEGIS', 'companies');
+        return view('aegis::_hooks.hr.set-up-page', compact('permissions'));
+    }
+    public static function filter_documents__pdf_signature_columns(&$data, $module, $signature)
+    {
+        $details   = DocumentApprovalItemDetails::where('approval_item_id', $signature->id)->first();
+        $company   = $details->company->name ?? null;
+        $job_title = $details->job_title->name ?? null;
+        if ($company) {
+            $data[__('dictionary.company')] = $company;
+        }
+        if ($job_title) {
+            $data[__('aegis::phrases.approved-as')] = $job_title;
+        }
+    }
+    // public static function filter_card_view_filter(&$query, $module, $request)
+    // {
+    //     if (isset($request->module)
+    //         && $request->module === 'Documents'
+    //         && $request->model === 'Document'
+    //     ) {
+    //         $query
+    //             ->join('m_aegis_variant_documents', 'm_aegis_variant_documents.document_id', 'm_documents_documents.id')
+    //             ->select([
+    //                 'm_documents_documents.*',
+    //                 'm_aegis_variant_documents.reference',
+    //             ])
+    //             ->where('m_documents_documents.category_id', $request->id)
+    //             ->groupBy('m_documents_documents.id');
+    //     }
+    // }
+    public static function filter_card_view_result(&$data, $module)
+    {
+        if (isset($data['request']->module)
+            && $data['request']->module === 'Documents'
+            && $data['request']->model === 'Document'
+        ) {
+            $data['attributes'] = array_merge(
+                [
+                    [
+                        'icon'  => 'hashtag',
+                        'label' => 'dictionary.reference',
+                        'value' => $data['result']->reference,
+                    ],
+                ],
+                $data['attributes']
+            );
+        }
+    }
+    // public static function filter_card_view_search(&$search_columns, $module, $request)
+    // {
+    //     if (isset($request->module)
+    //         && $request->module === 'Documents'
+    //         && $request->model === 'Document'
+    //     ) {
+    //         $search_columns = array_merge(
+    //             [
+    //                 'm_aegis_variant_documents.reference'
+    //             ],
+    //             $search_columns
+    //         );
+    //     }
+    // }
+    public static function filter_documents__document_details(&$details, $module, $document)
+    {
+        if ($document->category->prefix === 'FBL' && ($meta = $document->getMeta('feedback_list_type_id'))) {
+            $feedback_list_type = FeedbackListType::find($meta);
+            if ($feedback_list_type) {
+                $details['aegis::phrases.feedback-list-type'] = $feedback_list_type->name;
+            }
+        }
+    }
+    public static function filter_documents__pdf_signature_header(&$pdf, $module)
+    {
+        $variant_document = VariantDocument::where('document_id', $pdf->document->id)->first();
+        $company          = $variant_document->project_variant->project->company;
+        if ($company && $company->pdf_footer) {
+            $file = storage_path($company->pdf_footer->storage_path);
+            if (is_file($file)) {
+                $pdf->setSourceFile($file);
+                $temp = $pdf->importPage(1);
+                $pdf->useTemplate($temp);
+            }
+        }
+    }
     public static function filter_hr__ajax_table_competencies($args)
     {
         $request = $args['request'];
@@ -324,13 +467,18 @@ class HooksController extends AEGISController
         return $args;
     }
 
-    public static function filter_main_menu(&$data, $module)
+    public static function filter_main_menu(&$menu, $module)
     {
         if (Modules::isEnabled('Documents')) {
-            $data[] = array(
+            foreach ($menu as &$item) {
+                if ($item['title'] === 'dictionary.documents') {
+                    $item['title'] = 'MDSS';
+                }
+            }
+            $menu[] = array(
                 'icon'  => 'folder',
                 'link'  => '/a/m/'.$module->getName().'/projects',
-                'title' => __('Projects'),
+                'title' => 'dictionary.projects',
             );
         }
     }
