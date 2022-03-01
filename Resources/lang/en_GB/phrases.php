@@ -1,6 +1,7 @@
 <?php
 
 return array(
+    'all-companies'   => 'All Companies',
     'approve-as-role' => 'Approve As Role',
     'approved-as'     => 'Approved As',
 
@@ -18,8 +19,9 @@ return array(
 
     'live-document' => 'Live Document',
 
-    'pdf-footer'    => 'PDF Footer',
-    'project-types' => 'Project Types',
+    'pdf-footer'        => 'PDF Footer',
+    'project-reference' => 'Project Reference',
+    'project-types'     => 'Project Types',
 
     'user-grades'    => 'User Grades',
     'user-reference' => 'User Reference',

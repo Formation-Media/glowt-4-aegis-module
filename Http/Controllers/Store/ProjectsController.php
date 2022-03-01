@@ -3,11 +3,12 @@
 namespace Modules\AEGIS\Http\Controllers\Store;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
-use Modules\AEGIS\Models\Scope;
+use Modules\AEGIS\Models\Customer;
 
 class ProjectsController extends Controller
 {
@@ -16,14 +17,14 @@ class ProjectsController extends Controller
         $validated = $request->validate([
             'company_id' => 'required|exists:Modules\AEGIS\Models\Company,id',
             'reference'  => 'required|max:4|unique:Modules\AEGIS\Models\Project',
-            'scope'      => 'required|exists:Modules\AEGIS\Models\Scope,id',
+            'customer'   => 'required|exists:Modules\AEGIS\Models\Customer,id',
         ]);
         $company_abbreviation     = Company::find($validated['company_id'])->abbreviation;
-        $scope                    = Scope::find($request->scope);
+        $customer                 = Customer::find($request->customer);
         $user                     = \Auth::user();
         $new_project              = new Project();
         $new_project->company_id  = $validated['company_id'];
-        $new_project->scope_id    = $request->scope;
+        $new_project->customer_id = $request->customer;
         $new_project->name        = $request->name;
         $new_project->type_id     = $request->type;
         $new_project->added_by    = $user->id;
@@ -35,7 +36,7 @@ class ProjectsController extends Controller
         $default_variant->added_by       = $user->id;
         $default_variant->is_default     = true;
         $default_variant->project_id     = $new_project->id;
-        $default_variant->reference      = strtoupper($scope->reference.'/'.$validated['reference']);
+        $default_variant->reference      = strtoupper($customer->reference.'/'.$validated['reference']);
         $default_variant->variant_number = 0;
         $default_variant->save();
         $redirect = url('a/m/AEGIS/projects/project/'.$new_project->id);
@@ -45,7 +46,13 @@ class ProjectsController extends Controller
     public function add_variant(Request $request, $id)
     {
         $request->validate([
-            'variant_number' => 'required|max:2|unique:Modules\AEGIS\Models\ProjectVariant',
+            'variant_number' => [
+                'required',
+                'max:2',
+                Rule::unique('m_aegis_project_variants')->where(function ($query) use ($id) {
+                    return $query->where('project_id', $id);
+                }),
+            ],
         ]);
         $project                     = Project::find($id);
         $redirect                    = url('a/m/AEGIS/projects/project/'.$id);
@@ -63,11 +70,11 @@ class ProjectsController extends Controller
 
     public function project(Request $request, $id)
     {
-        $project           = Project::find($id);
-        $redirect          = url('a/m/AEGIS/projects/project/'.$id);
-        $project->name     = $request->name;
-        $project->scope_id = $request->scope;
-        $project->type_id  = $request->type;
+        $project              = Project::find($id);
+        $redirect             = url('a/m/AEGIS/projects/project/'.$id);
+        $project->name        = $request->name;
+        $project->customer_id = $request->customer;
+        $project->type_id     = $request->type;
         $project->update();
         $default_project_variant       = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
         $default_project_variant->name = $request->name;

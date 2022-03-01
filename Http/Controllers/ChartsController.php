@@ -29,7 +29,7 @@ class ChartsController extends Controller
         }
         return array(
             'data'  => $dataset,
-            'title' => __('Competencies by Company'),
+            'title' => ___('Competencies by Company'),
             'type'  => 'donut',
         );
     }

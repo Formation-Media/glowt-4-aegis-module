@@ -3,7 +3,7 @@
     $page_menu[]=array(
         'href' =>'/a/m/AEGIS/projects/add',
         'icon' =>'file-plus',
-        'title'=>__('Add Project')
+        'title'=>___('Add Project')
     );
 @endphp
 @extends(
@@ -11,7 +11,7 @@
     array(
         'breadcrumbs'=>array(
             $module->getName(),
-            __('Projects')
+            ___('Projects')
         ),
         'page_menu'=> $page_menu
     )

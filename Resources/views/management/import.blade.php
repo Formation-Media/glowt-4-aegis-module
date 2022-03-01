@@ -2,9 +2,9 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>__('dictionary.management'),
+            'management'=>___('dictionary.management'),
             $module->getName(),
-            __('dictionary.import')
+            ___('dictionary.import')
         ),
     )
 )

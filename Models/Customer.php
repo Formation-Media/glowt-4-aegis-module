@@ -6,10 +6,11 @@ use \App\Models\Base_Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Scope extends Model
+class Customer extends Model
 {
     use Base_Model;
     use SoftDeletes;
+
     protected $fillable = [
         'added_by',
         'name',

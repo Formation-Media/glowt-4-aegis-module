@@ -1,12 +1,9 @@
-@if($args['module']=='HR' && $args['method']=='table_competencies')
-    @php
-        $company=isset($args['request']['filter']['company'])?$args['request']['filter']['company']:false;
-    @endphp
+@if($args['module'] == 'HR' && $args['method'] == 'table_competencies')
     <x-field
-        label="{{ __('Company') }}"
+        label="dictionary.company"
         name="company"
         :options="$companies"
-        placeholder="All Companies"
+        placeholder="aegis::phrases.all-companies"
         type="select"
         value="{{ $company }}"
     />

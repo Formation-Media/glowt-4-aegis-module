@@ -10,13 +10,6 @@
     )
 )
 @section('content')
-    <x-card>
-        <ol>
-            @foreach($users as $user)
-                <li>{{ $user->name }} ({{ $user->email }}) = </li>
-            @endforeach
-        </ol>
-    </x-card>
     <x-table type="manual">
         <x-slot name="thead">
             <tr>

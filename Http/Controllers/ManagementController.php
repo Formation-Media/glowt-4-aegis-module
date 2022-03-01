@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ManagementController extends Controller
 {
-    public function add_scope(Request $request)
+    public function add_customer(Request $request)
     {
         return parent::view();
     }
@@ -19,7 +19,7 @@ class ManagementController extends Controller
         //         'd-bs-toggle' => 'modal',
         //         'd-bs-target' => '#modal-add-feedback-list-type',
         //         'icon'        => 'plus',
-        //         'title'       => ['phrases.add', ['item' => __('aegis::phrases.feedback-list-type')]],
+        //         'title'       => ['phrases.add', ['item' => ___('aegis::phrases.feedback-list-type')]],
         //     ],
         // ];
         return parent::view(/*compact('page_menu')*/);

@@ -1,12 +1,12 @@
 <x-field
-    label="{{ __('dictionary.company') }}"
+    label="{{ ___('dictionary.company') }}"
     name="aegis[company]"
     :options="$companies"
     required
     type="select"
 />
 <x-field
-    label="{{ __('aegis::phrases.approve-as-role') }}"
+    label="{{ ___('aegis::phrases.approve-as-role') }}"
     name="aegis[role]"
     :options="$job_titles"
     required

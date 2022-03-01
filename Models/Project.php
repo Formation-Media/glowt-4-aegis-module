@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Models;
 
 use App\Models\Base_Model;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -37,9 +38,15 @@ class Project extends Model
     {
         return $this->belongsTo(Company::class);
     }
-    public function scope()
+    public function customer()
     {
-        return $this->belongsTo(Scope::class, 'scope_id', 'id');
+        return $this->belongsTo(Customer::class, 'scope_id', 'id');
+    }
+    public function title(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->reference.': '.$this->name,
+        );
     }
     public function type()
     {

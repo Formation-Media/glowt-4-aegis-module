@@ -6,111 +6,111 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\Toast;
 use Illuminate\Http\Request;
-use Modules\AEGIS\Models\Scope;
+use Modules\AEGIS\Models\Customer;
 
-class ScopesController extends Controller
+class CustomersController extends Controller
 {
-    public function add_scope($request)
+    public function add_customer($request)
     {
         $i         = 0;
         $reference = strtoupper(substr($request->name, 0, 3));
-        while (Scope::where('reference', $reference.str_pad(++$i, 3, '0', STR_PAD_LEFT))->count() > 0) {
+        while (Customer::where('reference', $reference.str_pad(++$i, 3, '0', STR_PAD_LEFT))->count() > 0) {
             // When the loop stops we've got the reference #
             continue;
         }
-        return Scope::create([
+        return Customer::create([
             'added_by'  => \Auth::id(),
             'name'      => $request->name,
             'reference' => $reference.str_pad($i, 3, '0', STR_PAD_LEFT),
         ]);
     }
-    public function autocomplete_scopes($request)
+    public function autocomplete_customers($request)
     {
         $return = array();
-        if ($scopes = Scope::search(
+        if ($customers = Customer::search(
             array(
                 'name'
             ),
             '%'.$request->term.'%'
         )->paged()) {
-            foreach ($scopes as $scope) {
+            foreach ($customers as $customer) {
                 $return[] = array(
-                    'data'    => $scope,
-                    'value'   => $scope->id,
-                    'content' => $scope->name,
+                    'data'    => $customer,
+                    'value'   => $customer->id,
+                    'content' => $customer->name,
                 );
             }
         }
         return $return;
     }
-    public function delete_scope(Request $request)
+    public function delete_customer(Request $request)
     {
         $user = \Auth::user();
         if ($request->ids) {
-            $scopes = array();
-            if ($scopes = Scope::whereIn('id', $request->ids)->get()) {
-                foreach ($scopes as $scope) {
-                    $names[] = $scope->name;
-                    $scope->delete();
+            $customers = array();
+            if ($customers = Customer::whereIn('id', $request->ids)->get()) {
+                foreach ($customers as $customer) {
+                    $names[] = $customer->name;
+                    $customer->delete();
                 }
             }
             if ($names) {
                 $user->notify(new Toast(
-                    'Delete Scopes',
-                    'Successfully deleted '.number_format(count($names)).' scopes: '.implode(', ', $names)
+                    'Delete Customers',
+                    'Successfully deleted '.number_format(count($names)).' customers: '.implode(', ', $names)
                 ));
             }
         } else {
             $user->notify(new Toast(
-                'Delete Scopes',
-                'No scopes were selected for deletion.'
+                'Delete Customers',
+                'No customers were selected for deletion.'
             ));
         }
         return true;
     }
-    public function disable_scope(Request $request)
+    public function disable_customer(Request $request)
     {
         $user = \Auth::user();
         if ($request->ids) {
             $names = array();
-            if ($scopes = Scope::whereIn('id', $request->ids)->get()) {
-                foreach ($scopes as $scope) {
-                    $names[]       = $scope->name;
-                    $scope->status = false;
-                    $scope->save();
+            if ($customers = Customer::whereIn('id', $request->ids)->get()) {
+                foreach ($customers as $customer) {
+                    $names[]          = $customer->name;
+                    $customer->status = false;
+                    $customer->save();
                 }
             }
             if ($names) {
                 $user->notify(new Toast(
-                    'Disabled Scopes',
-                    'Successfully disabled '.number_format(count($names)).' scopes: '.implode(', ', $names)
+                    'Disabled Customers',
+                    'Successfully disabled '.number_format(count($names)).' customers: '.implode(', ', $names)
                 ));
             }
         } else {
-            $user->notify(new Toast('Disabled Scopes', 'No Scopes were selected for disabling.'));
+            $user->notify(new Toast('Disabled Customers', 'No Customers were selected for disabling.'));
         }
         return true;
     }
-    public function enable_scope(Request $request)
+    public function enable_customer(Request $request)
     {
         $user = \Auth::user();
         if ($request->ids) {
             $names = array();
-            if ($scopes = Scope::whereIn('id', $request->ids)->get()) {
-                foreach ($scopes as $scope) {
-                    $names[]       = $scope->name;
-                    $scope->status = false;
-                    $scope->save();
+            if ($customers = Customer::whereIn('id', $request->ids)->get()) {
+                foreach ($customers as $customer) {
+                    $names[]          = $customer->name;
+                    $customer->status = false;
+                    $customer->save();
                 }
             }
             if ($names) {
                 $user->notify(new Toast(
-                    'Disabled Scopes',
-                    'Successfully disabled '.number_format(count($names)).' scopes: '.implode(', ', $names)
+                    'Disabled Customers',
+                    'Successfully disabled '.number_format(count($names)).' customers: '.implode(', ', $names)
                 ));
             }
         } else {
-            $user->notify(new Toast('Disabled Scopes', 'No scopes were selected for disabling.'));
+            $user->notify(new Toast('Disabled Customers', 'No customers were selected for disabling.'));
         }
         return true;
     }
@@ -122,29 +122,29 @@ class ScopesController extends Controller
         $actions        = array(
             array(
                 'style' => 'primary',
-                'name'  => __('View'),
-                'uri'   => '/a/m/AEGIS/scopes/scope/{{id}}',
+                'name'  => ___('View'),
+                'uri'   => '/a/m/AEGIS/customers/customer/{{id}}',
             ),
         );
         if ($user->has_role('core::Administrator') || $user->has_role('core::Manager')) {
             $global_actions = array(
                 array(
-                    'action' => 'enable-scope',
+                    'action' => 'enable-customer',
                     'icon'   => 'square-check',
                     'style'  => 'success',
-                    'title'  => __('dictionary.enable'),
+                    'title'  => ___('dictionary.enable'),
                 ),
                 array(
-                    'action' => 'disable-scope',
+                    'action' => 'disable-customer',
                     'icon'   => 'square-xmark',
                     'style'  => 'warning',
-                    'title'  => __('dictionary.disable'),
+                    'title'  => ___('dictionary.disable'),
                 ),
                 array(
-                    'action' => 'delete-scope',
+                    'action' => 'delete-customer',
                     'icon'   => 'square-xmark',
                     'style'  => 'danger',
-                    'title'  => __('dictionary.delete'),
+                    'title'  => ___('dictionary.delete'),
                 ),
             );
         }
@@ -155,26 +155,26 @@ class ScopesController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                __('dictionary.name') => array(
+                ___('dictionary.name') => array(
                     'columns'      => 'name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                __('dictionary.reference') => array(
+                ___('dictionary.reference') => array(
                     'columns'      => 'reference',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                __('phrases.added-by') => array(
+                ___('phrases.added-by') => array(
                     'sortable' => true,
                 ),
-                __('phrases.added-at') => array(
+                ___('phrases.added-at') => array(
                     'columns'  => 'created_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
                     'method'   => 'datetime',
                 ),
-                __('phrases.updated-at') => array(
+                ___('phrases.updated-at') => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
@@ -184,16 +184,16 @@ class ScopesController extends Controller
             'status' => true
         );
         return parent::to_ajax_table(
-            'Scope',
+            'Customer',
             $row_structure,
             $global_actions,
             function ($query) {
                 return $query;
             },
             function ($in, $out) {
-                $scope                       = Scope::where('id', $in['id'])->first();
-                $added_by                    = User::where('id', $scope->added_by)->first();
-                $out[__('phrases.added-by')] = $added_by->name;
+                $customer                     = Customer::where('id', $in['id'])->first();
+                $added_by                     = User::where('id', $customer->added_by)->first();
+                $out[___('phrases.added-by')] = $added_by->name;
                 return $out;
             }
         );
