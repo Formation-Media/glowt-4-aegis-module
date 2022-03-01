@@ -11,6 +11,7 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 version.php
+
 Resources/files/import/temp_data.json
 Resources/files/import/~$*.xlsx
 Resources/files/import/*- sample.xlsx
