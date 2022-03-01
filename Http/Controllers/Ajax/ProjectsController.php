@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\Customer;
@@ -12,6 +13,27 @@ use Modules\Documents\Models\Category;
 
 class ProjectsController extends Controller
 {
+    public function autocomplete_projects(Request $request)
+    {
+        $return = array();
+        if ($projects = Project::search(
+            array(
+                'name',
+                'reference',
+            ),
+            '%'.$request->term.'%'
+        )->paged()) {
+            foreach ($projects as $project) {
+                $return[] = array(
+                    'data'    => $project,
+                    'value'   => $project->id,
+                    'content' => $project->title,
+                );
+            }
+        }
+        return $return;
+    }
+
     public function delete_project($request)
     {
         foreach ($request->ids as $id) {

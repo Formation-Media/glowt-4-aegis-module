@@ -114,16 +114,15 @@ var add = {
         });
     },
     watch_select_project:function() {
-        var variants  = document.getElementById('aegisproject-variant');
-        // var reference = document.getElementById('aegisreference');
-        document.getElementById('aegisproject').addEventListener(
-            'change',
-            function(e) {
+        var variants = document.getElementById('aegisproject-variant');
+        document
+            .getElementById('aegisproject-autocomplete')
+            .addEventListener('autocomplete-select', function (e) {
                 app.show_loader();
                 app.ajax(
                     'm/AEGIS/projects/get_project_variants',
                     {
-                        project: e.target.value
+                        project: e.selection.id
                     },
                     function(json) {
                         if (json.data.variants) {
@@ -143,8 +142,7 @@ var add = {
                         app.toggle_loader();
                     }
                 );
-            }
-        );
+            });
     },
     watch_select_project_variant:function() {
         document.getElementById('aegisproject-variant').addEventListener(
