@@ -21,8 +21,9 @@ class CompaniesController extends Controller
                 'required',
                 Rule::unique('m_aegis_companies', 'abbreviation'),
             ],
-            'status'       => 'nullable',
-            'pdf_footer'   => [
+            'show_for_mdss' => 'nullable',
+            'status'        => 'nullable',
+            'pdf_footer'    => [
                 'nullable',
                 'file',
                 'max:'.(int) ini_get("upload_max_filesize") * 1024,
@@ -34,11 +35,12 @@ class CompaniesController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $validated             = $validator->validated();
-        $company               = new Company();
-        $company->abbreviation = strtoupper($request->abbreviation);
-        $company->name         = $validated['name'];
-        $company->status       = $validated['status'] ?? 0;
+        $validated              = $validator->validated();
+        $company                = new Company();
+        $company->abbreviation  = strtoupper($request->abbreviation);
+        $company->name          = $validated['name'];
+        $company->show_for_mdss = $validated['show_for_mdss'] ?? 0;
+        $company->status        = $validated['status'] ?? 0;
         $company->save();
         if ($request->hasFile('pdf_footer')) {
             if (!$file = $company->pdf_footer) {
@@ -63,8 +65,9 @@ class CompaniesController extends Controller
                 'required',
                 Rule::unique('m_aegis_companies', 'abbreviation')->ignore($id),
             ],
-            'status'       => 'nullable',
-            'pdf_footer'   => [
+            'show_for_mdss' => 'nullable',
+            'status'        => 'nullable',
+            'pdf_footer'    => [
                 'nullable',
                 'file',
                 'max:'.(int) ini_get("upload_max_filesize") * 1024,
@@ -76,10 +79,11 @@ class CompaniesController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $validated             = $validator->validated();
-        $company->abbreviation = strtoupper($validated['abbreviation']);
-        $company->name         = $validated['name'];
-        $company->status       = $validated['status'] ?? 0;
+        $validated              = $validator->validated();
+        $company->abbreviation  = strtoupper($validated['abbreviation']);
+        $company->name          = $validated['name'];
+        $company->show_for_mdss = $validated['show_for_mdss'] ?? 0;
+        $company->status        = $validated['status'] ?? 0;
         $company->save();
         if ($request->hasFile('pdf_footer')) {
             if (!$file = $company->pdf_footer) {
