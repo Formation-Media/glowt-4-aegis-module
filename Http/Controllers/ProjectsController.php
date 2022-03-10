@@ -49,7 +49,7 @@ class ProjectsController extends Controller
 
     public function add(Request $request, $id = null)
     {
-        $companies = Company::orderBy('name')->pluck('name', 'id')->toArray();
+        $companies = Company::MDSS()->orderBy('name')->pluck('name', 'id')->toArray();
         $customer  = Customer::find($id);
         $types     = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
         return parent::view(compact(

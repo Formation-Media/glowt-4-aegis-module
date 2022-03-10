@@ -63,7 +63,7 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_approve_fields()
     {
-        $companies  = Company::active()->pluck('name', 'id');
+        $companies  = Company::MDSS()->active()->pluck('name', 'id');
         $job_titles = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
         return view(
             'aegis::_hooks.approve-fields',
@@ -128,48 +128,48 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__approve_deny($args)
     {
-        $document           = $args['document'];
-        $item               = $args['item'];
-        $request            = $args['request'];
-        $user               = $args['user'];
-
-        if ($item->current_stage_complete()) { // no next stage
-            $company            = Company::find($request->aegis['company']);
-            $user_reference     = $user->getMeta('aegis.user-reference');
-
-            $previous_reference = DocumentApprovalProcessItem
-                ::where([
-                    ['agent_id', $user->id],
-                    ['reference', 'LIKE', $company->abbreviation.'-'.$user_reference.'-%'],
-                ])
-                ->orderBy('id', 'desc')
-                ->first();
-            if ($previous_reference) {
-                $previous_reference = $previous_reference->reference;
-            } else {
-                $previous_reference = $company->abbreviation.'-'.$user_reference.'-0';
-            }
-
-            list($company_reference, $user, $increment) = explode('-', $previous_reference);
-            $item->reference                            = implode('-', [$company_reference, $user, $increment + 1]);
-
-            $item->status = 'Awaiting Decision';
-            $item->save();
-            $document->status = 'In Approval';
-            $document->save();
-            exit;
-        }
-
+        $document = $args['document'];
+        $item     = $args['item'];
+        $request  = $args['request'];
+        $user     = $args['user'];
 
         DocumentApprovalItemDetails::updateOrInsert(
             ['approval_item_id' => $item->id],
             [
-                'company_id'   => $company->id,
+                'company_id'   => $request->aegis['company'],
                 'job_title_id' => $request->aegis['role'],
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ],
         );
+
+        if (!$item->approval_process_item->approval_stage->next_stage() && $args['approved']) { # Everything's approved
+            // Loop through approval items and apply the signature reference
+            $approval_process_items = DocumentApprovalProcessItem::where('document_id', $document->id);
+            if ($approval_process_items->count()) {
+                foreach ($approval_process_items->get() as $approval_process_item) {
+                    $details        = DocumentApprovalItemDetails::where('approval_item_id', $approval_process_item->id)->first();
+                    $user_reference = $approval_process_item->agent->getMeta('aegis.user-reference');
+
+                    $previous_reference = DocumentApprovalProcessItem
+                        ::where('reference', 'LIKE', $details->company->abbreviation.'-'.$user_reference.'-%')
+                        ->orderBy('reference', 'desc')
+                        ->first();
+                    if ($previous_reference) {
+                        $previous_reference = $previous_reference->reference;
+                    } else {
+                        $previous_reference = $details->company->abbreviation.'-'.$user_reference.'-0';
+                    }
+
+                    list($company_reference, $user, $increment) = explode('-', $previous_reference);
+
+                    $approval_process_item->reference = implode('-', [$company_reference, $user, $increment + 1]);
+
+                    $approval_process_item->save();
+                }
+            }
+        }
+
         $item->save();
     }
     public static function collect_documents__edit_document($args)
@@ -483,9 +483,10 @@ class HooksController extends AEGISController
     // }
     public static function filter_documents__document_details(&$details, $module, $document)
     {
-        $variant_document              = VariantDocument::where('document_id', $document->id)->first();
-        $project                       = $variant_document->project_variant->project;
-        $details['dictionary.project'] = '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>';
+        $variant_document                = VariantDocument::where('document_id', $document->id)->first();
+        $project                         = $variant_document->project_variant->project;
+        $details['dictionary.reference'] = $variant_document->reference;
+        $details['dictionary.project']   = '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>';
         if ($document->category->prefix === 'FBL' && ($meta = $document->getMeta('feedback_list_type_id'))) {
             $feedback_list_type = FeedbackListType::find($meta);
             if ($feedback_list_type) {

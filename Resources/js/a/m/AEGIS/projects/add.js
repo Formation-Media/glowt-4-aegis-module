@@ -20,7 +20,6 @@ let add = {
                     function(json) {
                         if (json.status) {
                             prefix.innerHTML = json.data.prefix + '/';
-                            next.value       = json.data.next;
                         }
                     },
                     null,

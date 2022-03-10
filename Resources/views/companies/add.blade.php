@@ -37,6 +37,12 @@
                     name="status"
                     type="switch"
                 />
+                <x-field
+                    label="aegis::_settings.show-for-mdss.title"
+                    name="status"
+                    note="aegis::_settings.show-for-mdss.description"
+                    type="switch"
+                />
             </div>
         </x-card>
         <x-field type="actions">

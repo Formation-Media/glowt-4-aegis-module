@@ -41,6 +41,13 @@
                     name="status"
                     type="switch"
                 />
+                <x-field
+                    checked="{{ $company->show_for_mdss ? true : false }}"
+                    label="aegis::_settings.show-for-mdss.title"
+                    name="status"
+                    note="aegis::_settings.show-for-mdss.description"
+                    type="switch"
+                />
             </div>
         </x-card>
         <x-field type="actions">

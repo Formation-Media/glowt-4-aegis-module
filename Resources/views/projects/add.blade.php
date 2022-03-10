@@ -53,6 +53,7 @@
             />
             <x-field
                 label="dictionary.reference"
+                max="{{ str_pad('', config('settings.aegis.project.character-limit'), 9) }}"
                 min="0"
                 name="reference"
                 prefield="{!! $customer ? $customer->reference : '&hellip;' !!}/"
