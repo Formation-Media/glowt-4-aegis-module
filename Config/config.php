@@ -1,5 +1,9 @@
 <?php
 
 return [
-    'name' => 'AEGIS'
+    'name' => 'AEGIS',
+
+    'project' => [
+        'character-limit' => 4
+    ],
 ];
