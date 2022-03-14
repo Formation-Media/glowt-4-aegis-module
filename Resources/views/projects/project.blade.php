@@ -3,14 +3,14 @@
     array(
         'breadcrumbs'=>array(
             $module->getName(),
-            $module_base.'projects' => ___('dictionary.projects'),
+            $module_base.'projects' => 'dictionary.projects',
             $project->reference.': '.$project->name
         ),
         'page_menu'=> array(
             array(
                 'href' =>'/a/m/AEGIS/projects/add-variant/'.$project->id,
                 'icon' =>'file-plus',
-                'title'=>___('phrases.add',['item'=>___('dictionary.variant')])
+                'title'=>['phrases.add',['item'=>___('dictionary.variant')]]
             ),
         )
     )
@@ -20,20 +20,13 @@
     <x-tabs name="project" :tabs="$tabs">
         <x-tab target="{{___('dictionary.details')}}">
             <x-form name="project">
-                <x-card>
+                <x-card body-class="grid-md-2">
                     <x-field
                         label="{{___('dictionary.name')}}"
                         name="name"
                         type="text"
                         value="{{$project->name}}"
                         required
-                    />
-                    <x-field
-                        label="{{___('dictionary.description')}}"
-                        name="description"
-                        required
-                        type="textarea"
-                        value="{{$project->description}}"
                     />
                     <x-field
                         controller="Customers"
@@ -47,6 +40,12 @@
                             'value' => $customer->id ?? null
                         ]"
                         required
+                    />
+                    <x-field
+                        label="{{___('dictionary.description')}}"
+                        name="description"
+                        type="textarea"
+                        value="{{$project->description}}"
                     />
                     <x-field
                         label="{{___('dictionary.type')}}"
