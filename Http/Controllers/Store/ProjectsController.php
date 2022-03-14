@@ -15,27 +15,38 @@ class ProjectsController extends Controller
 {
     public function add(Request $request)
     {
-        $company_abbreviation = null;
-        $validator            = Validator::make(
+        $company_reference = Validator::make(
             $request->all(),
             array(
                 'company_id'  => 'required|exists:Modules\AEGIS\Models\Company,id',
-                'customer'    => 'required|exists:Modules\AEGIS\Models\Customer,id',
-                'description' => 'nullable',
-                'name'        => 'required',
                 'reference'   => [
                     'max:'.str_pad('', config('settings.aegis.project.character-limit'), 9),
                     'numeric',
                     'required',
-                    'unique:Modules\AEGIS\Models\Project',
-                ],
-                'type' => 'required',
+                ]
             )
         );
-        $validator->after(function ($validator) use ($company_abbreviation, $request) {
-            $company_abbreviation = Company::find($request->company_id)->abbreviation;
-            $validated            = $validator->validated();
-            if (Project::where('reference', strtoupper($company_abbreviation.'/'.$validated['reference']))->count()) {
+        if ($company_reference->fails()) {
+            return redirect()
+                ->back()
+                ->withErrors($company_reference)
+                ->withInput();
+        }
+        $company_reference    = $company_reference->validated();
+        $company_abbreviation = Company::find($company_reference['company_id'])->abbreviation;
+        $project_reference    = strtoupper($company_abbreviation.'/'.$company_reference['reference']);
+
+        $validator = Validator::make(
+            $request->all(),
+            array(
+                'customer'    => 'required|exists:Modules\AEGIS\Models\Customer,id',
+                'description' => 'nullable',
+                'name'        => 'required',
+                'type'        => 'required',
+            )
+        );
+        $validator->after(function ($validator) use ($project_reference) {
+            if (Project::where('reference', $project_reference)->count()) {
                 $validator->errors()->add(
                     'global_errors',
                     'aegis::messages.project.reference-exists',
@@ -48,8 +59,10 @@ class ProjectsController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $validated                = $validator->validated();
-        $customer                 = Customer::find($validated['customer']);
+        $validated = array_merge(
+            $company_reference,
+            $validator->validated()
+        );
         $user                     = \Auth::user();
         $new_project              = new Project();
         $new_project->company_id  = $validated['company_id'];
@@ -58,14 +71,14 @@ class ProjectsController extends Controller
         $new_project->type_id     = $validated['type'];
         $new_project->added_by    = $user->id;
         $new_project->description = $validated['description'] ?? '';
-        $new_project->reference   = strtoupper($company_abbreviation.'/'.$validated['reference']);
+        $new_project->reference   = $project_reference;
         $new_project->save();
         $default_variant                 = new ProjectVariant();
         $default_variant->name           = $validated['name'];
         $default_variant->added_by       = $user->id;
         $default_variant->is_default     = true;
         $default_variant->project_id     = $new_project->id;
-        $default_variant->reference      = strtoupper($customer->reference.'/'.$validated['reference']);
+        $default_variant->reference      = $project_reference;
         $default_variant->variant_number = 0;
         $default_variant->save();
         $redirect = url('a/m/AEGIS/projects/project/'.$new_project->id);
@@ -91,7 +104,7 @@ class ProjectsController extends Controller
         $new_variant->name           = $request->name;
         $new_variant->is_default     = false;
         $new_variant->project_id     = $id;
-        $new_variant->reference      = strtoupper($project->reference.'/'. $request->variant_number.'/');
+        $new_variant->reference      = strtoupper($project->reference.'/'.str_pad($request->variant_number, 2, "0", STR_PAD_LEFT).'/');
         $new_variant->variant_number = $request->variant_number;
         $new_variant->save();
         return redirect($redirect);

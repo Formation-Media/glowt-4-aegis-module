@@ -60,7 +60,7 @@
                         label="{{___('dictionary.reference')}}"
                         name="reference"
                         type="text"
-                        value="{{$project->reference}}"
+                        value="{{ $project->reference }}"
                     />
                 </x-card>
                 <x-field type="actions">
@@ -80,7 +80,7 @@
                                 name="name"
                                 required
                                 type="text"
-                                value="{{$variant->name}}"
+                                value="{{ $variant->name }}"
                             />
                             <x-field
                                 disabled="{{true}}"
