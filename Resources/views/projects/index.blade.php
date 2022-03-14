@@ -1,9 +1,9 @@
 @php
     $page_menu=array();
     $page_menu[]=array(
-        'href' =>'/a/m/AEGIS/projects/add',
-        'icon' =>'file-plus',
-        'title'=>___('Add Project')
+        'href'  => '/a/m/AEGIS/projects/add',
+        'icon'  => 'file-plus',
+        'title' => ['phrases.add', ['item' => ___('dictionary.project')]],
     );
 @endphp
 @extends(
@@ -11,7 +11,7 @@
     array(
         'breadcrumbs'=>array(
             $module->getName(),
-            ___('Projects')
+            'dictionary.projects'
         ),
         'page_menu'=> $page_menu
     )
