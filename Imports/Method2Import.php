@@ -94,7 +94,7 @@ class Method2Import
                         'company_id'  => $companies[$project['company']],
                         'description' => $project['description'] ?? '',
                         'name'        => $project_name,
-                        'customer_id' => $customer_id,
+                        'scope_id'    => $customer_id,
                         'type_id'     => $type_id,
                     ],
                 );

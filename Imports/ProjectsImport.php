@@ -101,7 +101,7 @@ class ProjectsImport implements ToCollection
                         'company_id'  => $companies[$project_company],
                         'description' => $project_description ?? '',
                         'name'        => strlen($project_name) > 191 ? substr($project_name, 0, 188).'...' : $project_name,
-                        'customer_id' => $customer_id,
+                        'scope_id'    => $customer_id,
                         'type_id'     => $type_id,
                     ]
                 );
