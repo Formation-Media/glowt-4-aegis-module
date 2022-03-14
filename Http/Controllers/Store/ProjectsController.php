@@ -15,12 +15,13 @@ class ProjectsController extends Controller
 {
     public function add(Request $request)
     {
-        $validator = Validator::make(
+        $company_abbreviation = null;
+        $validator            = Validator::make(
             $request->all(),
             array(
                 'company_id'  => 'required|exists:Modules\AEGIS\Models\Company,id',
                 'customer'    => 'required|exists:Modules\AEGIS\Models\Customer,id',
-                'description' => 'required',
+                'description' => 'nullable',
                 'name'        => 'required',
                 'reference'   => [
                     'max:'.str_pad('', config('settings.aegis.project.character-limit'), 9),
@@ -31,6 +32,16 @@ class ProjectsController extends Controller
                 'type' => 'required',
             )
         );
+        $validator->after(function ($validator) use ($company_abbreviation, $request) {
+            $company_abbreviation = Company::find($request->company_id)->abbreviation;
+            $validated            = $validator->validated();
+            if (Project::where('reference', strtoupper($company_abbreviation.'/'.$validated['reference']))->count()) {
+                $validator->errors()->add(
+                    'global_errors',
+                    'aegis::messages.project.reference-exists',
+                );
+            }
+        });
         if ($validator->fails()) {
             return redirect()
                 ->back()
@@ -38,7 +49,6 @@ class ProjectsController extends Controller
                 ->withInput();
         }
         $validated                = $validator->validated();
-        $company_abbreviation     = Company::find($validated['company_id'])->abbreviation;
         $customer                 = Customer::find($validated['customer']);
         $user                     = \Auth::user();
         $new_project              = new Project();
@@ -47,7 +57,7 @@ class ProjectsController extends Controller
         $new_project->name        = $validated['name'];
         $new_project->type_id     = $validated['type'];
         $new_project->added_by    = $user->id;
-        $new_project->description = $validated['description'];
+        $new_project->description = $validated['description'] ?? '';
         $new_project->reference   = strtoupper($company_abbreviation.'/'.$validated['reference']);
         $new_project->save();
         $default_variant                 = new ProjectVariant();
@@ -89,11 +99,12 @@ class ProjectsController extends Controller
 
     public function project(Request $request, $id)
     {
-        $project           = Project::find($id);
-        $redirect          = url('a/m/AEGIS/projects/project/'.$id);
-        $project->name     = $request->name;
-        $project->scope_id = $request->customer;
-        $project->type_id  = $request->type;
+        $project              = Project::find($id);
+        $redirect             = url('a/m/AEGIS/projects/project/'.$id);
+        $project->name        = $request->name;
+        $project->scope_id    = $request->customer;
+        $project->type_id     = $request->type;
+        $project->description = $request->description ?? '';
         $project->update();
         $default_project_variant       = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
         $default_project_variant->name = $request->name;
