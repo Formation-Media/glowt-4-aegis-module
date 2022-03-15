@@ -3,7 +3,7 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\AEGIS\Models\CompetencyCompany;
+use Modules\AEGIS\Models\CompetencyDetail;
 
 class ChartsController extends Controller
 {
@@ -13,11 +13,11 @@ class ChartsController extends Controller
             'labels' => array(),
             'data'   => array(),
         );
-        $companies = CompetencyCompany
+        $companies = CompetencyDetail
             ::select([
                 \DB::raw('count(m_aegis_companies.status) as count,m_aegis_companies.name')
             ])
-            ->join('m_aegis_companies', 'm_aegis_competency_company.company_id', '=', 'm_aegis_companies.id')
+            ->join('m_aegis_companies', 'm_aegis_competency_details.company_id', '=', 'm_aegis_companies.id')
             ->groupBy('name')
             ->orderBy('status')
             ->get();
