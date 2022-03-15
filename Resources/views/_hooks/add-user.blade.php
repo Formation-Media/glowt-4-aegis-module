@@ -31,14 +31,6 @@
         :value="isset($user)?$user->getMeta('aegis.discipline'):[]"
     />
 @endif
-@if($method!=='profile')
-    <x-field
-        label="{{ ___('aegis::phrases.live-document') }}"
-        name="aegis[live-document]"
-        type="url"
-        value="{{ isset($user) && count($user->meta) && $user->getMeta('aegis.live-document')?$user->getMeta('aegis.live-document'):'' }}"
-    />
-@endif
 <x-field
     disabled="{{ $method==='profile' }}"
     label="{{ ___('dictionary.type') }}"
