@@ -5,6 +5,8 @@ return array(
     'approve-as-role' => 'Approve As Role',
     'approved-as'     => 'Approved As',
 
+    'competency-company' => 'Competency Company',
+
     'default-sections'   => 'Default "No Knowledge" Sections',
     'document-reference' => 'Document Reference',
 
