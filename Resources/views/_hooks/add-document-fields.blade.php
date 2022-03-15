@@ -5,15 +5,13 @@
         'aegis::projects.project-variant-reference' => '...',
     ]" />
 @else
-    @if (!$selected_project)
-        <x-field
-            hidden
-            label="aegis::phrases.feedback-list-type"
-            name="aegis[feedback-list-type]"
-            :options="$feedback_list_types"
-            type="select"
-        />
-    @endif
+    <x-field
+        hidden
+        label="aegis::phrases.feedback-list-type"
+        name="aegis[feedback-list-type]"
+        :options="$feedback_list_types"
+        type="select"
+    />
     <x-field
         :hidden="isset($document) && $document->category->prefix !== 'FBL' || !isset($document)"
         label="aegis::phrases.final-feedback-list"
@@ -38,7 +36,6 @@
             ] : null"
         />
         <x-field
-            disabled="{{$selected_variant? true : false}}"
             label="{{ ___('Project Variant') }}"
             name="aegis[project_variant]"
             :options="$project_variants ?? [] "
@@ -48,7 +45,6 @@
         />
         @isset($reference)
             <x-field
-                disabled="{{true}}"
                 label="aegis::projects.document-reference"
                 name="aegis[documentreference]"
                 type="text"
@@ -59,7 +55,7 @@
                 label="aegis::projects.project-variant-reference"
                 min="1"
                 name="aegis[reference]"
-                prefield="&hellip;"
+                :prefield="$selected_variant ? $selected_variant->reference : '&hellip;'"
                 required
                 type="number"
             />

@@ -18,7 +18,7 @@ class ProjectsController extends Controller
         $company_reference = Validator::make(
             $request->all(),
             array(
-                'company_id'  => 'required|exists:Modules\AEGIS\Models\Company,id',
+                'company_id'  => 'required|exists:'.Company::class.',id',
                 'reference'   => [
                     'max:'.str_pad('', config('settings.aegis.project.character-limit'), 9),
                     'numeric',
@@ -39,7 +39,7 @@ class ProjectsController extends Controller
         $validator = Validator::make(
             $request->all(),
             array(
-                'customer'    => 'required|exists:Modules\AEGIS\Models\Customer,id',
+                'customer'    => 'required|exists:'.Customer::class.',id',
                 'description' => 'nullable',
                 'name'        => 'required',
                 'type'        => 'required',
@@ -74,7 +74,7 @@ class ProjectsController extends Controller
         $new_project->reference   = $project_reference;
         $new_project->save();
         $default_variant                 = new ProjectVariant();
-        $default_variant->name           = $validated['name'];
+        $default_variant->name           = 'Default';
         $default_variant->added_by       = $user->id;
         $default_variant->is_default     = true;
         $default_variant->project_id     = $new_project->id;
@@ -104,7 +104,7 @@ class ProjectsController extends Controller
         $new_variant->name           = $request->name;
         $new_variant->is_default     = false;
         $new_variant->project_id     = $id;
-        $new_variant->reference      = strtoupper($project->reference.'/'.str_pad($request->variant_number, 2, "0", STR_PAD_LEFT).'/');
+        $new_variant->reference      = strtoupper($project->reference.'/'.str_pad($request->variant_number, 2, "0", STR_PAD_LEFT));
         $new_variant->variant_number = $request->variant_number;
         $new_variant->save();
         return redirect($redirect);
