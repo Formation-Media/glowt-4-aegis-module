@@ -1,8 +1,7 @@
 @if(isset($document) && $document->status !== 'Draft')
     <x-details :details="[
-        'dictionary.project'                        => $selected_project->title,
-        'aegis::projects.project-variant'           => $selected_variant->name,
-        'aegis::projects.project-variant-reference' => '...',
+        'dictionary.project'              => $selected_project->title,
+        'aegis::projects.project-variant' => $selected_variant->name,
     ]" />
 @else
     <x-field
