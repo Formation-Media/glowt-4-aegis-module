@@ -20,6 +20,22 @@
         type="select"
         :value="isset($document) ? $document->getMeta('final_feedback_list') : null"
     />
+    <x-field
+        label="aegis::phrases.submit-as-company"
+        name="aegis[author-company]"
+        :options="$companies"
+        required
+        type="select"
+        :value="isset($document) ? $document->getMeta('author_company') : null"
+    />
+    <x-field
+        label="aegis::phrases.submit-as-role"
+        name="aegis[author-role]"
+        :options="$job_titles"
+        required
+        type="select"
+        :value="isset($document) ? $document->getMeta('author_role') : null"
+    />
     @isset($projects)
         <x-field
             controller="projects"
@@ -35,7 +51,7 @@
             ] : null"
         />
         <x-field
-            label="{{ ___('Project Variant') }}"
+            label="Project Variant"
             name="aegis[project_variant]"
             :options="$project_variants ?? [] "
             type="select"
@@ -59,12 +75,5 @@
                 type="number"
             />
         @endisset
-        <x-field
-            disabled="true"
-            label="dictionary.issue"
-            name="aegis[issue]"
-            type="number"
-            value="1"
-        />
     @endisset
 @endif

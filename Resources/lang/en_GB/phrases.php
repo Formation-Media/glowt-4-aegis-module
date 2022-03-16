@@ -25,6 +25,9 @@ return array(
     'project-reference' => 'Project Reference',
     'project-types'     => 'Project Types',
 
+    'submit-as-company' => 'As Company',
+    'submit-as-role'    => 'As Role',
+
     'user-grades'    => 'User Grades',
     'user-reference' => 'User Reference',
 );
