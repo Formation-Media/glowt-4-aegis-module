@@ -24,7 +24,7 @@ class DocumentSignatureImport implements ToCollection
         $this->method   = $method;
         $this->statuses = [
             'APPROVED'  => 'Approved',
-            'REJECTED'  => 'Denied',
+            'REJECTED'  => 'Rejected',
             'REVIEWED'  => 'Awaiting Decision',
             'SUBMITTED' => 'Awaiting Decision',
         ];

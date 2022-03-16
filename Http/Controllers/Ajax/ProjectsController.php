@@ -85,7 +85,7 @@ class ProjectsController extends Controller
     {
         $category         = Category::find($request->category);
         $project_variant  = ProjectVariant::find($request->project_variant);
-        $reference_prefix = $project_variant->project->reference.'/'.$category->prefix;
+        $reference_prefix = $project_variant->reference.'/'.$category->prefix;
         $last_variant     = VariantDocument
             ::where('reference', 'like', $reference_prefix.'%')
             ->orderBy('created_at', 'desc')

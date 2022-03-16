@@ -10,7 +10,7 @@
 )
 @section('content')
     <x-form name="project">
-        <x-card>
+        <x-card body-class="grid-md-2">
             <x-field
                 label="dictionary.company"
                 name="company_id"
@@ -25,12 +25,6 @@
                 type="text"
             />
             <x-field
-                label="dictionary.description"
-                name="description"
-                type="textarea"
-                required
-            />
-            <x-field
                 allow-add
                 controller="Customers"
                 label="dictionary.customer"
@@ -43,6 +37,11 @@
                     'text'  => $customer->name ?? null,
                     'value' => $customer->id ?? null
                 ]"
+            />
+            <x-field
+                label="dictionary.description"
+                name="description"
+                type="textarea"
             />
             <x-field
                 label="dictionary.type"

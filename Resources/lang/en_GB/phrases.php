@@ -5,6 +5,8 @@ return array(
     'approve-as-role' => 'Approve As Role',
     'approved-as'     => 'Approved As',
 
+    'competency-company' => 'Competency Company',
+
     'default-sections'   => 'Default "No Knowledge" Sections',
     'document-reference' => 'Document Reference',
 
@@ -22,6 +24,9 @@ return array(
     'pdf-footer'        => 'PDF Footer',
     'project-reference' => 'Project Reference',
     'project-types'     => 'Project Types',
+
+    'submit-as-company' => 'As Company',
+    'submit-as-role'    => 'As Role',
 
     'user-grades'    => 'User Grades',
     'user-reference' => 'User Reference',

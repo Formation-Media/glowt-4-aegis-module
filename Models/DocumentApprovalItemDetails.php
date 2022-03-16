@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Models;
 
 use App\Models\Base_Model;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Documents\Models\DocumentApprovalProcessItem;
 
 class DocumentApprovalItemDetails extends Model
 {
@@ -19,6 +20,10 @@ class DocumentApprovalItemDetails extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+    public function item()
+    {
+        return $this->belongsTo(DocumentApprovalProcessItem::class);
     }
     public function job_title()
     {

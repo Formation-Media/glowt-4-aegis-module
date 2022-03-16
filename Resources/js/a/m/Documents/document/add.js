@@ -3,8 +3,11 @@ var add = {
     issue: null,
     variant: null,
     init:function() {
-        if (_GET.category) {
-            add.category = _GET.category;
+        if (window._GET.category) {
+            add.category = window._GET.category;
+        }
+        if (window._GET.project_variant) {
+            add.variant = window._GET.project_variant;
         }
         add.issue = document.querySelector('[name="aegis[issue]"]');
         this.watch_category();
@@ -82,7 +85,7 @@ var add = {
             app.ajax(
                 'm/Documents/categories/get-category',
                 {
-                    category: category_id.value
+                    category: category_id.value,
                 },
                 function(json) {
                     // Call successful
@@ -102,6 +105,7 @@ var add = {
             add.category    = event.selection.id;
             add.issue.value = 1;
             add.toggle_feedback_list_type(event.selection.prefix);
+            add.get_reference();
         });
     },
     watch_reference: function() {
