@@ -38,7 +38,9 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_add_document_fields()
     {
+        $companies           = Company::MDSS()->active()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
+        $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
         $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
         $project_variants    = null;
         $selected_variant    = null;
@@ -52,12 +54,14 @@ class HooksController extends AEGISController
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
+                'companies',
                 'feedback_list_types',
+                'job_titles',
                 'projects',
                 'project_variants',
                 'selected_project',
                 'selected_variant',
-                'yes_no'
+                'yes_no',
             )
         );
     }
@@ -75,7 +79,9 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_document_fields($document)
     {
+        $companies           = Company::MDSS()->active()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
+        $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
         $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
         $document_variant    = VariantDocument::where('document_id', $document->id)->first();
         $yes_no              = Translations::yes_no();
@@ -93,8 +99,10 @@ class HooksController extends AEGISController
         return view(
             'aegis::_hooks.add-document-fields',
             compact(
+                'companies',
                 'document',
                 'feedback_list_types',
+                'job_titles',
                 'projects',
                 'project_variants',
                 'reference',
@@ -113,8 +121,12 @@ class HooksController extends AEGISController
                     'feedback_list_type_id' => $args['request']->aegis['feedback-list-type'],
                     'final_feedback_list'   => $args['request']->aegis['final-feedback-list'],
                 ]);
-                $args['new_document']->save();
             }
+            $args['new_document']->setMeta([
+                'author_company' => $args['request']->aegis['author-company'],
+                'author_role'    => $args['request']->aegis['author-role'],
+            ]);
+            $args['new_document']->save();
             $variant_document              = new VariantDocument();
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
@@ -146,7 +158,8 @@ class HooksController extends AEGISController
         if (!$item->approval_process_item->approval_stage->next_stage() && $args['approved']) {
             // Everything's approved
             // Apply the author reference
-            $author_prefix = $this_item->company->abbreviation.'-'.$user->getMeta('aegis.user-reference').'-';
+            $author_company = Company::withTrashed()->find($document->meta['author_company']);
+            $author_prefix  = $author_company->abbreviation.'-'.$user->getMeta('aegis.user-reference').'-';
             if ($previous_author_reference = DB
                 ::table('m_documents_meta')
                 ->where('key', 'author_reference')
@@ -483,7 +496,14 @@ class HooksController extends AEGISController
     }
     public static function filter_documents__pdf_author_columns(&$data, $module, $document)
     {
-        $data['documents::phrases.signature-reference'] = $document->getMeta('author_reference');
+        $data = [
+            'documents::phrases.signatory-name'      => $data['documents::phrases.signatory-name'],
+            'documents::phrases.signature-reference' => $document->meta['author_reference'],
+            'documents::phrases.stage-name'          => ___('dictionary.author'),
+            'dictionary.time'                        => $data['dictionary.time'],
+            'dictionary.company'                     => Company::withTrashed()->find($document->meta['author_company'])->name,
+            'dictionary.role'                        => JobTitle::find($document->meta['author_role'])->name,
+        ];
     }
     public static function filter_documents__pdf_signature_columns(&$data, $module, $signature)
     {
@@ -491,11 +511,19 @@ class HooksController extends AEGISController
         $company   = $details->company->name ?? null;
         $job_title = $details->job_title->name ?? null;
         if ($company) {
-            $data[___('dictionary.company')] = $company;
+            $data['dictionary.company'] = $company;
         }
         if ($job_title) {
-            $data[___('aegis::phrases.approved-as')] = $job_title;
+            $data['aegis::phrases.approved-as'] = $job_title;
         }
+    }
+    public static function filter_documents__reset_status($document, $module)
+    {
+        $document_variant = VariantDocument
+            ::where('document_id', $document->id)
+            ->first();
+        $document_variant->issue++;
+        $document_variant->save();
     }
     // public static function filter_card_view_filter(&$query, $module, $request)
     // {
@@ -554,6 +582,7 @@ class HooksController extends AEGISController
         $variant_document                = VariantDocument::where('document_id', $document->id)->first();
         $project                         = $variant_document->project_variant->project;
         $details['dictionary.reference'] = $variant_document->reference;
+        $details['dictionary.issue']     = $variant_document->issue;
         $details['dictionary.project']   = '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>';
         if ($document->category->prefix === 'FBL' && ($meta = $document->getMeta('feedback_list_type_id'))) {
             $feedback_list_type = FeedbackListType::find($meta);
