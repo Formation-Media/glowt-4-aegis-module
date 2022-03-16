@@ -39,9 +39,9 @@ class HooksController extends AEGISController
     public static function collect_documents__view_add_document_fields()
     {
         $companies           = Company::MDSS()->active()->pluck('name', 'id');
-        $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
+        $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
         $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
-        $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
+        $projects            = Project::ordered()->pluck('name', 'id')->toArray();
         $project_variants    = null;
         $selected_variant    = null;
         $selected_project    = null;
@@ -67,8 +67,8 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_approve_fields()
     {
-        $companies  = Company::MDSS()->active()->pluck('name', 'id');
-        $job_titles = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
+        $companies  = Company::MDSS()->active()->ordered()->pluck('name', 'id');
+        $job_titles = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->ordered()->formatted();
         return view(
             'aegis::_hooks.approve-fields',
             compact(
@@ -79,10 +79,10 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__view_document_fields($document)
     {
-        $companies           = Company::MDSS()->active()->pluck('name', 'id');
-        $feedback_list_types = FeedbackListType::orderBy('name')->pluck('reference', 'id')->toArray();
-        $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
-        $projects            = Project::orderBy('name')->pluck('name', 'id')->toArray();
+        $companies           = Company::MDSS()->active()->ordered()->pluck('name', 'id');
+        $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
+        $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->ordered()->formatted();
+        $projects            = Project::ordered()->pluck('name', 'id')->toArray();
         $document_variant    = VariantDocument::where('document_id', $document->id)->first();
         $yes_no              = Translations::yes_no();
         if ($document_variant) {
@@ -648,7 +648,7 @@ class HooksController extends AEGISController
         $job_titles          = JobTitle::formatted();
         $types               = self::user_types();
         if (Modules::isEnabled('HR')) {
-            $competency_sections = CompetencySection::orderBy('name')->pluck('name', 'id');
+            $competency_sections = CompetencySection::ordered()->pluck('name', 'id');
         }
         return view(
             'aegis::_hooks.add-user',

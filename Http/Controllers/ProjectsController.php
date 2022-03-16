@@ -25,7 +25,7 @@ class ProjectsController extends Controller
         $tabs                     = [
             ['name' => ___('dictionary.details')],
         ];
-        $types    = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
+        $types    = Type::where('status', true)->ordered()->pluck('name', 'id')->toArray();
         $variants = $project->variants;
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
@@ -49,9 +49,9 @@ class ProjectsController extends Controller
 
     public function add(Request $request, $id = null)
     {
-        $companies = Company::MDSS()->orderBy('name')->pluck('name', 'id')->toArray();
+        $companies = Company::MDSS()->ordered()->pluck('name', 'id')->toArray();
         $customer  = Customer::find($id);
-        $types     = Type::where('status', true)->orderBy('name')->pluck('name', 'id')->toArray();
+        $types     = Type::where('status', true)->ordered()->pluck('name', 'id')->toArray();
         return parent::view(compact(
             'companies',
             'customer',
