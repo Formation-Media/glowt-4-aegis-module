@@ -44,7 +44,7 @@
                 <x-field
                     checked="{{ $company->show_for_mdss ? true : false }}"
                     label="aegis::_settings.show-for-mdss.title"
-                    name="status"
+                    name="show_for_mdss"
                     note="aegis::_settings.show-for-mdss.description"
                     type="switch"
                 />
