@@ -4,7 +4,6 @@ namespace Modules\AEGIS\Imports;
 
 use App\Helpers\SSEStream;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Customer;
 use Modules\AEGIS\Models\Document;
@@ -25,7 +24,7 @@ use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\Documents\Models\Group;
 use Modules\Documents\Models\UserGroup;
 
-class Method2Import
+class StoreImport
 {
     private $approval_processes;
     private $approval_process_lookup;
@@ -35,13 +34,13 @@ class Method2Import
     private $customers;
     private $stream;
     private $types;
+    private $user_references;
     private $users;
     private $variant_references;
 
-    public function __construct(SSEStream $stream, $users)
+    public function __construct(SSEStream $stream)
     {
         $this->stream = $stream;
-        $this->users  = $users;
 
         $stream->send([
             'percentage' => 0,
@@ -62,10 +61,21 @@ class Method2Import
         $existing_projects = Project::pluck('id', 'reference')->toArray();
         $groups            = Group::all();
         $projects          = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
+        $users             = User::withTrashed()->get();
 
         foreach ($groups as $group) {
             $this->groups[$group->name]['id']    = $group->id;
             $this->groups[$group->name]['users'] = $group->user_groups()->pluck('id')->toArray();
+        }
+
+        foreach ($users as $user) {
+            $meta = $user->getMeta();
+            if ($meta->count()) {
+                $this->users[$meta['aegis.import-reference']] = [
+                    'id'    => $user->id,
+                    'email' => $user->email,
+                ];
+            }
         }
 
         $stream->send([
@@ -101,7 +111,7 @@ class Method2Import
                 // Project Variant
                 if ($project['variants']) {
                     foreach ($project['variants'] as $variant_number => $variant) {
-                        $reference     = $this->get_variant_reference($variant_number);
+                        $reference             = $this->get_variant_reference($variant_number);
                         $project_variant_model = ProjectVariant::firstOrCreate(
                             [
                                 'project_id'     => $project_model->id,
@@ -140,6 +150,7 @@ class Method2Import
                                     \Log::debug([
                                         __FILE__ => __LINE__,
                                         $document['name'],
+                                        $e->getMessage(),
                                     ]);
                                     $this->stream->stop();
                                     exit;
@@ -149,7 +160,7 @@ class Method2Import
                                     [
                                         'variant_id'  => $project_variant_model->id,
                                         'document_id' => $document_model->id,
-                                        'issue'       => 'N/A Here',
+                                        'issue'       => $document['issue'],
                                     ],
                                     [
                                         'created_at' => $document['created_at'],
@@ -320,6 +331,11 @@ class Method2Import
                                             }
                                             $signature['job_title_id'] = $this->get_job_title($approval['role']);
                                             $signature['user_id']      = $this->get_user($user_reference);
+
+                                            \Log::debug([
+                                                __FILE__ => __LINE__,
+
+                                            ]);
 
                                             $this->check_user_group($role, $signature['user_id']);
 
@@ -527,28 +543,42 @@ class Method2Import
     private function get_user($reference)
     {
         if (!array_key_exists($reference, $this->users)) {
-            $this->users[$reference] = [
+            if (!$this->user_references) {
+                $this->user_references = \DB::table('users_meta')->where('key', 'aegis.user-reference')->pluck('value');
+            }
+            $new_user_data = [
+                'id'    => null,
                 'email' => $reference.'@aegisengineering.co.uk',
             ];
-        }
-        $user = $this->users[$reference];
-        if (!isset($user['id'])) {
             $first_name   = ucwords(substr($reference, 0, 1));
             $last_name    = ucwords(substr($reference, 1));
-            $user_details = [
-                'email'      => $user['email'],
+            $user         = User::create([
+                'title'      => '',
                 'first_name' => $first_name,
                 'last_name'  => $last_name,
-            ];
-            if (!($user = User::where('email', $user_details['email'])->first())) {
-                $user_details['password'] = Hash::make(microtime());
-                $user_details['status']   = 0;
-                $user                     = User::create($user_details);
-                $this->stream->send([
-                    'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
-                ]);
+                'email'      => $new_user_data['email'],
+                'status'     => false,
+            ]);
+
+            $i              = 1;
+            $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
+
+            while (in_array($user_reference.$i, $this->user_references->toArray())) {
+                $i++;
             }
-            $this->users[$reference]['id'] = $user->id;
+            $user->setMeta([
+                'aegis.type'             => 1,
+                'aegis.import-reference' => $reference,
+                'aegis.user-reference'   => $user_reference.$i,
+            ]);
+            $user->roles()->sync([config('roles.by_name.core.staff')]);
+            $user->save();
+            $new_user_data['id']     = $user->id;
+            $this->users[$reference] = $new_user_data;
+            $this->stream->send([
+                'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+            ]);
+        } else {
             $user = $this->users[$reference];
         }
         return $user['id'];
