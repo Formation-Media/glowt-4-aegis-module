@@ -168,7 +168,7 @@ class ManagementController extends Controller
             }
         }
         return parent::to_ajax_table('JobTitle', $row_structure, array(), function ($query) {
-            return $query->orderBy('name');
+            return $query->ordered();
         });
     }
     public function table_user_grades()
@@ -223,7 +223,7 @@ class ManagementController extends Controller
             $row_structure,
             array(),
             function ($query) {
-                return $query->orderBy('name');
+                return $query->ordered();
             }
         );
     }

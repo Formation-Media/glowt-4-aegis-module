@@ -75,5 +75,12 @@
                 type="number"
             />
         @endisset
+        <x-field
+            disabled="true"
+            label="dictionary.issue"
+            name="aegis[issue]"
+            type="number"
+            value="1"
+        />
     @endisset
 @endif

@@ -104,7 +104,7 @@ class CompaniesController extends Controller
             $row_structure,
             array(),
             function ($query) {
-                return $query->withTrashed()->orderBy('name');
+                return $query->withTrashed()->ordered();
             },
             function ($db, $processed, &$actions) use ($permissions) {
                 if ($permissions['delete']) {

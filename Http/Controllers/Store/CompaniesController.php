@@ -39,8 +39,8 @@ class CompaniesController extends Controller
         $company                = new Company();
         $company->abbreviation  = strtoupper($request->abbreviation);
         $company->name          = $validated['name'];
-        $company->show_for_mdss = $validated['show_for_mdss'] ?? 0;
-        $company->status        = $validated['status'] ?? 0;
+        $company->show_for_mdss = $validated['show_for_mdss'];
+        $company->status        = $validated['status'];
         $company->save();
         if ($request->hasFile('pdf_footer')) {
             if (!$file = $company->pdf_footer) {
@@ -82,8 +82,8 @@ class CompaniesController extends Controller
         $validated              = $validator->validated();
         $company->abbreviation  = strtoupper($validated['abbreviation']);
         $company->name          = $validated['name'];
-        $company->show_for_mdss = $validated['show_for_mdss'] ?? 0;
-        $company->status        = $validated['status'] ?? 0;
+        $company->show_for_mdss = $validated['show_for_mdss'];
+        $company->status        = $validated['status'];
         $company->save();
         if ($request->hasFile('pdf_footer')) {
             if (!$file = $company->pdf_footer) {
