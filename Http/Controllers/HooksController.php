@@ -36,7 +36,7 @@ class HooksController extends AEGISController
     {
         self::collect_store_user($args);
     }
-    public static function collect_documents__view_add_document_fields()
+    public static function collect_documents__view_add_document_fields_before()
     {
         $companies           = Company::MDSS()->active()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
@@ -77,7 +77,7 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_documents__view_document_fields($document)
+    public static function collect_documents__view_document_fields_before($document)
     {
         $companies           = Company::MDSS()->active()->ordered()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
@@ -131,7 +131,7 @@ class HooksController extends AEGISController
             $variant_document->document_id = $args['new_document']->id;
             $variant_document->variant_id  = $args['request']->aegis['project_variant'];
             $project_variant               = ProjectVariant::find($args['request']->aegis['project_variant']);
-            $variant_document->reference   = $project_variant->project->reference.'/'.$category->prefix
+            $variant_document->reference   = $project_variant->reference.'/'.$category->prefix
                                                 .str_pad($args['request']->aegis['reference'], 2, '0', STR_PAD_LEFT);
             $issue                         = VariantDocument::where('reference', $variant_document->reference)->count();
             $variant_document->issue       = $issue + 1;
