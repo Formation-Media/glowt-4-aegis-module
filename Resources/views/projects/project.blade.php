@@ -18,11 +18,11 @@
 @section('content')
     <x-card :details="$project->details" />
     <x-tabs name="project" :tabs="$tabs">
-        <x-tab target="{{___('dictionary.details')}}">
+        <x-tab target="details">
             <x-form name="project">
                 <x-card body-class="grid-md-2">
                     <x-field
-                        label="{{___('dictionary.name')}}"
+                        label="aegis::phrases.project-title"
                         name="name"
                         type="text"
                         value="{{$project->name}}"
@@ -30,7 +30,7 @@
                     />
                     <x-field
                         controller="Customers"
-                        label="{{___('dictionary.customer')}}"
+                        label="dictionary.customer"
                         name="customer"
                         type="autocomplete"
                         method="customers"
@@ -42,13 +42,13 @@
                         required
                     />
                     <x-field
-                        label="{{___('dictionary.description')}}"
+                        label="dictionary.description"
                         name="description"
                         type="textarea"
                         value="{{$project->description}}"
                     />
                     <x-field
-                        label="{{___('dictionary.type')}}"
+                        label="dictionary.type"
                         name="type"
                         type="select"
                         :options="$types"
@@ -57,7 +57,7 @@
                     />
                     <x-field
                         disabled="{{ true }}"
-                        label="{{___('dictionary.reference')}}"
+                        label="dictionary.reference"
                         name="reference"
                         type="text"
                         value="{{ $project->reference }}"
@@ -72,7 +72,7 @@
         </x-tab>
         @foreach($variants as $i=>$variant)
             @if ($variant->is_default==true)
-                <x-tab target="{!! ___('dictionary.default').' ('.$variant->name.')' !!}">
+                <x-tab target="default">
                     <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field
@@ -105,7 +105,7 @@
                     @endif
                 </x-tab>
             @else
-                <x-tab target="{!! ___('dictionary.variant').' '.$i.' ('.$variant->name.')' !!}">
+                <x-tab target="variant-{{ $i }}">
                     <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
                         <x-card>
                             <x-field

@@ -23,6 +23,7 @@ return array(
 
     'pdf-footer'        => 'PDF Footer',
     'project-reference' => 'Project Reference',
+    'project-title'     => 'Project Title',
     'project-types'     => 'Project Types',
 
     'submit-as-company' => 'As Company',

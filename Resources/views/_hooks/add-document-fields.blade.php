@@ -60,14 +60,14 @@
         />
         @isset($reference)
             <x-field
-                label="aegis::projects.document-reference"
+                label="dictionary.reference"
                 name="aegis[documentreference]"
                 type="text"
-                value="{{$reference?? null}}"
+                value="{{$reference ?? null}}"
             />
         @else
             <x-field
-                label="aegis::projects.project-variant-reference"
+                label="dictionary.reference"
                 min="1"
                 name="aegis[reference]"
                 :prefield="$selected_variant ? $selected_variant->reference : '&hellip;'"

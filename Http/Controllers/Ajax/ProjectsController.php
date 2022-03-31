@@ -124,28 +124,28 @@ class ProjectsController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                ___('dictionary.reference') => array(
-                    'columns'  => 'reference',
-                    'sortable' => true,
+                'dictionary.reference' => array(
+                    'columns'      => 'reference',
+                    'default_sort' => 'desc',
+                    'sortable'     => true,
                 ),
-                ___('Name') => array(
+                'dictionary.title' => array(
                     'columns'  => 'name',
                     'sortable' => true,
                 ),
-                ___('Type') => array(
+                'dictionary.type' => array(
                     'sortable' => true,
                 ),
-                ___('Added By') => array(
+                'phrases.added-by' => array(
                     'sortable' => true,
                 ),
-                ___('Added at') => array(
+                'phrases.added-at' => array(
                     'columns'      => 'created_at',
-                    'default_sort' => 'desc',
                     'sortable'     => true,
                     'class'        => '\App\Helpers\Dates',
                     'method'       => 'datetime',
                 ),
-                ___('Updated at') => array(
+                'phrases.updated-on' => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
@@ -154,7 +154,7 @@ class ProjectsController extends Controller
             ),
         );
         return parent::to_ajax_table(
-            'Project',
+            Project::class,
             $row_structure,
             $global_actions,
             function ($query) use ($request) {
@@ -164,10 +164,10 @@ class ProjectsController extends Controller
                 return $query;
             },
             function ($in, $out) {
-                $project              = Project::where('id', $in['id'])->first();
-                $added_by             = User::where('id', $project->added_by)->first();
-                $out[___('Added By')] = $added_by->name;
-                $out[___('Type')]     = $project->type->name;
+                $project                 = Project::where('id', $in['id'])->first();
+                $added_by                = User::where('id', $project->added_by)->first();
+                $out['phrases.added-by'] = $added_by->name;
+                $out['dictionary.type']  = $project->type->name;
                 return $out;
             }
         );

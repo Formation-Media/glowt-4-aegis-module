@@ -19,7 +19,7 @@
                 type="select"
             />
             <x-field
-                label="dictionary.name"
+                label="aegis::phrases.project-title"
                 name="name"
                 required
                 type="text"
