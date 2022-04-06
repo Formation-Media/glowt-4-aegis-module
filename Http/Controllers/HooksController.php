@@ -16,7 +16,6 @@ use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\Category;
-use Modules\Documents\Models\Document;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
@@ -36,32 +35,47 @@ class HooksController extends AEGISController
     {
         self::collect_store_user($args);
     }
-    public static function collect_documents__view_add_document_fields_before()
+    public static function collect_documents__view_add_document_fields_after()
     {
         $companies           = Company::MDSS()->active()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
         $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->formatted();
         $projects            = Project::ordered()->pluck('name', 'id')->toArray();
-        $project_variants    = null;
         $selected_variant    = null;
-        $selected_project    = null;
         $yes_no              = Translations::yes_no();
+        if (isset($_GET['project_variant'])) {
+            $selected_variant = ProjectVariant::find($_GET['project_variant']);
+        }
+        return view(
+            'aegis::_hooks.add-document-fields-after',
+            compact(
+                'companies',
+                'feedback_list_types',
+                'job_titles',
+                'projects',
+                'selected_variant',
+                'yes_no',
+            )
+        );
+    }
+    public static function collect_documents__view_add_document_fields_before()
+    {
+        $projects         = Project::ordered()->pluck('name', 'id')->toArray();
+        $project_variants = null;
+        $selected_variant = null;
+        $selected_project = null;
         if (isset($_GET['project_variant'])) {
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
             $selected_project = $selected_variant->project;
             $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
         }
         return view(
-            'aegis::_hooks.add-document-fields',
+            'aegis::_hooks.add-document-fields-before',
             compact(
-                'companies',
-                'feedback_list_types',
-                'job_titles',
                 'projects',
                 'project_variants',
                 'selected_project',
                 'selected_variant',
-                'yes_no',
             )
         );
     }
@@ -77,7 +91,7 @@ class HooksController extends AEGISController
             )
         );
     }
-    public static function collect_documents__view_document_fields_before($document)
+    public static function collect_documents__view_document_fields_after($document)
     {
         $companies           = Company::MDSS()->active()->ordered()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
@@ -97,18 +111,41 @@ class HooksController extends AEGISController
             $reference        = null;
         }
         return view(
-            'aegis::_hooks.add-document-fields',
+            'aegis::_hooks.add-document-fields-after',
             compact(
                 'companies',
                 'document',
                 'feedback_list_types',
                 'job_titles',
                 'projects',
-                'project_variants',
                 'reference',
-                'selected_project',
                 'selected_variant',
                 'yes_no',
+            )
+        );
+    }
+    public static function collect_documents__view_document_fields_before($document)
+    {
+        $projects         = Project::ordered()->pluck('name', 'id')->toArray();
+        $document_variant = VariantDocument::where('document_id', $document->id)->first();
+        $yes_no           = Translations::yes_no();
+        if ($document_variant) {
+            $selected_variant = $document_variant->project_variant;
+            $selected_project = $document_variant->project_variant->project;
+            $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
+        } else {
+            $selected_variant = null;
+            $selected_project = null;
+            $project_variants = [];
+        }
+        return view(
+            'aegis::_hooks.add-document-fields-before',
+            compact(
+                'document',
+                'projects',
+                'project_variants',
+                'selected_project',
+                'selected_variant',
             )
         );
     }
