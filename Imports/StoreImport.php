@@ -153,7 +153,6 @@ class StoreImport
                                         $e->getMessage(),
                                     ]);
                                     $this->stream->stop();
-                                    exit;
                                 }
 
                                 $variant_model = VariantDocument::firstOrCreate(
