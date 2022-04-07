@@ -153,7 +153,6 @@ class StoreImport
                                         $e->getMessage(),
                                     ]);
                                     $this->stream->stop();
-                                    exit;
                                 }
 
                                 $variant_model = VariantDocument::firstOrCreate(
@@ -207,7 +206,7 @@ class StoreImport
                                 }
                                 if ($document['approval']) {
                                     foreach ($document['approval'] as $role => $approval_users) {
-                                        $approval_process = $document_model->category->approval_process;
+                                        $approval_process = $document_model->approval_process;
 
                                         $signature['group_id'] = $this->get_group($role);
 

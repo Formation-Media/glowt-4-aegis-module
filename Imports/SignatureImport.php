@@ -208,7 +208,6 @@ class SignatureImport implements ToCollection
                                             //         [$document_reference]['approval'][$role][$issue_key][$user_key][$user_reference],
                                             // ]);
                                             // $this->stream->stop();
-                                            // exit;
                                         } else {
                                             $this->errors['Signatures'][$document_reference]
                                                 = 'Signature does not have a matching document signature matching role ('.$role
@@ -221,7 +220,6 @@ class SignatureImport implements ToCollection
                                         $this->projects[$project_id]['variants'][$variant]['documents'][$document_reference],
                                     ]);
                                     $this->stream->stop();
-                                    exit;
                                 }
                             } else {
                                 $this->errors['Signatures'][$document_reference] = 'Project '.$project_id

@@ -5,6 +5,11 @@
         :options="$companies"
         placeholder="aegis::phrases.all-companies"
         type="select"
-        value="{{ $company }}"
+        value="{{ $args['request']['filter']['company'] ?? false }}"
     />
+    {{-- <div class="align-self-end">
+        <a class="btn btn-secondary w-100 js-achievements-search" title="Achievement Search">
+            <i class="fal fa-magnifying-glass  fa-fw"></i>Achievement Search
+        </a>
+    </div> --}}
 @endif

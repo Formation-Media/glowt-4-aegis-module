@@ -91,7 +91,6 @@ class ManagementController extends Controller
             'percentage' => 100,
             'redirect'   => '/a/m/AEGIS/management/import-errors',
         ]);
-        exit;
     }
     private function users($stream)
     {
