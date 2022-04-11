@@ -178,15 +178,21 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__approve_deny($args)
     {
-        $document = $args['document'];
-        $item     = $args['item'];
-        $request  = $args['request'];
-        $user     = $args['user'];
+        $document         = $args['document'];
+        $item             = $args['item'];
+        $request          = $args['request'];
+        $user             = $args['user'];
+        $document_variant = VariantDocument
+            ::with([
+                'project_variant',
+                'project_variant.project',
+            ])
+            ->firstWhere('document_id', $args['document']->id);
 
-        $this_item = DocumentApprovalItemDetails::updateOrInsert(
+        DocumentApprovalItemDetails::updateOrInsert(
             ['approval_item_id' => $item->id],
             [
-                'company_id'   => $request->aegis['company'],
+                'company_id'   => $document_variant->project_variant->project->company_id,
                 'job_title_id' => $request->aegis['role'],
                 'created_at'   => now(),
                 'updated_at'   => now(),
@@ -679,13 +685,23 @@ class HooksController extends AEGISController
             && $data['request']->model === 'Document'
         ) {
             $additional_details = [];
-            if ($data['result']->reference) {
+            $variant_document   = VariantDocument
+                ::with([
+                    'project_variant',
+                    'project_variant.project',
+                    'project_variant.project.company',
+                ])
+                ->firstWhere('document_id', $data['result']->id);
+            if ($variant_document) {
                 $additional_details[] = [
-                    [
-                        'icon'  => 'hashtag',
-                        'label' => 'dictionary.reference',
-                        'value' => $data['result']->reference,
-                    ],
+                    'icon'  => 'hashtag',
+                    'label' => 'dictionary.reference',
+                    'value' => $variant_document->reference ?? null,
+                ];
+                $additional_details[] = [
+                    'icon'  => 'building',
+                    'label' => 'dictionary.company',
+                    'value' => $variant_document->project_variant->project->company->name,
                 ];
             }
             $data['details'] = array_merge(
@@ -710,11 +726,17 @@ class HooksController extends AEGISController
     // }
     public static function filter_documents__document_details(&$details, $module, $document)
     {
-        $variant_document                = VariantDocument::where('document_id', $document->id)->first();
-        $project                         = $variant_document->project_variant->project;
-        $details['dictionary.reference'] = $variant_document->reference;
-        $details['dictionary.issue']     = $variant_document->issue;
-        $details['dictionary.project']   = '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>';
+        $variant_document = VariantDocument::where('document_id', $document->id)->first();
+        $project          = $variant_document->project_variant->project;
+        $details          = array_merge(
+            [
+                'dictionary.reference' => $variant_document->reference,
+                'dictionary.project'   => '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>',
+                'dictionary.issue'     => $variant_document->issue,
+                'dictionary.company'   => $project->company->name,
+            ],
+            $details
+        );
         if ($document->category->prefix === 'FBL' && ($meta = $document->getMeta('feedback_list_type_id'))) {
             $feedback_list_type = FeedbackListType::find($meta);
             if ($feedback_list_type) {
