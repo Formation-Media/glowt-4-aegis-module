@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
 use App\Helpers\Translations;
+use App\Models\File;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\AEGIS\Models\CompetencyDetail;
@@ -553,6 +554,99 @@ class HooksController extends AEGISController
         if ($job_title) {
             $data['aegis::phrases.approved-as'] = $job_title;
         }
+    }
+    public static function filter_documents__pdf_signature_renderer(&$pdf)
+    {
+        $pdf = function ($pdf) {
+            $author           = $pdf->document->created_by;
+            $author_signature = File::where('hex_id', $author->getMeta('documents.signature'))->first();
+            $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
+            $signature_height = 50;
+            $top_margin       = 10;
+            $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
+
+            $details = [
+                'documents::phrases.signature-reference' => $pdf->document->meta['author_reference'],
+                'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
+                'aegis::phrases.job-title'               => JobTitle::find($pdf->document->meta['author_role'])->name,
+                'dictionary.date'                        => $pdf->document->nice_datetime('updated_at'),
+                'aegis::phrases.document-id'             => $variant_document->reference,
+                'dictionary.issue'                       => $variant_document->issue,
+            ];
+
+            $pdf->ln($top_margin);
+            $pdf->resetFillColor();
+            $pdf->p(___('dictionary.for').' '.Company::withTrashed()->find($pdf->document->meta['author_company'])->name);
+            if (isset($author_signature)) {
+                list($width, $height) = getimagesize(storage_path($author_signature->storage_path));
+                $ratio = $height / $width;
+                $pdf->Image('../storage'.$author_signature->storage_path, null, null, $signature_height, $signature_height * $ratio);
+            }
+            $pdf->columns($details, 1);
+
+            if ($items) {
+                foreach ($items as $item) {
+                    $pdf->addPage();
+                    $pdf->ln($top_margin);
+
+                    $item_details = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
+                    $signature    = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+
+                    $company   = $item_details->company->name ?? null;
+                    $job_title = $item_details->job_title->name ?? null;
+
+                    $details = [
+                        'documents::phrases.signature-reference' => $item->reference,
+                        'documents::phrases.signatory-name'      => $item->agent->name,
+                    ];
+
+                    if ($signature) {
+                        list($width, $height) = getimagesize(storage_path($signature->storage_path));
+                        $ratio = $height / $width;
+                        $pdf->Image('../storage'.$signature->storage_path, null, null, $signature_height, $signature_height * $ratio);
+                    }
+
+                    if ($job_title) {
+                        $details['aegis::phrases.job-title'] = $job_title;
+                    }
+                    if ($company) {
+                        $details['dictionary.company'] = $company;
+                    }
+
+                    $details['dictionary.date']            = $item->nice_datetime('updated_at');
+                    $details['aegis::phrases.document-id'] = $item->reference;
+                    $details['dictionary.issue']           = $variant_document->reference;
+
+                    $pdf->columns($details, 1);
+
+
+
+        // $details   = DocumentApprovalItemDetails::where('approval_item_id', $signature->id)->first();
+        // $company   = $details->company->name ?? null;
+        // $job_title = $details->job_title->name ?? null;
+        // if ($company) {
+        //     $data['dictionary.company'] = $company;
+        // }
+        // if ($job_title) {
+        //     $data['aegis::phrases.approved-as'] = $job_title;
+        // }
+
+                    // $signature = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+                    // $columns   = [
+                    //     'documents::phrases.signatory-name'      => $item->agent->name,
+                    //     'documents::phrases.signature-reference' => $item->reference,
+                    //     'documents::phrases.stage-name'          => $item->approval_process_item->approval_stage
+                    //         ->name,
+                    //     'dictionary.time' => $item->nice_datetime('updated_at'),
+                    // ];
+                    // $pdf->columns($columns);
+                    // if (isset($signature)) {
+                    //     $pdf->Image('../storage'.$signature->storage_path, null, null, 75, 25);
+                    // }
+                    // $pdf->hr(5);
+                }
+            }
+        };
     }
     public static function filter_documents__reset_status($document, $module)
     {
