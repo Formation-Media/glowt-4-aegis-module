@@ -133,6 +133,10 @@ class ProjectsController extends Controller
                     'columns'  => 'name',
                     'sortable' => true,
                 ),
+                'dictionary.company' => array(
+                    'columns'  => 'm_aegis_companies.name',
+                    'sortable' => true,
+                ),
                 'dictionary.type' => array(
                     'sortable' => true,
                 ),
@@ -158,6 +162,7 @@ class ProjectsController extends Controller
             $row_structure,
             $global_actions,
             function ($query) use ($request) {
+                $query->join('m_aegis_companies', 'm_aegis_companies.id', 'm_aegis_projects.company_id');
                 if ($request->id) {
                     return $query->where('scope_id', $request->id);
                 }
@@ -188,27 +193,32 @@ class ProjectsController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                'DOCUMENT_ID' => array(
-                    'columns' => 'document_id',
+                'created_by' => array(
+                    'columns' => 'm_documents_documents.created_by',
                     'display' => false,
                 ),
-                ___('Name') => array(
+                'dictionary.reference' => array(
+                    'columns'      => 'reference',
+                    'default_sort' => 'desc',
+                    'sortable'     => true,
+                ),
+                'dictionary.title' => array(
+                    'columns'      => 'm_documents_documents.name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                ___('Status') => array(
+                'dictionary.status' => array(
+                    'columns'  => 'm_documents_documents.status',
                     'sortable' => true,
                 ),
-                ___('Created By') => array(
-                    'sortable' => true,
+                'phrases.added-by' => array(),
+                'phrases.added-at' => array(
+                    'columns'      => 'm_documents_documents.created_at',
+                    'sortable'     => true,
+                    'class'        => '\App\Helpers\Dates',
+                    'method'       => 'datetime',
                 ),
-                ___('Added at') => array(
-                    'columns'  => 'created_at',
-                    'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
-                    'method'   => 'datetime',
-                ),
-                ___('Updated at') => array(
+                'phrases.updated-on' => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
@@ -217,19 +227,17 @@ class ProjectsController extends Controller
             ),
         );
         return parent::to_ajax_table(
-            'VariantDocument',
+            VariantDocument::class,
             $row_structure,
             [],
             function ($query) use ($request) {
-                return $query->where('variant_id', $request->id);
+                return $query
+                    ->where('variant_id', $request->id)
+                    ->join('m_documents_documents', 'm_documents_documents.id', 'm_aegis_variant_documents.document_id');
             },
-            function ($in, $out) {
-                $variant_document      = VariantDocument::where('id', $in['id'])->first();
-                $added_by              = $variant_document->document->created_by;
-                $out[___('Name')]       = $variant_document->document->name;
-                $out[___('Status')]     = $variant_document->document->status;
-                $out[___('Created By')] = $added_by->name;
-                return $out;
+            function ($db, $processed) {
+                $processed['phrases.added-by'] = $db['created_by']['first_name'].' '.$db['created_by']['last_name'];
+                return $processed;
             }
         );
     }
