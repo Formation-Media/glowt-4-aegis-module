@@ -31,6 +31,10 @@ class Project extends Model
                 'icon'  => 'hashtag',
                 'value' => $this->reference,
             ],
+            'dictionary.company' => [
+                'icon'  => 'building',
+                'value' => $this->company->name,
+            ],
         ];
     }
 
