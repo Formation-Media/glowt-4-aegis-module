@@ -528,7 +528,7 @@ class HooksController extends AEGISController
             ::where('document_id', $approval_process_item->document->id)
             ->first();
         $data['aegis::phrases.document-reference'] = $document_variant->reference;
-        $data['aegis::phrases.project-reference']  = $document_variant->project_variant->project->reference;
+        $data['aegis::phrases.project-number']     = $document_variant->project_variant->project->reference;
     }
     public static function filter_documents__document_approved_details(&$data, $module, $approval_process_item)
     {

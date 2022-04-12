@@ -124,7 +124,7 @@ class ProjectsController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                'dictionary.reference' => array(
+                'aegis::phrases.project-number' => array(
                     'columns'      => 'reference',
                     'default_sort' => 'desc',
                     'sortable'     => true,

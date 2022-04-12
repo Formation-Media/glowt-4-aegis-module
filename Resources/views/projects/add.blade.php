@@ -51,7 +51,7 @@
                 type="select"
             />
             <x-field
-                label="dictionary.reference"
+                label="aegis::phrases.project-number"
                 max="{{ str_pad('', config('settings.aegis.project.character-limit'), 9) }}"
                 min="0"
                 name="reference"

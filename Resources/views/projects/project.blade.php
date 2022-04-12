@@ -57,7 +57,7 @@
                     />
                     <x-field
                         disabled="{{ true }}"
-                        label="dictionary.reference"
+                        label="aegis::phrases.project-number"
                         name="reference"
                         type="text"
                         value="{{ $project->reference }}"

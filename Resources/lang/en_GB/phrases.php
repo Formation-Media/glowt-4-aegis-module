@@ -22,10 +22,10 @@ return array(
 
     'live-document' => 'Live Document',
 
-    'pdf-footer'        => 'PDF Footer',
-    'project-reference' => 'Project Reference',
-    'project-title'     => 'Project Title',
-    'project-types'     => 'Project Types',
+    'pdf-footer'     => 'PDF Footer',
+    'project-number' => 'Project Number',
+    'project-title'  => 'Project Title',
+    'project-types'  => 'Project Types',
 
     'submit-as-company' => 'As Company',
     'submit-as-role'    => 'As Role',
