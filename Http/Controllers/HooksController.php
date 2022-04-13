@@ -695,8 +695,8 @@ class HooksController extends AEGISController
             if ($variant_document) {
                 $additional_details[] = [
                     'icon'  => 'hashtag',
-                    'label' => 'dictionary.reference',
-                    'value' => $variant_document->reference ?? null,
+                    'label' => 'dictionary.project',
+                    'value' => $variant_document->project_variant->project->reference ?? null,
                 ];
                 $additional_details[] = [
                     'icon'  => 'building',
@@ -708,6 +708,9 @@ class HooksController extends AEGISController
                 $additional_details,
                 $data['details']
             );
+            if (isset($variant_document->reference)) {
+                $data['title'] = $variant_document->reference.' '.$data['title'];
+            }
         }
     }
     // public static function filter_card_view_search(&$search_columns, $module, $request)
