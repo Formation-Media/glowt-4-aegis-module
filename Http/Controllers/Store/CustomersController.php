@@ -11,7 +11,7 @@ class CustomersController extends Controller
     public function add(Request $request)
     {
         $request->validate([
-            'reference' => 'required|max:3|unique:Modules\AEGIS\Models\Customer',
+            'reference' => 'required|unique:Modules\AEGIS\Models\Customer',
         ]);
         $customer            = new Customer();
         $customer->name      = $request->name;
