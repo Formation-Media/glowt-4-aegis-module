@@ -17,7 +17,7 @@
         :value="isset($document) ? $document->getMeta('final_feedback_list') : null"
     />
     <x-field
-        label="aegis::phrases.submit-as-company"
+        label="dictionary.company"
         name="aegis[author-company]"
         :options="$companies"
         required

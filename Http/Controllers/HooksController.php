@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
 use App\Helpers\Translations;
+use App\Models\File;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\AEGIS\Models\CompetencyDetail;
@@ -177,15 +178,21 @@ class HooksController extends AEGISController
     }
     public static function collect_documents__approve_deny($args)
     {
-        $document = $args['document'];
-        $item     = $args['item'];
-        $request  = $args['request'];
-        $user     = $args['user'];
+        $document         = $args['document'];
+        $item             = $args['item'];
+        $request          = $args['request'];
+        $user             = $args['user'];
+        $document_variant = VariantDocument
+            ::with([
+                'project_variant',
+                'project_variant.project',
+            ])
+            ->firstWhere('document_id', $args['document']->id);
 
-        $this_item = DocumentApprovalItemDetails::updateOrInsert(
+        DocumentApprovalItemDetails::updateOrInsert(
             ['approval_item_id' => $item->id],
             [
-                'company_id'   => $request->aegis['company'],
+                'company_id'   => $document_variant->project_variant->project->company_id,
                 'job_title_id' => $request->aegis['role'],
                 'created_at'   => now(),
                 'updated_at'   => now(),
@@ -521,7 +528,7 @@ class HooksController extends AEGISController
             ::where('document_id', $approval_process_item->document->id)
             ->first();
         $data['aegis::phrases.document-reference'] = $document_variant->reference;
-        $data['aegis::phrases.project-reference']  = $document_variant->project_variant->project->reference;
+        $data['aegis::phrases.project-number']     = $document_variant->project_variant->project->reference;
     }
     public static function filter_documents__document_approved_details(&$data, $module, $approval_process_item)
     {
@@ -554,6 +561,99 @@ class HooksController extends AEGISController
             $data['aegis::phrases.approved-as'] = $job_title;
         }
     }
+    public static function filter_documents__pdf_signature_renderer(&$pdf)
+    {
+        $pdf = function ($pdf) {
+            $author           = $pdf->document->created_by;
+            $author_signature = File::where('hex_id', $author->getMeta('documents.signature'))->first();
+            $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
+            $signature_height = 50;
+            $top_margin       = 10;
+            $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
+
+            $details = [
+                'documents::phrases.signature-reference' => $pdf->document->meta['author_reference'],
+                'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
+                'aegis::phrases.job-title'               => JobTitle::find($pdf->document->meta['author_role'])->name,
+                'dictionary.date'                        => $pdf->document->nice_datetime('updated_at'),
+                'aegis::phrases.document-id'             => $variant_document->reference,
+                'dictionary.issue'                       => $variant_document->issue,
+            ];
+
+            $pdf->ln($top_margin);
+            $pdf->resetFillColor();
+            $pdf->p(___('dictionary.for').' '.Company::withTrashed()->find($pdf->document->meta['author_company'])->name);
+            if (isset($author_signature)) {
+                list($width, $height) = getimagesize(storage_path($author_signature->storage_path));
+                $ratio = $height / $width;
+                $pdf->Image('../storage'.$author_signature->storage_path, null, null, $signature_height, $signature_height * $ratio);
+            }
+            $pdf->columns($details, 1);
+
+            if ($items) {
+                foreach ($items as $item) {
+                    $pdf->addPage();
+                    $pdf->ln($top_margin);
+
+                    $item_details = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
+                    $signature    = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+
+                    $company   = $item_details->company->name ?? null;
+                    $job_title = $item_details->job_title->name ?? null;
+
+                    $details = [
+                        'documents::phrases.signature-reference' => $item->reference,
+                        'documents::phrases.signatory-name'      => $item->agent->name,
+                    ];
+
+                    if ($signature) {
+                        list($width, $height) = getimagesize(storage_path($signature->storage_path));
+                        $ratio = $height / $width;
+                        $pdf->Image('../storage'.$signature->storage_path, null, null, $signature_height, $signature_height * $ratio);
+                    }
+
+                    if ($job_title) {
+                        $details['aegis::phrases.job-title'] = $job_title;
+                    }
+                    if ($company) {
+                        $details['dictionary.company'] = $company;
+                    }
+
+                    $details['dictionary.date']            = $item->nice_datetime('updated_at');
+                    $details['aegis::phrases.document-id'] = $item->reference;
+                    $details['dictionary.issue']           = $variant_document->reference;
+
+                    $pdf->columns($details, 1);
+
+
+
+        // $details   = DocumentApprovalItemDetails::where('approval_item_id', $signature->id)->first();
+        // $company   = $details->company->name ?? null;
+        // $job_title = $details->job_title->name ?? null;
+        // if ($company) {
+        //     $data['dictionary.company'] = $company;
+        // }
+        // if ($job_title) {
+        //     $data['aegis::phrases.approved-as'] = $job_title;
+        // }
+
+                    // $signature = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+                    // $columns   = [
+                    //     'documents::phrases.signatory-name'      => $item->agent->name,
+                    //     'documents::phrases.signature-reference' => $item->reference,
+                    //     'documents::phrases.stage-name'          => $item->approval_process_item->approval_stage
+                    //         ->name,
+                    //     'dictionary.time' => $item->nice_datetime('updated_at'),
+                    // ];
+                    // $pdf->columns($columns);
+                    // if (isset($signature)) {
+                    //     $pdf->Image('../storage'.$signature->storage_path, null, null, 75, 25);
+                    // }
+                    // $pdf->hr(5);
+                }
+            }
+        };
+    }
     public static function filter_documents__reset_status($document, $module)
     {
         $document_variant = VariantDocument
@@ -585,19 +685,32 @@ class HooksController extends AEGISController
             && $data['request']->model === 'Document'
         ) {
             $additional_details = [];
-            if ($data['result']->reference) {
+            $variant_document   = VariantDocument
+                ::with([
+                    'project_variant',
+                    'project_variant.project',
+                    'project_variant.project.company',
+                ])
+                ->firstWhere('document_id', $data['result']->id);
+            if ($variant_document) {
                 $additional_details[] = [
-                    [
-                        'icon'  => 'hashtag',
-                        'label' => 'dictionary.reference',
-                        'value' => $data['result']->reference,
-                    ],
+                    'icon'  => 'hashtag',
+                    'label' => 'dictionary.project',
+                    'value' => $variant_document->project_variant->project->reference ?? null,
+                ];
+                $additional_details[] = [
+                    'icon'  => 'building',
+                    'label' => 'dictionary.company',
+                    'value' => $variant_document->project_variant->project->company->name,
                 ];
             }
             $data['details'] = array_merge(
                 $additional_details,
                 $data['details']
             );
+            if (isset($variant_document->reference)) {
+                $data['title'] = $variant_document->reference.' '.$data['title'];
+            }
         }
     }
     // public static function filter_card_view_search(&$search_columns, $module, $request)
@@ -616,11 +729,17 @@ class HooksController extends AEGISController
     // }
     public static function filter_documents__document_details(&$details, $module, $document)
     {
-        $variant_document                = VariantDocument::where('document_id', $document->id)->first();
-        $project                         = $variant_document->project_variant->project;
-        $details['dictionary.reference'] = $variant_document->reference;
-        $details['dictionary.issue']     = $variant_document->issue;
-        $details['dictionary.project']   = '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>';
+        $variant_document = VariantDocument::where('document_id', $document->id)->first();
+        $project          = $variant_document->project_variant->project;
+        $details          = array_merge(
+            [
+                'dictionary.reference' => $variant_document->reference,
+                'dictionary.project'   => '<a href="/a/m/AEGIS/projects/project/'.$project->id.'">'.$project->title.'</a>',
+                'dictionary.issue'     => $variant_document->issue,
+                'dictionary.company'   => $project->company->name,
+            ],
+            $details
+        );
         if ($document->category->prefix === 'FBL' && ($meta = $document->getMeta('feedback_list_type_id'))) {
             $feedback_list_type = FeedbackListType::find($meta);
             if ($feedback_list_type) {

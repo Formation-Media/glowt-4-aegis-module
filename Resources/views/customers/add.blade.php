@@ -22,7 +22,7 @@
                 aria-readonly
                 label="{{___('dictionary.reference')}}"
                 name="reference"
-                note="{{___('aegis::customers.reference-message')}}"
+                note="{{ ___('aegis::messages.customer.reference-message') }}"
                 required
                 type="text"
             />
