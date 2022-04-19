@@ -566,15 +566,24 @@ class HooksController extends AEGISController
         $pdf = function ($pdf) {
             $author           = $pdf->document->created_by;
             $author_signature = File::where('hex_id', $author->getMeta('documents.signature'))->first();
+            $company          = null;
             $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
+            $job_title        = null;
             $signature_height = 50;
             $top_margin       = 10;
             $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
 
+            if (isset($pdf->document->meta['author_company'])) {
+                $company = Company::withTrashed()->find($pdf->document->meta['author_company'])->name;
+            }
+            if (isset($pdf->document->meta['author_role'])) {
+                $job_title = JobTitle::find($pdf->document->meta['author_role'])->name;
+            }
+
             $details = [
-                'documents::phrases.signature-reference' => $pdf->document->meta['author_reference'],
+                'documents::phrases.signature-reference' => $pdf->document->meta['author_reference'] ?? null,
                 'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
-                'aegis::phrases.job-title'               => JobTitle::find($pdf->document->meta['author_role'])->name,
+                'aegis::phrases.job-title'               => $job_title,
                 'dictionary.date'                        => $pdf->document->nice_datetime('updated_at'),
                 'aegis::phrases.document-id'             => $variant_document->reference,
                 'dictionary.issue'                       => $variant_document->issue,
@@ -582,7 +591,11 @@ class HooksController extends AEGISController
 
             $pdf->ln($top_margin);
             $pdf->resetFillColor();
-            $pdf->p(___('dictionary.for').' '.Company::withTrashed()->find($pdf->document->meta['author_company'])->name);
+
+            if ($company) {
+                $pdf->p(___('dictionary.for').' '.$company);
+            }
+
             if (isset($author_signature)) {
                 list($width, $height) = getimagesize(storage_path($author_signature->storage_path));
                 $ratio = $height / $width;
@@ -709,7 +722,7 @@ class HooksController extends AEGISController
                 $data['details']
             );
             if (isset($variant_document->reference)) {
-                $data['title'] = $variant_document->reference.' '.$data['title'];
+                $data['subtitle'] = $variant_document->reference;
             }
         }
     }
