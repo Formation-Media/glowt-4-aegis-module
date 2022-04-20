@@ -193,6 +193,10 @@ class ProjectsController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
+                'DOCUMENT ID' => array(
+                    'columns' => 'document_id',
+                    'display' => false,
+                ),
                 'created_by' => array(
                     'columns' => 'm_documents_documents.created_by',
                     'display' => false,

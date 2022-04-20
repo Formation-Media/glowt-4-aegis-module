@@ -3,6 +3,7 @@
 namespace Modules\AEGIS\Models;
 
 use App\Models\Base_Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Documents\Models\Document;
 
@@ -17,6 +18,13 @@ class VariantDocument extends Model
         'variant_id',
     ];
     protected $table = 'm_aegis_variant_documents';
+
+    public function name(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->document->name,
+        );
+    }
 
     public function document()
     {
