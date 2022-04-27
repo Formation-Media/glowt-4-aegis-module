@@ -2,7 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            $module->getName(),
+            'm/Documents/document'  => 'dictionary.documents',
             $module_base.'projects' => 'dictionary.projects',
             'dictionary.add',
         ),

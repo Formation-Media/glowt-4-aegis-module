@@ -2,7 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            $module->getName(),
+            'm/Documents/document'  => 'dictionary.documents',
             $module_base.'projects' => 'dictionary.projects',
             $project->reference.': '.$project->name
         ),
@@ -56,9 +56,10 @@
                         required
                     />
                     <x-field
-                        disabled="{{ true }}"
+                        disabled="{{ !($auth_user->is_administrator || $auth_user->is_manager) }}"
                         label="aegis::phrases.project-number"
                         name="reference"
+                        required="{{ $auth_user->is_administrator || $auth_user->is_manager }}"
                         type="text"
                         value="{{ $project->reference }}"
                     />

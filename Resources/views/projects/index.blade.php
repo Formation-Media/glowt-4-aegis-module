@@ -10,12 +10,16 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            $module->getName(),
+            'm/Documents/document' => 'dictionary.documents',
             'dictionary.projects'
         ),
         'page_menu'=> $page_menu
     )
 )
 @section('content')
-    <x-table selects controller="Projects" method="view" type="classic" module="AEGIS"/>
+    <x-card-view
+        model="Project"
+        module="AEGIS"
+        view="row"
+    />
 @endsection
