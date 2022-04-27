@@ -33,18 +33,6 @@ class ProjectsController extends Controller
         }
         return $return;
     }
-
-    public function delete_project($request)
-    {
-        foreach ($request->ids as $id) {
-            $project          = Project::find($id);
-            $project_variants = ProjectVariant::where('project_id', $project->id)->get();
-            foreach ($project_variants as $variant) {
-                $variant->delete();
-            }
-            $project->delete();
-        }
-    }
     public function get_issue($request)
     {
         $category         = Category::find($request->category);
@@ -62,10 +50,12 @@ class ProjectsController extends Controller
         if (isset($request->project)) {
             $project         = Project::find($request->project);
             $reference       = $project->reference;
-            $variants        = $project->variants->pluck('name', 'id')->toArray();
             $default_variant = $project->variants->where('is_default', true)->first();
             if ($default_variant) {
                 $default_variant = $default_variant->id;
+            }
+            foreach ($project->variants as $variant) {
+                $variants[$variant->id] = $variant->variant_number.' - '.$variant->name;
             }
         }
         return compact(
@@ -98,83 +88,6 @@ class ProjectsController extends Controller
         return array(
             'prefix'    => $reference_prefix,
             'reference' => str_pad($next_reference, 2, '0', STR_PAD_LEFT),
-        );
-    }
-
-    public function table_view($request)
-    {
-        $actions = array(
-            array(
-                'style' => 'primary',
-                'name'  => ___('View'),
-                'uri'   => '/a/m/AEGIS/projects/project/{{id}}',
-            ),
-        );
-        $global_actions = array(
-            array(
-                'action' => 'delete-project',
-                'style'  => 'danger',
-                'title'  => ___('Delete'),
-            ),
-        );
-        $row_structure = array(
-            'actions' => $actions,
-            'data'    => array(
-                'ID' => array(
-                    'columns' => 'id',
-                    'display' => false,
-                ),
-                'aegis::phrases.project-number' => array(
-                    'columns'      => 'reference',
-                    'default_sort' => 'desc',
-                    'sortable'     => true,
-                ),
-                'dictionary.title' => array(
-                    'columns'  => 'name',
-                    'sortable' => true,
-                ),
-                'dictionary.company' => array(
-                    'columns'  => 'm_aegis_companies.name',
-                    'sortable' => true,
-                ),
-                'dictionary.type' => array(
-                    'sortable' => true,
-                ),
-                'phrases.added-by' => array(
-                    'sortable' => true,
-                ),
-                'phrases.added-at' => array(
-                    'columns'      => 'created_at',
-                    'sortable'     => true,
-                    'class'        => '\App\Helpers\Dates',
-                    'method'       => 'datetime',
-                ),
-                'phrases.updated-on' => array(
-                    'columns'  => 'updated_at',
-                    'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
-                    'method'   => 'datetime',
-                ),
-            ),
-        );
-        return parent::to_ajax_table(
-            Project::class,
-            $row_structure,
-            $global_actions,
-            function ($query) use ($request) {
-                $query->join('m_aegis_companies', 'm_aegis_companies.id', 'm_aegis_projects.company_id');
-                if ($request->id) {
-                    return $query->where('scope_id', $request->id);
-                }
-                return $query;
-            },
-            function ($in, $out) {
-                $project                 = Project::where('id', $in['id'])->first();
-                $added_by                = User::where('id', $project->added_by)->first();
-                $out['phrases.added-by'] = $added_by->name;
-                $out['dictionary.type']  = $project->type->name;
-                return $out;
-            }
         );
     }
     public function table_variantdocumentsview($request)
