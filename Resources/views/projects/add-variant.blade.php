@@ -2,7 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            $module->getName(),
+            'm/Documents/document'                        => 'dictionary.documents',
             $module_base.'projects'                       => ___('Projects'),
             $module_base.'projects/project/'.$project->id => $project->reference.': '.$project->name,
             ___('Add Variant')
