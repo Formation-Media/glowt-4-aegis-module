@@ -90,7 +90,6 @@ class ProjectsController extends Controller
         $request->validate([
             'variant_number' => [
                 'required',
-                'max:2',
                 Rule::unique('m_aegis_project_variants')->where(function ($query) use ($id) {
                     return $query->where('project_id', $id);
                 }),
@@ -112,18 +111,39 @@ class ProjectsController extends Controller
 
     public function project(Request $request, $id)
     {
-        $project              = Project::find($id);
-        $redirect             = url('a/m/AEGIS/projects/project/'.$id);
-        $project->name        = $request->name;
-        $project->scope_id    = $request->customer;
-        $project->type_id     = $request->type;
-        $project->description = $request->description ?? '';
-        $project->update();
-        $default_project_variant       = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
-        $default_project_variant->name = $request->name;
-        $default_project_variant->update();
+        $project = Project::findOrFail($id);
+        $user    = \Auth::user();
+        return parent::validate(
+            $request,
+            [
+                'customer'    => 'required|exists:'.Customer::class.',id',
+                'description' => 'nullable',
+                'name'        => 'required',
+                'reference'   => ($user->is_administrator || $user->is_manager) ? [
+                    'required',
+                    Rule::unique('m_aegis_projects')->ignore($project),
+                ] : 'nullable',
+                'type' => 'required|exists:m_aegis_types,id',
+            ],
+            function ($validated) use ($project, $user) {
+                $redirect = url('a/m/AEGIS/projects/project/'.$project->id);
 
-        return redirect($redirect);
+                $project->name        = $validated['name'];
+                $project->scope_id    = $validated['customer'];
+                $project->type_id     = $validated['type'];
+                $project->description = $validated['description'] ?? '';
+                if ($user->is_administrator || $user->is_manager) {
+                    $project->reference = $validated['reference'];
+                }
+                $project->update();
+
+                $default_project_variant       = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
+                $default_project_variant->name = $validated['name'];
+                $default_project_variant->update();
+
+                return redirect($redirect);
+            },
+        );
     }
 
     public function project_variant(Request $request, $id)
