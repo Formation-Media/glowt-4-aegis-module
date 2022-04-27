@@ -35,8 +35,10 @@
     @isset($projects)
         @isset($reference)
             <x-field
+                disabled="{{ !$document->is_draft }}"
                 label="dictionary.reference"
                 name="aegis[documentreference]"
+                required
                 type="text"
                 value="{{$reference ?? null}}"
             />
