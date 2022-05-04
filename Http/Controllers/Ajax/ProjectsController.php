@@ -35,11 +35,11 @@ class ProjectsController extends Controller
     }
     public function get_issue($request)
     {
-        $category         = Category::find($request->category);
-        $project_variant  = ProjectVariant::find($request->project_variant);
-        $reference        = $project_variant->project->reference.'/'.$category->prefix
-                                .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
-        $issue            = VariantDocument
+        $category        = Category::find($request->category);
+        $project_variant = ProjectVariant::find($request->project_variant);
+        $reference       = $project_variant->project->reference.'/'.$category->prefix
+                            .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
+        $issue           = VariantDocument
             ::where('reference', $reference)
             ->count();
         return $issue + 1;
