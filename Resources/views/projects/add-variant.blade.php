@@ -3,15 +3,15 @@
     array(
         'breadcrumbs'=>array(
             'm/Documents/document'                        => 'dictionary.documents',
-            $module_base.'projects'                       => ___('Projects'),
+            $module_base.'projects'                       => 'dictionary.projects',
             $module_base.'projects/project/'.$project->id => $project->reference.': '.$project->name,
-            ___('Add Variant')
+            ['phrases.add', ['item' => 'dictionary.variant']]
         ),
     )
 )
 @section('content')
     <x-form name="project_variant">
-        <x-card>
+        <x-card body-class="grid-md-2">
             <x-field
                 name="name"
                 type="text"
@@ -33,7 +33,7 @@
         </x-card>
         <x-field type="actions">
             <x-slot name="center">
-                <x-field label="{{ ___('Add') }}" name="add" type="submit" style="success"/>
+                <x-field label="dictionary.add" name="add" type="submit" style="success"/>
             </x-slot>
         </x-field>
     </x-form>
