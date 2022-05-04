@@ -16,7 +16,11 @@ class AddDocumentFieldsBefore
         if (isset($_GET['project_variant'])) {
             $selected_variant = ProjectVariant::find($_GET['project_variant']);
             $selected_project = $selected_variant->project;
-            $project_variants = $selected_project->variants->pluck('name', 'id')->toArray();
+            if ($variants = $selected_project->variants) {
+                foreach ($variants as $variant) {
+                    $project_variants[$variant->id] = $variant->variant_number.' - '.$variant->name;
+                }
+            }
         }
         return view(
             'aegis::_hooks.add-document-fields-before',
