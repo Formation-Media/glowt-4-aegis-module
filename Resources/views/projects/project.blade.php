@@ -75,7 +75,7 @@
             @if ($variant->is_default==true)
                 <x-tab target="default">
                     <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
-                        <x-card>
+                        <x-card body-class="grid-md-2">
                             <x-field
                                 label="dictionary.name"
                                 name="name"
@@ -108,7 +108,7 @@
             @else
                 <x-tab target="variant-{{ $i }}">
                     <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
-                        <x-card>
+                        <x-card body-class="grid-md-2">
                             <x-field
                                 label="dictionary.name"
                                 name="name"

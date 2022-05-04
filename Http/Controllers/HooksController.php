@@ -3,20 +3,15 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
-use App\Helpers\Translations;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\AEGIS\Models\CompetencyDetail;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\DocumentApprovalItemDetails;
-use Modules\AEGIS\Models\FeedbackListType;
 use Modules\AEGIS\Models\JobTitle;
-use Modules\AEGIS\Models\Project;
-use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
-use Modules\Documents\Models\Category;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
 use Modules\HR\Models\CompetencySubjectAchievement;
@@ -47,32 +42,6 @@ class HooksController extends AEGISController
                 'job_titles',
             )
         );
-    }
-    public static function collect_documents__add_document($args)
-    {
-        if (isset($args['request']->aegis['project_variant'])) {
-            $category = Category::find($args['request']->category);
-            if ($category->prefix === 'FBL') {
-                $args['new_document']->setMeta([
-                    'feedback_list_type_id' => $args['request']->aegis['feedback-list-type'],
-                    'final_feedback_list'   => $args['request']->aegis['final-feedback-list'],
-                ]);
-            }
-            $args['new_document']->setMeta([
-                'author_company' => $args['request']->aegis['author-company'],
-                'author_role'    => $args['request']->aegis['author-role'],
-            ]);
-            $args['new_document']->save();
-            $variant_document              = new VariantDocument();
-            $variant_document->document_id = $args['new_document']->id;
-            $variant_document->variant_id  = $args['request']->aegis['project_variant'];
-            $project_variant               = ProjectVariant::find($args['request']->aegis['project_variant']);
-            $variant_document->reference   = $project_variant->reference.'/'.$category->prefix
-                                                .str_pad($args['request']->aegis['reference'], 2, '0', STR_PAD_LEFT);
-            $issue                         = VariantDocument::where('reference', $variant_document->reference)->count();
-            $variant_document->issue       = $issue + 1;
-            $variant_document->save();
-        }
     }
     public static function collect_documents__approve_deny($args)
     {
@@ -352,20 +321,6 @@ class HooksController extends AEGISController
     public static function collect_view_edit_user($data)
     {
         return self::add_user_hook('view', $data);
-    }
-    public static function collect_view_management()
-    {
-        return array(
-            'https://docs.google.com/spreadsheets/d/1eLkArAaq6EjZlpqFrnoEaYgg36LUqO7XzwC7VaT8-bQ/edit#gid=0'
-                => '- Formation Query Log',
-            '/a/m/AEGIS/companies'                      => 'dictionary.companies',
-            '/a/m/AEGIS/customers'                      => 'dictionary.customers',
-            '/a/m/AEGIS/management/feedback-list-types' => 'aegis::phrases.feedback-list-types',
-            '/a/m/AEGIS/management/import'              => 'dictionary.import',
-            '/a/m/AEGIS/management/job-titles'          => 'aegis::phrases.job-titles',
-            '/a/m/AEGIS/management/project-types'       => 'aegis::phrases.project-types',
-            '/a/m/AEGIS/management/user-grades'         => 'aegis::phrases.user-grades',
-        );
     }
     public static function collect_hr__view_set_up()
     {
