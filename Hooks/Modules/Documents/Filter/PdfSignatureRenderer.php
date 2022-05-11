@@ -32,6 +32,7 @@ class PdfSignatureRenderer
 
             $details = [
                 'documents::phrases.signature-reference' => $document_meta['author_reference'] ?? null,
+                'dictionary.stage'                       => ___('dictionary.author'),
                 'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
                 'aegis::phrases.job-title'               => $job_title,
                 'dictionary.date'                        => $pdf->document->nice_datetime('updated_at'),
@@ -66,6 +67,7 @@ class PdfSignatureRenderer
 
                     $details = [
                         'documents::phrases.signature-reference' => $item->reference,
+                        'dictionary.stage'                       => $item->approval_process_item->approval_stage->name,
                         'documents::phrases.signatory-name'      => $item->agent->name,
                     ];
 
