@@ -14,7 +14,6 @@ use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\HR\Models\CompetencySection;
-use Modules\HR\Models\CompetencySubjectAchievement;
 
 class HooksController extends AEGISController
 {
@@ -161,109 +160,6 @@ class HooksController extends AEGISController
             }
         }
         $item->save();
-    }
-    public static function collect_hr__add_competency($args)
-    {
-        if (isset($args['request']->aegis)) {
-            $competency_company                = new CompetencyDetail;
-            $competency_company->competency_id = $args['competency']->id;
-            $competency_company->company_id    = $args['request']->aegis['company'];
-            $competency_company->live_document = $args['request']->aegis['live-document'];
-            $competency_company->save();
-        }
-        $default_sections = $args['competency']->user->getMeta('aegis.default-sections');
-        if ($default_sections) {
-            $competency_sections = CompetencySection
-                ::whereIn('id', $default_sections)
-                ->active()
-                ->with([
-                    'groups',
-                    'groups.subjects',
-                ])
-                ->get();
-            foreach ($competency_sections as $competency_section) {
-                $groups = $competency_section->groups;
-                if ($groups) {
-                    foreach ($groups as $group) {
-                        foreach ($group->subjects as $subject) {
-                            CompetencySubjectAchievement::create([
-                                'competency_id' => $args['competency']->id,
-                                'subject_id'    => $subject->id,
-                                'status'        => false,
-                                'has_knowledge' => false,
-                            ]);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    public static function collect_hr__edit_competency($args)
-    {
-        if (isset($args['request']->aegis)) {
-            if ($cc = CompetencyDetail::where('competency_id', $args['competency']->id)->first()) {
-                $cc->update([
-                    'company_id'    => $args['request']->aegis['company'],
-                    'live_document' => $args['request']->aegis['live-document'],
-                ]);
-            } else {
-                $competency_company                = new CompetencyDetail;
-                $competency_company->competency_id = $args['competency']->id;
-                $competency_company->company_id    = $args['request']->aegis['company'];
-                $competency_company->live_document = $args['request']->aegis['live-document'];
-                $competency_company->save();
-            }
-        }
-    }
-    public static function collect_hr__view_add_competency_fields()
-    {
-        $company_data = Company::all();
-        $companies    = array();
-        $details      = [];
-        if (count($company_data)) {
-            foreach ($company_data as $company) {
-                $companies[$company->id] = $company->name;
-            }
-        }
-        $live_document = null;
-        return view(
-            'aegis::_hooks.add-competency-fields',
-            compact(
-                'companies',
-                'details',
-                'live_document'
-            )
-        );
-    }
-    public static function collect_hr__view_competency_fields($competency)
-    {
-        $company_data       = Company::all();
-        $companies          = array();
-        $competency_details = CompetencyDetail::where('competency_id', $competency->id)->first();
-        $details            = [];
-        $live_document      = $competency_details->live_document ?? $competency->user->getMeta('aegis.live-document');
-        if ($live_document) {
-            $details['aegis::phrases.live-document'] = '<a href="'.$live_document.'" target="_blank">'.___('dictionary.view').'</a>';
-        }
-        if (count($company_data)) {
-            foreach ($company_data as $company) {
-                $companies[$company->id] = $company->name;
-            }
-        }
-        if ($bio = $competency->user->getMeta('hr.bio') ?? null) {
-            $bio = nl2br($bio);
-        }
-        return view(
-            'aegis::_hooks.add-competency-fields',
-            compact(
-                'bio',
-                'competency',
-                'competency_details',
-                'companies',
-                'details',
-                'live_document',
-            )
-        );
     }
     public static function collect_hr__view_competency_summary($competency)
     {
