@@ -15,7 +15,10 @@ class DocumentFieldsAfter
     {
         $companies           = Company::MDSS()->active()->ordered()->pluck('name', 'id');
         $feedback_list_types = FeedbackListType::ordered()->pluck('reference', 'id')->toArray();
-        $job_titles          = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->ordered()->formatted();
+        $job_titles          = JobTitle
+                                    ::whereIn('id', (array) $document->created_by->getMeta('aegis.discipline'))
+                                    ->ordered()
+                                    ->formatted();
         $projects            = Project::ordered()->pluck('name', 'id')->toArray();
         $document_variant    = VariantDocument::where('document_id', $document->id)->first();
         $yes_no              = Translations::yes_no();

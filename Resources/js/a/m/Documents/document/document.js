@@ -4,7 +4,7 @@ let doc = {
     variant:  null,
     init:function() {
         doc.issue   = document.querySelector('[name="aegis[issue]"]');
-        doc.variant = document.querySelector('[name="aegis[project_variant]"]').value;
+        doc.variant = document.querySelector('[name="aegis[project_variant]"]')?.value;
         this.watch_category();
         this.watch_reference();
         this.watch_select_project();
@@ -75,7 +75,7 @@ let doc = {
     watch_category:function() {
         let category    = document.querySelector('[name="category-autocomplete"]');
         let category_id = document.querySelector('[name="category"]');
-        if (category_id.value) {
+        if (category_id?.value) {
             app.show_loader();
             app.ajax(
                 'm/Documents/categories/get-category',
@@ -95,7 +95,7 @@ let doc = {
                 }
             );
         }
-        category.addEventListener('autocomplete-select', function(event) {
+        category?.addEventListener('autocomplete-select', function(event) {
             doc.category    = event.selection.id;
             doc.issue.value = 1;
             doc.toggle_feedback_list_type(event.selection.prefix);
@@ -104,18 +104,18 @@ let doc = {
     },
     watch_reference: function() {
         let reference = document.querySelector('[name="aegis[reference]"]');
-        reference.addEventListener('change', function() {
+        reference?.addEventListener('change', function() {
             doc.get_issue(this.value);
         });
-        reference.addEventListener('keyup', function() {
+        reference?.addEventListener('keyup', function() {
             doc.get_issue(this.value);
         });
     },
     watch_select_project:function() {
         let variants = document.getElementById('aegisproject-variant');
-        document
-            .getElementById('aegisproject-autocomplete')
-            .addEventListener('autocomplete-select', function (e) {
+        let project_autocomplete = document.getElementById('aegisproject-autocomplete');
+        if (project_autocomplete) {
+            project_autocomplete.addEventListener('autocomplete-select', function (e) {
                 app.show_loader();
                 app.ajax(
                     'm/AEGIS/projects/get_project_variants',
@@ -141,9 +141,10 @@ let doc = {
                     }
                 );
             });
+        }
     },
     watch_select_project_variant:function() {
-        document.getElementById('aegisproject-variant').addEventListener(
+        document.getElementById('aegisproject-variant')?.addEventListener(
             'change',
             function(e) {
                 doc.variant = e.target.value;
