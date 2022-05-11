@@ -11,6 +11,7 @@ var add = {
         }
         add.issue = document.querySelector('[name="aegis[issue]"]');
         this.watch_category();
+        this.watch_create_as();
         this.watch_reference();
         this.watch_select_project();
         this.watch_select_project_variant();
@@ -106,6 +107,42 @@ var add = {
             add.issue.value = 1;
             add.toggle_feedback_list_type(event.selection.prefix);
             add.get_reference();
+        });
+    },
+    watch_create_as:function() {
+        let role = document.querySelector('select[name="aegis[author-role]"]');
+        document.querySelector('select[name="created_by"]')?.addEventListener('change', function() {
+            let select = '<option value="">Select&hellip;</option>';
+            if (this.value) {
+                app.show_loader();
+                app.ajax(
+                    'm/AEGIS/users/get_roles',
+                    {
+                        id: this.value
+                    },
+                    function(json) {
+                        // Call successful
+                        if (json.status) {
+                            // Action successful
+                            if (json.data.length) {
+                                for (let i = 0; i < json.data.length; i++) {
+                                    let role  = json.data[i];
+                                    select   += '<option value="' + role.id + '">' + role.name + '</option>';
+                                }
+                            }
+                            role.innerHTML = select;
+                        }
+                    },
+                    function() {
+                        role.innerHTML = select;
+                    },
+                    function() {
+                        app.hide_loader();
+                    }
+                );
+            } else {
+                role.innerHTML = select;
+            }
         });
     },
     watch_reference: function() {
