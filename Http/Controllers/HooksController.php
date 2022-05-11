@@ -3,7 +3,6 @@
 namespace Modules\AEGIS\Http\Controllers;
 
 use App\Helpers\Modules;
-use App\Models\File;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\AEGIS\Models\CompetencyDetail;
@@ -29,18 +28,6 @@ class HooksController extends AEGISController
     public static function collect_add_user($args)
     {
         self::collect_store_user($args);
-    }
-    public static function collect_documents__view_approve_fields()
-    {
-        $companies  = Company::MDSS()->active()->ordered()->pluck('name', 'id');
-        $job_titles = JobTitle::whereIn('id', (array) \Auth::user()->getMeta('aegis.discipline'))->ordered()->formatted();
-        return view(
-            'aegis::_hooks.approve-fields',
-            compact(
-                'companies',
-                'job_titles',
-            )
-        );
     }
     public static function collect_documents__approve_deny($args)
     {
@@ -69,7 +56,7 @@ class HooksController extends AEGISController
             // Everything's approved
             // Apply the author reference
             $author_company = Company::withTrashed()->find($document->meta['author_company']);
-            $author_prefix  = $author_company->abbreviation.'-'.$user->getMeta('aegis.user-reference').'-';
+            $author_prefix  = $author_company->abbreviation.'-'.$document->created_by->getMeta('aegis.user-reference').'-';
             if ($previous_author_reference = DB
                 ::table('m_documents_meta')
                 ->where('key', 'author_reference')
@@ -262,87 +249,6 @@ class HooksController extends AEGISController
             $data['aegis::phrases.approved-as'] = $job_title;
         }
     }
-    public static function filter_documents__pdf_signature_renderer(&$pdf)
-    {
-        $pdf = function ($pdf) {
-            $author           = $pdf->document->created_by;
-            $author_signature = File::where('hex_id', $author->getMeta('documents.signature'))->first();
-            $company          = null;
-            $document_meta    = $pdf->document->getMeta()->toArray();
-            $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
-            $job_title        = null;
-            $signature_height = 50;
-            $top_margin       = 10;
-            $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
-
-            if (isset($document_meta['author_company'])) {
-                $company = Company::withTrashed()->find($document_meta['author_company'])->name;
-            }
-            if (isset($document_meta['author_role'])) {
-                $job_title = JobTitle::find($document_meta['author_role'])->name;
-            }
-
-            $details = [
-                'documents::phrases.signature-reference' => $document_meta['author_reference'] ?? null,
-                'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
-                'aegis::phrases.job-title'               => $job_title,
-                'dictionary.date'                        => $pdf->document->nice_datetime('updated_at'),
-                'aegis::phrases.document-id'             => $variant_document->reference,
-                'dictionary.issue'                       => $variant_document->issue,
-            ];
-
-            $pdf->ln($top_margin);
-            $pdf->resetFillColor();
-
-            if ($company) {
-                $pdf->p(___('dictionary.for').' '.$company);
-            }
-
-            if (isset($author_signature)) {
-                list($width, $height) = getimagesize(storage_path($author_signature->storage_path));
-                $ratio = $height / $width;
-                $pdf->Image('../storage'.$author_signature->storage_path, null, null, $signature_height, $signature_height * $ratio);
-            }
-            $pdf->columns($details, 1);
-
-            if ($items) {
-                foreach ($items as $item) {
-                    $pdf->addPage();
-                    $pdf->ln($top_margin);
-
-                    $item_details = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
-                    $signature    = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
-
-                    $company   = $item_details->company->name ?? null;
-                    $job_title = $item_details->job_title->name ?? null;
-
-                    $details = [
-                        'documents::phrases.signature-reference' => $item->reference,
-                        'documents::phrases.signatory-name'      => $item->agent->name,
-                    ];
-
-                    if ($signature) {
-                        list($width, $height) = getimagesize(storage_path($signature->storage_path));
-                        $ratio = $height / $width;
-                        $pdf->Image('../storage'.$signature->storage_path, null, null, $signature_height, $signature_height * $ratio);
-                    }
-
-                    if ($job_title) {
-                        $details['aegis::phrases.job-title'] = $job_title;
-                    }
-                    if ($company) {
-                        $details['dictionary.company'] = $company;
-                    }
-
-                    $details['dictionary.date']            = $item->nice_datetime('updated_at');
-                    $details['aegis::phrases.document-id'] = $variant_document->reference;
-                    $details['dictionary.issue']           = $variant_document->issue;
-
-                    $pdf->columns($details, 1);
-                }
-            }
-        };
-    }
     public static function filter_documents__reset_status($document, $module)
     {
         $document_variant = VariantDocument
@@ -350,19 +256,6 @@ class HooksController extends AEGISController
             ->first();
         $document_variant->issue++;
         $document_variant->save();
-    }
-    public static function filter_documents__pdf_signature_header(&$pdf, $module)
-    {
-        $variant_document = VariantDocument::where('document_id', $pdf->document->id)->first();
-        $company          = $variant_document->project_variant->project->company;
-        if ($company && $company->pdf_footer) {
-            $file = storage_path($company->pdf_footer->storage_path);
-            if (is_file($file)) {
-                $pdf->setSourceFile($file);
-                $temp = $pdf->importPage(1);
-                $pdf->useTemplate($temp);
-            }
-        }
     }
     public static function filter_hr__ajax_table_competencies($args)
     {
