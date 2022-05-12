@@ -68,10 +68,10 @@ class PdfSignatureRenderer
             $pdf->columns($author_data, 1);
 
             if (isset($author_signature)) {
-                list($width, $height) = getimagesize(storage_path($author_signature->storage_path));
+                list($width, $height) = getimagesize($author_signature->absolute_path);
                 $ratio = $height / $width;
                 $pdf->Image(
-                    '../storage'.$author_signature->storage_path,
+                    $author_signature->absolute_path,
                     $pdf->getUsableWidth() / 2,
                     $top,
                     $signature_height,
@@ -106,10 +106,10 @@ class PdfSignatureRenderer
                     $pdf->columns($details, 1);
 
                     if ($signature) {
-                        list($width, $height) = getimagesize(storage_path($signature->storage_path));
+                        list($width, $height) = getimagesize($signature->absolute_path);
                         $ratio = $height / $width;
                         $pdf->Image(
-                            '../storage'.$signature->storage_path,
+                            $signature->absolute_path,
                             $pdf->getUsableWidth() / 2,
                             $top,
                             $signature_height,
