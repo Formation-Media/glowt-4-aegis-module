@@ -11,7 +11,7 @@ class PdfSignatureHeader
         $variant_document = VariantDocument::where('document_id', $pdf->document->id)->first();
         $company          = $variant_document->project_variant->project->company;
         if ($company && $company->pdf_footer) {
-            $file = storage_path($company->pdf_footer->storage_path);
+            $file = $company->pdf_footer->absolute_path;
             if (is_file($file)) {
                 $pdf->setSourceFile($file);
                 $temp = $pdf->importPage(1);
