@@ -21,7 +21,7 @@ class PdfSignatureRenderer
             $document_meta    = $pdf->document->getMeta()->toArray();
             $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
             $job_title        = null;
-            $signature_height = 50;
+            $signature_height = 35;
             $spacer           = [0, 5];
             $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
 
