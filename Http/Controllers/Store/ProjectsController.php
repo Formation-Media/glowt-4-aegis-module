@@ -137,16 +137,12 @@ class ProjectsController extends Controller
                 }
                 $project->update();
 
-                $default_project_variant       = ProjectVariant::where('project_id', $project->id)->where('is_default', true)->first();
-                $default_project_variant->name = $validated['name'];
-                $default_project_variant->update();
-
                 return redirect($redirect);
             },
         );
     }
 
-    public function project_variant(Request $request, $id)
+    public function variant(Request $request, $id)
     {
         $project_variant       = ProjectVariant::find($id);
         $redirect              = url('a/m/AEGIS/projects/project/'.$project_variant->project_id);
