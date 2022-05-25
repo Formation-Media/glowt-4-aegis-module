@@ -11,7 +11,7 @@ class Breadcrumbs
         if (Modules::isEnabled('Documents')) {
             $temp_breadcrumbs = [];
             foreach ($breadcrumbs as $link => $breadcrumb) {
-                if (count($breadcrumbs) === 1 || $link === 'm/Documents/document') {
+                if ((count($breadcrumbs) === 1 && $breadcrumb === 'Documents') || $link === 'm/Documents/document') {
                     $breadcrumb = 'MDSS';
                 }
                 $temp_breadcrumbs[$link] = $breadcrumb;
