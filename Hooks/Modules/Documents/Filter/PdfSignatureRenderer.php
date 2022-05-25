@@ -15,6 +15,7 @@ class PdfSignatureRenderer
     {
         $pdf = function ($pdf) {
             $author           = $pdf->document->created_by;
+            $author_reference = $pdf->document->metas->firstWhere('key', 'author_reference');
             $author_signature = File::where('hex_id', $author->getMeta('documents.signature'))->first();
             $company          = null;
             $document_details = [];
@@ -55,9 +56,7 @@ class PdfSignatureRenderer
             $pdf->ln(2);
 
             $author_data = [
-                'documents::phrases.signature-date'      => Dates::datetime(
-                    $pdf->document->metas->firstWhere('key', 'author_reference')->created_at
-                ),
+                'documents::phrases.signature-date'      => $author_reference ? Dates::datetime($author_reference->created_at) : null,
                 'documents::phrases.signature-reference' => $document_meta['author_reference'] ?? null,
                 'dictionary.stage'                       => ___('dictionary.author'),
                 'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
