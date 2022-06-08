@@ -79,7 +79,6 @@ var add = {
         }
     },
     watch_category:function() {
-        let category    = document.querySelector('[name="category-autocomplete"]');
         let category_id = document.querySelector('[name="category"]');
         if (category_id.value) {
             app.show_loader();
@@ -102,11 +101,29 @@ var add = {
                 }
             );
         }
-        category.addEventListener('autocomplete-select', function(event) {
-            add.category    = event.selection.id;
+        category_id.addEventListener('change', function() {
+            add.category    = this.value;
             add.issue.value = 1;
-            add.toggle_feedback_list_type(event.selection.prefix);
-            add.get_reference();
+            app.show_loader();
+            app.ajax(
+                'm/Documents/categories/get-category',
+                {
+                    category: this.value,
+                },
+                function(json) {
+                    // Call successful
+                    if (json.status) {
+                        // Action successful
+                        add.toggle_feedback_list_type(json.data.prefix);
+                        add.get_reference();
+                    }
+                },
+                null,
+                function() {
+                    // Success or failed, this'll trigger
+                    app.hide_loader();
+                }
+            );
         });
     },
     watch_create_as:function() {
