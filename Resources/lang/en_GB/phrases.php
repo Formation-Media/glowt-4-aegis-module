@@ -10,6 +10,8 @@ return array(
     'default-sections'   => 'Default "No Knowledge" Sections',
     'document-id'        => 'Document ID',
     'document-reference' => 'Document Reference',
+    'document-type'      => 'Document Type',
+    'document-types'     => 'Document Types',
 
     'feedback-list-type'  => 'Feedback List Type',
     'feedback-list-types' => 'Feedback List Types',
