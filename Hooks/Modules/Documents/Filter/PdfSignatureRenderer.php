@@ -42,6 +42,7 @@ class PdfSignatureRenderer
                 [
                     'dictionary.title'           => $pdf->document->name,
                     'aegis::phrases.document-id' => $variant_document->reference,
+                    'dictionary.category'        => $pdf->document->category->name,
                     'dictionary.issue'           => $variant_document->issue,
                     'dictionary.date'            => $pdf->document->nice_datetime('updated_at'),
                 ]
@@ -81,7 +82,7 @@ class PdfSignatureRenderer
             }
 
             $pdf->setXY($pdf->getUsableWidth() / 2, $top);
-            if ($document_meta['author_reference']) {
+            if (isset($document_meta['author_reference'])) {
                 $pdf->p($document_meta['author_reference']);
             }
 
