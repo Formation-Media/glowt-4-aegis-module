@@ -56,15 +56,16 @@ class PdfSignatureRenderer
             $pdf->ln(2);
 
             $author_data = [
-                'documents::phrases.signature-date'      => $author_reference ? Dates::datetime($author_reference->created_at) : null,
-                'documents::phrases.signature-reference' => $document_meta['author_reference'] ?? null,
-                'dictionary.stage'                       => ___('dictionary.author'),
-                'documents::phrases.signatory-name'      => $pdf->document->created_by->name,
-                'aegis::phrases.job-title'               => $job_title,
+                'documents::phrases.signature-date' => $author_reference ? Dates::datetime($author_reference->created_at) : null,
+                'dictionary.stage'                  => ___('dictionary.author'),
+                'documents::phrases.signatory-name' => $pdf->document->created_by->name,
+                'aegis::phrases.job-title'          => $job_title,
             ];
             $top = $pdf->getY();
 
             $pdf->columns($author_data, 1);
+
+            $bottom = $pdf->getY();
 
             if (isset($author_signature)) {
                 list($width, $height) = getimagesize($author_signature->absolute_path);
@@ -76,7 +77,15 @@ class PdfSignatureRenderer
                     $signature_height,
                     $signature_height * $ratio
                 );
+                $top += $pdf->px2mm($signature_height);
             }
+
+            $pdf->setXY($pdf->getUsableWidth() / 2, $top);
+            if ($document_meta['author_reference']) {
+                $pdf->p($document_meta['author_reference']);
+            }
+
+            $pdf->setY($bottom);
 
             $pdf->hr(...$spacer);
 
@@ -91,10 +100,9 @@ class PdfSignatureRenderer
                     $pdf->ln(2);
 
                     $details = [
-                        'documents::phrases.signature-date'      => $item->nice_created_at,
-                        'documents::phrases.signature-reference' => $item->reference,
-                        'dictionary.stage'                       => $item->approval_process_item->approval_stage->name,
-                        'documents::phrases.signatory-name'      => $item->agent->name,
+                        'documents::phrases.signature-date' => $item->nice_created_at,
+                        'dictionary.stage'                  => $item->approval_process_item->approval_stage->name,
+                        'documents::phrases.signatory-name' => $item->agent->name,
                     ];
                     $top = $pdf->getY();
 
@@ -103,6 +111,8 @@ class PdfSignatureRenderer
                     }
 
                     $pdf->columns($details, 1);
+
+                    $bottom = $pdf->getY();
 
                     if ($signature) {
                         list($width, $height) = getimagesize($signature->absolute_path);
@@ -114,7 +124,14 @@ class PdfSignatureRenderer
                             $signature_height,
                             $signature_height * $ratio
                         );
+                        $top += $pdf->px2mm($signature_height);
                     }
+
+                    $pdf->setXY($pdf->getUsableWidth() / 2, $top);
+
+                    $pdf->p($item->reference);
+
+                    $pdf->setY($bottom);
 
                     $pdf->hr(...$spacer);
                 }
