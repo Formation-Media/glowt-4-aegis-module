@@ -22,6 +22,9 @@ class EditDocument
                 'final_feedback_list',
             ]);
         }
+        $args['document']->setMeta([
+            'author_role' => $args['request']->aegis['author-role'],
+        ]);
         $args['document']->save();
         if (isset($args['request']->aegis['project_variant']) || isset($args['request']->aegis['reference'])) {
             $updates = [];
