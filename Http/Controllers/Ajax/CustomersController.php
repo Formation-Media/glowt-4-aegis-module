@@ -123,7 +123,7 @@ class CustomersController extends Controller
             array(
                 'style' => 'primary',
                 'name'  => ___('View'),
-                'uri'   => '/a/m/AEGIS/customers/customer/{{id}}',
+                'href'  => '/a/m/AEGIS/customers/customer/{{id}}',
             ),
         );
         if ($user->has_role('core::Administrator') || $user->has_role('core::Manager')) {
