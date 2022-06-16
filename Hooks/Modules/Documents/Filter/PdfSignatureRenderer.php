@@ -57,11 +57,16 @@ class PdfSignatureRenderer
             $pdf->ln(2);
 
             $author_data = [
+                'aegis::phrases.document-id'        => $variant_document->reference,
+                'dictionary.issue'                  => $variant_document->issue,
                 'documents::phrases.signature-date' => $author_reference ? Dates::datetime($author_reference->created_at) : null,
                 'dictionary.stage'                  => ___('dictionary.author'),
                 'documents::phrases.signatory-name' => $pdf->document->created_by->name,
                 'aegis::phrases.job-title'          => $job_title,
             ];
+            if ($company) {
+                $author_data['dictionary.company'] = $company;
+            }
             $top = $pdf->getY();
 
             $pdf->columns($author_data, 1);
@@ -99,16 +104,21 @@ class PdfSignatureRenderer
 
                     $pdf->h4($item->approval_process_item->approval_stage->name);
                     $pdf->ln(2);
+                    $top = $pdf->getY();
 
                     $details = [
+                        'aegis::phrases.document-id'        => $variant_document->reference,
+                        'dictionary.issue'                  => $variant_document->issue,
                         'documents::phrases.signature-date' => $item->nice_created_at,
                         'dictionary.stage'                  => $item->approval_process_item->approval_stage->name,
                         'documents::phrases.signatory-name' => $item->agent->name,
                     ];
-                    $top = $pdf->getY();
 
                     if ($job_title) {
                         $details['aegis::phrases.job-title'] = $job_title;
+                    }
+                    if ($company) {
+                        $details['dictionary.company'] = $company;
                     }
 
                     $pdf->columns($details, 1);
