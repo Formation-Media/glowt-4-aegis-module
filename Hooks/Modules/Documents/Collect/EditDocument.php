@@ -2,9 +2,11 @@
 
 namespace Modules\AEGIS\Hooks\Modules\Documents\Collect;
 
+use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\Category;
+use Modules\Documents\Models\DocumentApprovalProcessItem;
 
 class EditDocument
 {
@@ -25,7 +27,6 @@ class EditDocument
         $args['document']->setMeta([
             'author_role' => $args['request']->aegis['author-role'],
         ]);
-        $args['document']->save();
         if (isset($args['request']->aegis['project_variant']) || isset($args['request']->aegis['reference'])) {
             $updates = [];
             if (isset($args['request']->aegis['project_variant'])) {
@@ -43,5 +44,47 @@ class EditDocument
             );
             $vd->document->log('phrases.updated', ['what' => 'documents::phrases.document-details']);
         }
+        if (!$args['document']->approval_process->approval_process_stages->count()) {
+            $author_company = Company::withTrashed()->find($args['document']->meta['author_company']);
+            $author_prefix  = $author_company->abbreviation.'-'.$args['document']->created_by->getMeta('aegis.user-reference').'-';
+            if ($previous_author_reference = \DB
+                ::table('m_documents_meta')
+                ->where('key', 'author_reference')
+                ->where('value', 'LIKE', $author_prefix.'%')
+                ->orderByRaw('LENGTH(`value`) DESC')
+                ->orderBy('value', 'desc')
+                ->first()
+            ) {
+                $previous_author_reference = $previous_author_reference->value;
+            }
+            if ($previous_approval_reference = DocumentApprovalProcessItem
+                ::where('reference', 'LIKE', $author_prefix.'%')
+                ->orderByRaw('LENGTH(`reference`) DESC')
+                ->orderBy('reference', 'desc')
+                ->first()
+            ) {
+                $previous_approval_reference = $previous_approval_reference->reference;
+            }
+            if (!$previous_approval_reference && !$previous_author_reference) {
+                $previous_reference = $author_prefix.'0';
+            } else {
+                $max = 0;
+                foreach ([
+                    'previous_author_reference',
+                    'previous_approval_reference',
+                ] as $key) {
+                    if ($$key) {
+                        $max = max($max, str_replace($author_prefix, '', $$key));
+                    }
+                }
+                $previous_reference = $author_prefix.$max;
+            }
+
+            list($company_reference, $user, $increment) = explode('-', $previous_reference);
+            $new_reference                              = implode('-', [$company_reference, $user, ++$increment]);
+            $args['document']->setMeta('author_reference', $new_reference);
+            $args['document']->save();
+        }
+        $args['document']->save();
     }
 }
