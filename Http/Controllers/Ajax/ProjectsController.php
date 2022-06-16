@@ -96,7 +96,7 @@ class ProjectsController extends Controller
             array(
                 'style' => 'primary',
                 'name'  => ___('View'),
-                'uri'   => '/a/m/Documents/document/document/{{document_id}}',
+                'href'  => '/a/m/Documents/document/document/{{document_id}}',
             ),
         );
         $row_structure = array(

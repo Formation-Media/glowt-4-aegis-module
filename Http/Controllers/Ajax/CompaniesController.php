@@ -95,7 +95,7 @@ class CompaniesController extends Controller
                 $row_structure['actions'][] = array(
                     'style' => 'primary',
                     'name'  => 'Edit',
-                    'uri'   => $this->link_base.'company/{{id}}',
+                    'href'  => $this->link_base.'company/{{id}}',
                 );
             }
         }

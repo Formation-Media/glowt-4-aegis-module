@@ -236,7 +236,7 @@ class ManagementController extends Controller
             array(
                 'style' => 'primary',
                 'name'  => 'View',
-                'uri'   => '/a/m/AEGIS/customers/customer/{{id}}',
+                'href'  => '/a/m/AEGIS/customers/customer/{{id}}',
             ),
         );
         if ($user->has_role('core::Adminstrator') || $user->has_role('core::Manager')) {
