@@ -249,14 +249,6 @@ class HooksController extends AEGISController
             $data['aegis::phrases.approved-as'] = $job_title;
         }
     }
-    public static function filter_documents__reset_status($document, $module)
-    {
-        $document_variant = VariantDocument
-            ::where('document_id', $document->id)
-            ->first();
-        $document_variant->issue++;
-        $document_variant->save();
-    }
     public static function filter_hr__ajax_table_competencies($args)
     {
         $ids     = [];
