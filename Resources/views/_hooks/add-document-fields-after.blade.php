@@ -30,10 +30,10 @@
             label="dictionary.reference"
             min="1"
             name="aegis[reference]"
-            :prefield="$selected_variant ? $selected_variant->reference.'/'.$document->category->prefix : '&hellip;'"
+            :prefield="$selected_variant ? $selected_variant->reference.'/'.($document->category->prefix ?? '') : '&hellip;'"
             required
             type="text"
-            :value="isset($reference) ? str_replace($selected_variant ? $selected_variant->reference.'/'.$document->category->prefix : '', '', $reference) : null"
+            :value="isset($reference) ? str_replace($selected_variant ? $selected_variant->reference.'/'.($document->category->prefix ?? '') : '', '', $reference) : null"
         />
         <x-field
             disabled="true"
