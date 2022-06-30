@@ -44,7 +44,7 @@ class PdfSignatureRenderer
                     'aegis::phrases.document-id' => $variant_document->reference,
                     'dictionary.category'        => $pdf->document->category->name,
                     'dictionary.issue'           => $variant_document->issue,
-                    'dictionary.date'            => $pdf->document->nice_datetime('updated_at'),
+                    'dictionary.date'            => $pdf->document->nice_date('updated_at'),
                 ]
             );
 
@@ -59,7 +59,7 @@ class PdfSignatureRenderer
             $author_data = [
                 'aegis::phrases.document-id'        => $variant_document->reference,
                 'dictionary.issue'                  => $variant_document->issue,
-                'documents::phrases.signature-date' => $author_reference ? Dates::datetime($author_reference->created_at) : null,
+                'documents::phrases.signature-date' => $author_reference ? Dates::date($author_reference->created_at) : null,
                 'dictionary.stage'                  => ___('dictionary.author'),
                 'documents::phrases.signatory-name' => $pdf->document->created_by->name,
                 'aegis::phrases.job-title'          => $job_title,
@@ -109,7 +109,7 @@ class PdfSignatureRenderer
                     $details = [
                         'aegis::phrases.document-id'        => $variant_document->reference,
                         'dictionary.issue'                  => $variant_document->issue,
-                        'documents::phrases.signature-date' => $item->nice_created_at,
+                        'documents::phrases.signature-date' => $item->nice_date('created_at'),
                         'dictionary.stage'                  => $item->approval_process_item->approval_stage->name,
                         'documents::phrases.signatory-name' => $item->agent->name,
                     ];
