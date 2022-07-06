@@ -38,6 +38,7 @@ class DocumentFieldsAfter
             compact(
                 'companies',
                 'document',
+                'document_variant',
                 'feedback_list_types',
                 'job_titles',
                 'projects',
