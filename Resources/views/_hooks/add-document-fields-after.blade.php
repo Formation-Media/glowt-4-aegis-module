@@ -40,7 +40,7 @@
             label="dictionary.issue"
             name="aegis[issue]"
             type="number"
-            :value="$document_variant ? $document_variant->issue : 1"
+            :value="isset($document_variant) ? $document_variant->issue : 1"
         />
     @endisset
 @endif
