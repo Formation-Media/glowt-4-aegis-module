@@ -24,7 +24,7 @@ class ManagementController extends Controller
             array_merge(
                 $request->all(),
                 [
-                    'id' => $id
+                    'id' => $id,
                 ]
             ),
             [
