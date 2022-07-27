@@ -13,13 +13,13 @@
         'breadcrumbs'=>array(
             'management'=>___('dictionary.management'),
             $module->getName(),
-            ___('Types')
+            'aegis::phrases.project-types'
         ),
         'page_menu'=> $page_menu
     )
 )
 @section('content')
-    <x-table selects controller="management" method="types" type="classic" module="AEGIS"/>
+    <x-table controller="management" method="types" type="classic" module="AEGIS"/>
     <x-modal id="add-type" title="{{___('Add Type')}}" save-style="success" save-text="Add">
         <x-form name="types">
             <x-field
