@@ -229,14 +229,15 @@ class ManagementController extends Controller
     }
     public function table_types()
     {
-        $user = \Auth::user();
         $actions        = array();
+        $user           = \Auth::user();
         $global_actions = array();
+
         $actions        = array(
             array(
                 'style' => 'primary',
                 'name'  => 'View',
-                'href'  => '/a/m/AEGIS/customers/customer/{{id}}',
+                'href'  => '/a/m/AEGIS/management/project-type/{{id}}',
             ),
         );
         if ($user->has_role('core::Adminstrator') || $user->has_role('core::Manager')) {

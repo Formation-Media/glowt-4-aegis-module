@@ -21,14 +21,12 @@ class CardViewResult
                 ])
                 ->firstWhere('document_id', $data['result']->id);
             if ($variant_document) {
-                $additional_details[] = [
+                $additional_details['dictionary.project'] = [
                     'icon'  => 'hashtag',
-                    'label' => 'dictionary.project',
                     'value' => $variant_document->project_variant->project->reference ?? null,
                 ];
-                $additional_details[] = [
+                $additional_details['dictionary.company'] = [
                     'icon'  => 'building',
-                    'label' => 'dictionary.company',
                     'value' => $variant_document->project_variant->project->company->name,
                 ];
             }

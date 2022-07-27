@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Models\Type;
 
 class ManagementController extends Controller
 {
@@ -78,6 +79,13 @@ class ManagementController extends Controller
     public function job_titles(Request $request)
     {
         return parent::view();
+    }
+    public function project_type(Request $request, $id)
+    {
+        $project_type = Type::findOrFail($id);
+        return parent::render(compact(
+            'project_type'
+        ));
     }
     public function project_types(Request $request)
     {
