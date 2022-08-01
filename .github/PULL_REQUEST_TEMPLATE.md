@@ -14,7 +14,7 @@ The first word on each change should be one of:
 
 Order
 ------------------
-The order of these items is also important so they back up the release version and show the most important changes first.
+The order of these items is also important, so they back up the release version and show the most important changes first.
 
 - Added
 - Updated
