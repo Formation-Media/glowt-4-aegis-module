@@ -5,13 +5,6 @@
             'm/Documents/document'  => 'dictionary.documents',
             $module_base.'projects' => 'dictionary.projects',
             $project->reference.': '.$project->name
-        ),
-        'page_menu'=> array(
-            array(
-                'href' =>'/a/m/AEGIS/projects/add-variant/'.$project->id,
-                'icon' =>'file-plus',
-                'title'=>['phrases.add',['item'=>___('dictionary.variant')]]
-            ),
         )
     )
 )
@@ -74,7 +67,7 @@
         @foreach($variants as $i=>$variant)
             @if ($variant->is_default==true)
                 <x-tab target="default">
-                    <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
+                    <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/phase/'.$variant->id}}">
                         <x-card body-class="grid-md-2">
                             <x-field
                                 label="dictionary.name"
@@ -101,13 +94,13 @@
                     <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                     @if($documents_module_enabled)
                         <div class="text-center">
-                            <x-link style="primary" title="{{___('aegis::projects.add-document')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
+                            <x-link style="primary" title="aegis::phrases.add-document" href="{{ url('a/m/Documents/document/add?project_phase='.$variant->id)}}"/>
                         </div>
                     @endif
                 </x-tab>
             @else
-                <x-tab target="variant-{{ $i }}">
-                    <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/variant/'.$variant->id}}">
+                <x-tab target="phase-{{ $i }}">
+                    <x-form name="{{ 'variant'.$variant->id }}" action="{{'/a/m/AEGIS/projects/phase/'.$variant->id}}">
                         <x-card body-class="grid-md-2">
                             <x-field
                                 label="dictionary.name"
@@ -125,7 +118,7 @@
                             />
                             <x-field
                                 disabled="{{true}}"
-                                label="aegis::projects.variant-number"
+                                label="aegis::phrases.phase-number"
                                 name="variant_number"
                                 type="number"
                                 value="{{$variant->variant_number}}"
@@ -148,7 +141,7 @@
                     <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
                     @if($documents_module_enabled)
                         <div class="text-center">
-                            <x-link style="primary" title="{{___('aegis::projects.add-document')}}" href="{{ url('a/m/Documents/document/add?project_variant='.$variant->id)}}"/>
+                            <x-link style="primary" title="aegis::phrases.add-document" href="{{ url('a/m/Documents/document/add?project_phase='.$variant->id)}}"/>
                         </div>
                     @endif
                 </x-tab>

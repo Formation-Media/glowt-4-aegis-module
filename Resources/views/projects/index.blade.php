@@ -1,11 +1,4 @@
-@php
-    $page_menu=array();
-    $page_menu[]=array(
-        'href'  => '/a/m/AEGIS/projects/add',
-        'icon'  => 'file-plus',
-        'title' => ['phrases.add', ['item' => ___('dictionary.project')]],
-    );
-@endphp
+
 @extends(
     'layouts.account',
     array(
@@ -13,7 +6,13 @@
             'm/Documents/document' => 'dictionary.documents',
             'dictionary.projects'
         ),
-        'page_menu'=> $page_menu
+        'page_menu'=> array(
+            array(
+                'href'  => '/a/m/AEGIS/projects/add',
+                'icon'  => 'file-plus',
+                'title' => ['phrases.add', ['item' => ___('dictionary.project')]],
+            )
+        )
     )
 )
 @section('content')

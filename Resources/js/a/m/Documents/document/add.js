@@ -6,8 +6,8 @@ var add = {
         if (window._GET.category) {
             add.category = window._GET.category;
         }
-        if (window._GET.project_variant) {
-            add.variant = window._GET.project_variant;
+        if (window._GET.project_phrase) {
+            add.variant = window._GET.project_phrase;
         }
         add.issue = document.querySelector('[name="aegis[issue]"]');
         this.watch_category();

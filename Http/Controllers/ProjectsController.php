@@ -32,15 +32,23 @@ class ProjectsController extends Controller
                 $default_variant = $variant;
                 $tabs['default'] = ['name' => ___('dictionary.default').' ('.$variant->name.')'];
             } else {
-                $tabs['variant-'.$i] = ['name' => ___('dictionary.variant').' '.($i).' ('.$variant->name.')'];
+                $tabs['phase-'.$i] = ['name' => ___('aegis::dictionary.phase').' '.($i).' ('.$variant->name.')'];
             }
         }
+        $page_menu = array(
+            array(
+                'href'  => '/a/m/AEGIS/projects/add-phase/'.$project->id,
+                'icon'  => 'file-plus',
+                'title' => ['phrases.add', ['item' => 'aegis::dictionary.phase']],
+            ),
+        );
 
         return parent::view(compact(
             'default_variant',
             'documents_module_enabled',
             'project',
             'customer',
+            'page_menu',
             'tabs',
             'types',
             'variants'
@@ -59,7 +67,7 @@ class ProjectsController extends Controller
         ));
     }
 
-    public function add_variant(Request $request, $id)
+    public function add_phase(Request $request, $id)
     {
         $project = Project::find($id);
         return parent::view(compact('project'));

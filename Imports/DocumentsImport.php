@@ -49,7 +49,7 @@ class DocumentsImport implements ToCollection
             $variant_number = $this->column('VARIANT NUMBER');
 
             if (!isset($this->projects[$project_reference]['variants'][$variant_number])) {
-                $this->errors['Documents'][$reference] = 'Project Variant ('.$variant_number.') not found';
+                $this->errors['Documents'][$reference] = 'Project Phase ('.$variant_number.') not found';
                 continue;
             }
 

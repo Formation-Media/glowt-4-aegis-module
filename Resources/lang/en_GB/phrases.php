@@ -1,6 +1,7 @@
 <?php
 
 return array(
+    'add-document'    => 'Add Document to Project',
     'all-companies'   => 'All Companies',
     'approve-as-role' => 'Approve As Role',
     'approved-as'     => 'Approved As',
@@ -25,7 +26,9 @@ return array(
     'live-document' => 'Live Document',
 
     'pdf-footer'     => 'PDF Footer',
+    'phase-number'   => 'Phase Number',
     'project-number' => 'Project Number',
+    'project-phase'  => 'Project Phase',
     'project-title'  => 'Project Title',
     'project-types'  => 'Project Types',
 

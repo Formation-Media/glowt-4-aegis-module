@@ -121,7 +121,7 @@ class StoreImport
                             [
                                 'added_by'    => \Auth::id(),
                                 'description' => $variant['description'],
-                                'name'        => $variant['name'] ?? ($variant_number === 0 ? 'Default' : 'Variant '.$variant_number),
+                                'name'        => $variant['name'] ?? ($variant_number === 0 ? 'Default' : 'Phase '.$variant_number),
                                 'reference'   => $reference,
                             ],
                         );
