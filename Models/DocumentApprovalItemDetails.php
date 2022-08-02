@@ -23,7 +23,7 @@ class DocumentApprovalItemDetails extends Model
     }
     public function item()
     {
-        return $this->belongsTo(DocumentApprovalProcessItem::class);
+        return $this->belongsTo(DocumentApprovalProcessItem::class, 'approval_item_id');
     }
     public function job_title()
     {

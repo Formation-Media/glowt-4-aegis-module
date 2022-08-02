@@ -34,4 +34,8 @@ class VariantDocument extends Model
     {
         return $this->belongsTo(ProjectVariant::class, 'variant_id', 'id');
     }
+    public function project()
+    {
+        return $this->hasOneThrough(Project::class, ProjectVariant::class, 'id', 'id', 'variant_id', 'project_id');
+    }
 }

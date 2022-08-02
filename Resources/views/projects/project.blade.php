@@ -91,7 +91,14 @@
                         </x-field>
                     </x-form>
                     <h2>{{___('dictionary.documents')}}</h2>
-                    <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
+                    <x-card-view
+                        d-phase="{{ $variant->id }}"
+                        model="Document"
+                        module="Documents"
+                        view="row"
+                    >
+                        @include('documents::_partials.card-view-filter')
+                    </x-card-view>
                     @if($documents_module_enabled)
                         <div class="text-center">
                             <x-link style="primary" title="aegis::phrases.add-document" href="{{ url('a/m/Documents/document/add?project_phase='.$variant->id)}}"/>
@@ -138,7 +145,14 @@
                         </x-field>
                     </x-form>
                     <h2>{{___('dictionary.documents')}}</h2>
-                    <x-table selects controller="Projects" module="AEGIS" method="variantdocumentsview" type="classic" id="{{$variant->id}}" />
+                    <x-card-view
+                        d-phase="{{ $variant->id }}"
+                        model="Document"
+                        module="Documents"
+                        view="row"
+                    >
+                        @include('documents::_partials.card-view-filter')
+                    </x-card-view>
                     @if($documents_module_enabled)
                         <div class="text-center">
                             <x-link style="primary" title="aegis::phrases.add-document" href="{{ url('a/m/Documents/document/add?project_phase='.$variant->id)}}"/>

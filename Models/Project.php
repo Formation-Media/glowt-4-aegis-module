@@ -37,7 +37,13 @@ class Project extends Model
             ],
         ];
     }
-
+    public function title(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->reference.': '.$this->name,
+        );
+    }
+    // Relations
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -46,11 +52,9 @@ class Project extends Model
     {
         return $this->belongsTo(Customer::class, 'scope_id', 'id');
     }
-    public function title(): Attribute
+    public function phases()
     {
-        return new Attribute(
-            get: fn () => $this->reference.': '.$this->name,
-        );
+        return $this->variants();
     }
     public function type()
     {

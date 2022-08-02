@@ -3,7 +3,6 @@
 namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
@@ -16,13 +15,17 @@ class ProjectsController extends Controller
     public function autocomplete_projects(Request $request)
     {
         $return = array();
-        if ($projects = Project::search(
-            array(
-                'name',
-                'reference',
-            ),
-            '%'.$request->term.'%'
-        )->paged()) {
+        if ($projects = Project
+            ::with('phases')
+            ->search(
+                array(
+                    'name',
+                    'reference',
+                ),
+                '%'.$request->term.'%'
+            )
+            ->paged()
+        ) {
             foreach ($projects as $project) {
                 $return[] = array(
                     'data'    => $project,
