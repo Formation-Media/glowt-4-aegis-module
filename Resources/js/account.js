@@ -4,7 +4,7 @@ const account = {
     },
     watch_document_tables: () => {
         document.querySelectorAll('.card-view[data-model="Document"][data-module="Documents"]').forEach(card_view => {
-            card_view.querySelector('.project-autocomplete').addEventListener('autocomplete-select', e => {
+            card_view.querySelector('.project-autocomplete')?.addEventListener('autocomplete-select', e => {
                 let html         = '<option value="">Select&hellip;</option>';
                 let phase_select = card_view.querySelector('#phase');
                 if (e.selection.phases.length) {
