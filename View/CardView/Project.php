@@ -21,7 +21,7 @@ class Project
                 'icon'  => 'user',
                 'value' => $result->user->name,
             ],
-            'dictionary.updated' => [
+            'dictionary.added' => [
                 'icon'  => FontAwesome::datetime_icon($result->created_at->format('Y-m-d H:i:s'), true),
                 'value' => $result->nice_created_at,
             ],
