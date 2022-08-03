@@ -1,25 +1,22 @@
-@php
-    $page_menu=array(
-        array(
-            'class'=> 'js-add-type',
-            'icon' =>'plus',
-            'title'=>___('Add Type')
-        )
-    );
-@endphp
 @extends(
     'layouts.account',
     array(
-        'breadcrumbs'=>array(
-            'management'=>___('dictionary.management'),
-            $module->getName(),
-            'aegis::phrases.project-types'
+        'breadcrumbs'=>array_merge(
+            array(
+                'management'=>___('dictionary.management'),
+                $module->getName()
+            ),
+            $breadcrumbs
         ),
-        'page_menu'=> $page_menu
     )
 )
 @section('content')
-    <x-table controller="management" method="types" type="classic" module="AEGIS"/>
+    <x-card-view
+        id="{{ $project_type ? $project_type->id : null }}"
+        model="Type"
+        module="AEGIS"
+        view="row"
+    />
     <x-modal id="add-type" title="{{___('Add Type')}}" save-style="success" save-text="Add">
         <x-form name="types">
             <x-field
@@ -27,6 +24,12 @@
                 name="name"
                 required
                 type="text"
+            />
+            <x-field
+                label="aegis::dictionary.parent"
+                name="parent_id"
+                :options="$parent_tree"
+                type="select"
             />
         </x-form>
     </x-modal>

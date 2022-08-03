@@ -1,5 +1,6 @@
 <?php
 
 return array(
-    'phase' => 'Phase',
+    'parent' => 'Parent',
+    'phase'  => 'Phase',
 );

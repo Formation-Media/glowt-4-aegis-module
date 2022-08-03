@@ -1,12 +1,13 @@
 @extends(
     'layouts.account',
     array(
-        'breadcrumbs'=>array(
-            'management'=> 'dictionary.management',
-            $module_name,
-            $module_base.'management/project-types' => 'aegis::phrases.project-types',
-            $project_type->name
-        )
+        'breadcrumbs'=>array_merge(
+            array(
+                'management'=>___('dictionary.management'),
+                $module->getName()
+            ),
+            $breadcrumbs
+        ),
     )
 )
 @section('content')
@@ -18,6 +19,13 @@
                 required
                 type="text"
                 value="{{ $project_type->name }}"
+            />
+            <x-field
+                label="aegis::dictionary.parent"
+                name="parent_id"
+                :options="$parent_tree"
+                type="select"
+                value="{{ $project_type->parent_id }}"
             />
         </x-card>
         <x-field type="actions">

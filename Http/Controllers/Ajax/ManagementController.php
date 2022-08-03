@@ -31,9 +31,10 @@ class ManagementController extends Controller
     }
     public function add_type(Request $request)
     {
-        $type           = new Type();
-        $type->name     = $request->name;
-        $type->added_by = \Auth::id();
+        $type            = new Type();
+        $type->name      = $request->name;
+        $type->added_by  = \Auth::id();
+        $type->parent_id = $request->parent_id;
         $type->save();
         return $type;
     }
@@ -224,87 +225,6 @@ class ManagementController extends Controller
             array(),
             function ($query) {
                 return $query->ordered();
-            }
-        );
-    }
-    public function table_types()
-    {
-        $actions        = array();
-        $user           = \Auth::user();
-        $global_actions = array();
-
-        $actions        = array(
-            array(
-                'style' => 'primary',
-                'name'  => 'View',
-                'href'  => '/a/m/AEGIS/management/project-type/{{id}}',
-            ),
-        );
-        if ($user->has_role('core::Adminstrator') || $user->has_role('core::Manager')) {
-            $global_actions = array(
-                array(
-                    'action' => 'enable-type',
-                    'icon'   => 'square-check',
-                    'style'  => 'success',
-                    'title'  => 'Enable',
-                ),
-                array(
-                    'action' => 'disable-type',
-                    'icon'   => 'square-xmark',
-                    'style'  => 'warning',
-                    'title'  => 'Disable',
-                ),
-                array(
-                    'action' => 'delete-type',
-                    'icon'   => 'square-xmark',
-                    'style'  => 'danger',
-                    'title'  => 'Delete',
-                ),
-            );
-        }
-        $row_structure = array(
-            'actions' => $actions,
-            'data'    => array(
-                'ID' => array(
-                    'columns' => 'id',
-                    'display' => false,
-                ),
-                'Name' => array(
-                    'columns'      => 'name',
-                    'default_sort' => 'asc',
-                    'sortable'     => true,
-                ),
-                'Added By' => array(
-                    'sortable' => true,
-                ),
-                'Added at' => array(
-                    'columns'  => 'created_at',
-                    'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
-                    'method'   => 'datetime',
-                ),
-
-                'Updated at' => array(
-                    'columns'  => 'updated_at',
-                    'sortable' => true,
-                    'class'    => '\App\Helpers\Dates',
-                    'method'   => 'datetime',
-                ),
-
-            ),
-        );
-        return parent::to_ajax_table(
-            'Type',
-            $row_structure,
-            $global_actions,
-            function ($query) {
-                return $query;
-            },
-            function ($in, $out) {
-                $customer = Type::where('id', $in['id'])->first();
-                $added_by = User::where('id', $customer->added_by)->first();
-                $out['Added By'] = $added_by->name;
-                return $out;
             }
         );
     }

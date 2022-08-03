@@ -28,8 +28,9 @@ class ManagementController extends Controller
                 ]
             ),
             [
-                'id'   => 'required|exists:m_aegis_types,id',
-                'name' => 'required',
+                'id'        => 'required|exists:m_aegis_types,id',
+                'name'      => 'required',
+                'parent_id' => 'nullable|exists:m_aegis_types,id',
             ],
             function ($validated, Type $type) {
                 // Do what you would usually when the validation passes

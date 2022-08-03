@@ -82,14 +82,71 @@ class ManagementController extends Controller
     }
     public function project_type(Request $request, $id)
     {
+        $breadcrumbs  = [];
+        $page_menu    = [];
         $project_type = Type::findOrFail($id);
+        $parent_tree  = Type::where('id', '<>', $id)->getOrdered()->selectTree(select_parent: true);
+
+        $breadcrumbs['m/AEGIS/management/project-types'] = 'aegis::phrases.project-types';
+        if ($project_type->parents) {
+            foreach ($project_type->parents as $id => $parent) {
+                $breadcrumbs['m/AEGIS/management/project-types/'.$id] = $parent;
+            }
+        }
+        $breadcrumbs[] = $project_type->name;
+
+        if ($project_type->children()->count()) {
+            $page_menu[] = [
+                'href'  => '/a/m/AEGIS/management/project-types/'.$project_type->id,
+                'icon'  => 'list-tree',
+                'title' => 'dictionary.children',
+            ];
+        }
+
         return parent::render(compact(
-            'project_type'
+            'breadcrumbs',
+            'page_menu',
+            'parent_tree',
+            'project_type',
         ));
     }
-    public function project_types(Request $request)
+    public function project_types(Request $request, $id = null)
     {
-        return parent::view();
+        $breadcrumbs  = [];
+        $project_type = Type::find($id);
+        $parent_tree  = Type::getOrdered()->selectTree(select_parent: true);
+
+        $page_menu = array(
+            [
+                'href'  => '/a/m/AEGIS/management/project-type/'.$project_type->id,
+                'icon'  => 'pen',
+                'title' => 'dictionary.edit',
+            ],
+            array(
+                'class' => 'js-add-type',
+                'icon'  => 'plus',
+                'title' => ['phrases.add', ['item' => 'dictionary.type']],
+            ),
+        );
+
+        if ($project_type) {
+            $breadcrumbs['m/AEGIS/management/project-types'] = 'aegis::phrases.project-types';
+            if ($project_type->parents) {
+                foreach ($project_type->parents as $id => $parent) {
+                    $breadcrumbs['m/AEGIS/management/project-types/'.$id] = $parent;
+                }
+            }
+            $breadcrumbs[] = $project_type->name;
+        } else {
+            $breadcrumbs[] = 'aegis::phrases.project-types';
+        }
+
+        return parent::view(compact(
+            'breadcrumbs',
+            'page_menu',
+            'parent_tree',
+            'project_type',
+        ));
     }
     public function user_grades(Request $request)
     {
