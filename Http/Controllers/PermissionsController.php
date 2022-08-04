@@ -198,6 +198,35 @@ class PermissionsController
                     \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
                 ),
             ),
+            'training' => array(
+                'add' => array(
+                    \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
+                    \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
+                    \Config('roles.by_name.core.staff')             => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
+                ),
+                'index' => array(
+                    \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
+                    \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
+                    \Config('roles.by_name.core.staff')             => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
+                ),
+                'training' => array(
+                    \Config('roles.by_name.core.administrator')     => array('has_permission' => true, 'fixed' => true),
+                    \Config('roles.by_name.core.manager')           => array('has_permission' => true, 'fixed' => false),
+                    \Config('roles.by_name.core.staff')             => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.user')              => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.core.visitor')           => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.hr.competency_approver') => array('has_permission' => false,'fixed' => false),
+                    \Config('roles.by_name.aegis.project_manager')  => array('has_permission' => true, 'fixed' => true),
+                ),
+            ),
         );
         return $permissions;
     }

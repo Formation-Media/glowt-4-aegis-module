@@ -3,6 +3,7 @@
 namespace Modules\AEGIS\Hooks\Core\Filter;
 
 use App\Helpers\Modules;
+use Modules\AEGIS\Helpers\Icons;
 
 class MainMenu
 {
@@ -10,7 +11,7 @@ class MainMenu
     {
         if (Modules::isEnabled('Documents')) {
             $menu[] = array(
-                'icon'  => 'folder',
+                'icon'  => Icons::projects(),
                 'link'  => '/a/m/'.$module->getName().'/projects',
                 'title' => 'dictionary.projects',
             );

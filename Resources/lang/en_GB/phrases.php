@@ -13,6 +13,10 @@ return array(
     'document-reference' => 'Document Reference',
     'document-type'      => 'Document Type',
     'document-types'     => 'Document Types',
+    'duration-length'    => 'Duration Length',
+    'duration-period'    => 'Duration Period',
+
+    'end-date' => 'End Date',
 
     'feedback-list-type'  => 'Feedback List Type',
     'feedback-list-types' => 'Feedback List Types',
@@ -32,6 +36,7 @@ return array(
     'project-title'  => 'Project Title',
     'project-types'  => 'Project Types',
 
+    'start-date'        => 'Start Date',
     'submit-as-company' => 'As Company',
     'submit-as-role'    => 'As Role',
 
