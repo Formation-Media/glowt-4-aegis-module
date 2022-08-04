@@ -36,16 +36,31 @@ class ProjectsController extends Controller
         }
         return $return;
     }
-    public function get_issue($request)
+    public function check_issue($request)
     {
         $category        = Category::find($request->category);
         $project_variant = ProjectVariant::find($request->project_variant);
         $reference       = $project_variant->project->reference.'/'.$category->prefix
                             .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
-        $issue           = VariantDocument
-            ::where('reference', $reference)
-            ->count();
-        return $issue + 1;
+        $return          = [
+            'issue'             => 0,
+            'previous_document' => null,
+        ];
+
+        $issues = VariantDocument::where('reference', $reference);
+
+        $return['issue'] = $issues->count() + 1;
+
+        if ($return['issue'] > 1) {
+            $return['previous_document'] = $issues
+                ->with([
+                    'document',
+                    'document.metas',
+                ])
+                ->orderBy('issue', 'desc')
+                ->first();
+        }
+        return $return;
     }
     public function get_project_variants($request)
     {
