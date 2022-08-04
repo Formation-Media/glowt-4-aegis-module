@@ -1,6 +1,10 @@
 <?php
 
 return array(
+    'add-document' => [
+        'title'   => 'Added Document',
+        'message' => 'Added Document ":name"',
+    ],
     'customer' => [
         'reference-message' => 'The Reference is a code used to identify the Customer',
     ],
