@@ -37,7 +37,7 @@ class AddDocument
                 'aegis::messages.add-document.title',
                 'aegis::messages.add-document.message',
                 [
-                    'item' => $args['new_document']->name,
+                    'name' => $args['new_document']->name,
                 ]
             ));
         }
