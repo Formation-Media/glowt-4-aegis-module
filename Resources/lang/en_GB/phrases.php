@@ -8,6 +8,7 @@ return array(
 
     'competency-company' => 'Competency Company',
 
+    'default-phase'      => 'Default Phase',
     'default-sections'   => 'Default "No Knowledge" Sections',
     'document-id'        => 'Document ID',
     'document-reference' => 'Document Reference',

@@ -30,7 +30,11 @@ class ProjectsController extends Controller
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
                 $default_variant = $variant;
-                $tabs['default'] = ['name' => ___('dictionary.default').' ('.$variant->name.')'];
+                $tabs['default'] = [
+                    'name' => count($variants) === 1
+                        ? ___('phrases.add', ['item' => 'dictionary.document'])
+                        : ___('aegis::phrases.default-phase').' ('.$variant->name.')',
+                ];
             } else {
                 $tabs['phase-'.$i] = ['name' => ___('aegis::dictionary.phase').' '.($i).' ('.$variant->name.')'];
             }
