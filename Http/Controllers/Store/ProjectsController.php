@@ -85,7 +85,7 @@ class ProjectsController extends Controller
         return redirect($redirect);
     }
 
-    public function add_variant(Request $request, $id)
+    public function add_phase(Request $request, $id)
     {
         $request->validate([
             'variant_number' => [

@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Hooks\Core\Filter;
 
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Models\Document;
 
 class GlobalSearch
 {
@@ -22,12 +23,18 @@ class GlobalSearch
                 'name',
             ],
         ];
+        // Replace documents search with Variant Document Search
+        unset($searches[Document::class]);
         $searches[VariantDocument::class] = [
             'icon'   => 'files',
             'link'   => '/a/m/Documents/document/document/{{document_id}}',
             'name'   => 'dictionary.document',
             'fields' => [
+                'm_documents_documents.name',
                 'reference',
+            ],
+            'joins' => [
+                ['m_documents_documents', 'id', 'document_id'],
             ],
             'output' => [
                 'reference',

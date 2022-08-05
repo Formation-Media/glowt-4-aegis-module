@@ -6,8 +6,8 @@ var add = {
         if (window._GET.category) {
             add.category = window._GET.category;
         }
-        if (window._GET.project_variant) {
-            add.variant = window._GET.project_variant;
+        if (window._GET.project_phase) {
+            add.variant = window._GET.project_phase;
         }
         add.issue = document.querySelector('[name="aegis[issue]"]');
         this.watch_category();
@@ -16,11 +16,11 @@ var add = {
         this.watch_select_project();
         this.watch_select_project_variant();
     },
-    get_issue:function(reference) {
+    check_issue:function(reference) {
         if (this.category && this.variant && reference.length > 0) {
             app.show_loader();
             app.ajax(
-                'm/AEGIS/projects/get-issue',
+                'm/AEGIS/projects/check-issue',
                 {
                     category:        this.category,
                     project_variant: this.variant,
@@ -28,7 +28,17 @@ var add = {
                 },
                 function(json) {
                     if (json.status) {
-                        add.issue.value = json.data;
+                        add.issue.value = json.data.issue;
+                        if (json.data.previous_document) {
+                            document.querySelector('[name="aegis[feedback-list-type]"]').value  = json.data.previous_document.document.meta_data.feedback_list_type_id;
+                            document.querySelector('[name="aegis[final-feedback-list]"]').value = json.data.previous_document.document.meta_data.final_feedback_list;
+                            document.querySelector('[name="approval_process"]').value           = json.data.previous_document.document.process_id;
+                            document.querySelector('[name="category"]').value                   = json.data.previous_document.document.category_id;
+                            document.querySelector('[name="description"]').value                = json.data.previous_document.document.description;
+                            document.querySelector('[name="link"]').value                       = json.data.previous_document.document.link;
+                            document.querySelector('[name="name"]').value                       = json.data.previous_document.document.name;
+                            console.log(json.data.previous_document);
+                        }
                     }
                 },
                 null,
@@ -165,10 +175,10 @@ var add = {
     watch_reference: function() {
         let reference = document.querySelector('[name="aegis[reference]"]');
         reference.addEventListener('change', function() {
-            add.get_issue(this.value);
+            add.check_issue(this.value);
         });
         reference.addEventListener('keyup', function() {
-            add.get_issue(this.value);
+            add.check_issue(this.value);
         });
     },
     watch_select_project:function() {

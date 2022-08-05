@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\Hooks\Modules\Documents\Collect;
 
+use App\Notifications\Toast;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\VariantDocument;
 use Modules\Documents\Models\Category;
@@ -32,6 +33,13 @@ class AddDocument
                 'author_role'    => $args['request']->aegis['author-role'],
             ]);
             $args['new_document']->save();
+            \Auth::user()->notify(new Toast(
+                'aegis::messages.add-document.title',
+                'aegis::messages.add-document.message',
+                [
+                    'name' => $args['new_document']->name,
+                ]
+            ));
         }
     }
 }

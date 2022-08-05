@@ -25,22 +25,34 @@ class ProjectsController extends Controller
         $tabs                     = [
             'details' => ['name' => 'dictionary.details'],
         ];
-        $types    = Type::where('status', true)->ordered()->pluck('name', 'id')->toArray();
+        $types    = Type::where('status', true)->getOrdered()->selectTree(select_parent: true);
         $variants = $project->variants;
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
                 $default_variant = $variant;
-                $tabs['default'] = ['name' => ___('dictionary.default').' ('.$variant->name.')'];
+                $tabs['default'] = [
+                    'name' => count($variants) === 1
+                        ? ___('phrases.add', ['item' => 'dictionary.document'])
+                        : ___('aegis::phrases.default-phase').' ('.$variant->name.')',
+                ];
             } else {
-                $tabs['variant-'.$i] = ['name' => ___('dictionary.variant').' '.($i).' ('.$variant->name.')'];
+                $tabs['phase-'.$i] = ['name' => ___('aegis::dictionary.phase').' '.($i).' ('.$variant->name.')'];
             }
         }
+        $page_menu = array(
+            array(
+                'href'  => '/a/m/AEGIS/projects/add-phase/'.$project->id,
+                'icon'  => 'file-plus',
+                'title' => ['phrases.add', ['item' => 'aegis::dictionary.phase']],
+            ),
+        );
 
         return parent::view(compact(
             'default_variant',
             'documents_module_enabled',
             'project',
             'customer',
+            'page_menu',
             'tabs',
             'types',
             'variants'
@@ -51,7 +63,7 @@ class ProjectsController extends Controller
     {
         $companies = Company::MDSS()->ordered()->pluck('name', 'id')->toArray();
         $customer  = Customer::find($id);
-        $types     = Type::where('status', true)->ordered()->pluck('name', 'id')->toArray();
+        $types     = Type::where('status', true)->getOrdered()->selectTree(select_parent: true);
         return parent::view(compact(
             'companies',
             'customer',
@@ -59,7 +71,7 @@ class ProjectsController extends Controller
         ));
     }
 
-    public function add_variant(Request $request, $id)
+    public function add_phase(Request $request, $id)
     {
         $project = Project::find($id);
         return parent::view(compact('project'));

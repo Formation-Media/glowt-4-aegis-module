@@ -5,7 +5,7 @@
             'm/Documents/document'                        => 'dictionary.documents',
             $module_base.'projects'                       => 'dictionary.projects',
             $module_base.'projects/project/'.$project->id => $project->reference.': '.$project->name,
-            ['phrases.add', ['item' => 'dictionary.variant']]
+            ['phrases.add', ['item' => 'aegis::dictionary.phase']]
         ),
     )
 )
@@ -19,7 +19,7 @@
                 required
             />
             <x-field
-                label="aegis::projects.variant-number"
+                label="aegis::phrases.phase-number"
                 min="0"
                 name="variant_number"
                 required

@@ -226,7 +226,7 @@ class SignatureImport implements ToCollection
                                     .' does not have a document with this reference';
                             }
                         } else {
-                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any variants.';
+                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any phases.';
                         }
                     } else {
                         $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not exist.';

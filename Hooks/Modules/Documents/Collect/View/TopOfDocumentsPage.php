@@ -2,6 +2,8 @@
 
 namespace Modules\AEGIS\Hooks\Modules\Documents\Collect\View;
 
+use Modules\AEGIS\Helpers\Icons;
+
 class TopOfDocumentsPage
 {
     public static function run($args)
@@ -9,13 +11,18 @@ class TopOfDocumentsPage
         $links = [
             [
                 'href'  => '/a/m/AEGIS/projects',
-                'icon'  => 'folder',
+                'icon'  => Icons::projects(),
                 'title' => 'dictionary.projects',
             ],
             [
                 'href'  => '/a/m/Documents/templates',
-                'icon'  => 'memo-circle-check',
+                'icon'  => Icons::templates(),
                 'title' => 'dictionary.templates',
+            ],
+            [
+                'href'  => '/a/m/AEGIS/training',
+                'icon'  => Icons::training(),
+                'title' => 'aegis::dictionary.training',
             ],
         ];
         return view(

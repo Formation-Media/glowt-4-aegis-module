@@ -24,7 +24,6 @@ class TableFilter
             $compact = array_merge(
                 $compact,
                 [
-                    'args',
                     'companies',
                     'company',
                 ]

@@ -3,7 +3,6 @@
 namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
@@ -16,13 +15,17 @@ class ProjectsController extends Controller
     public function autocomplete_projects(Request $request)
     {
         $return = array();
-        if ($projects = Project::search(
-            array(
-                'name',
-                'reference',
-            ),
-            '%'.$request->term.'%'
-        )->paged()) {
+        if ($projects = Project
+            ::with('phases')
+            ->search(
+                array(
+                    'name',
+                    'reference',
+                ),
+                '%'.$request->term.'%'
+            )
+            ->paged()
+        ) {
             foreach ($projects as $project) {
                 $return[] = array(
                     'data'    => $project,
@@ -33,16 +36,31 @@ class ProjectsController extends Controller
         }
         return $return;
     }
-    public function get_issue($request)
+    public function check_issue($request)
     {
         $category        = Category::find($request->category);
         $project_variant = ProjectVariant::find($request->project_variant);
         $reference       = $project_variant->project->reference.'/'.$category->prefix
                             .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
-        $issue           = VariantDocument
-            ::where('reference', $reference)
-            ->count();
-        return $issue + 1;
+        $return          = [
+            'issue'             => 0,
+            'previous_document' => null,
+        ];
+
+        $issues = VariantDocument::where('reference', $reference);
+
+        $return['issue'] = $issues->count() + 1;
+
+        if ($return['issue'] > 1) {
+            $return['previous_document'] = $issues
+                ->with([
+                    'document',
+                    'document.metas',
+                ])
+                ->orderBy('issue', 'desc')
+                ->first();
+        }
+        return $return;
     }
     public function get_project_variants($request)
     {

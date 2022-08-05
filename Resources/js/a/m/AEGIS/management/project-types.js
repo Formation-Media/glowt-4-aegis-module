@@ -23,7 +23,7 @@ var project_types = {
                     data,
                     function() {
                         project_types.add_type_modal.hide();
-                        tables.load_table_data(document.querySelector('[data-controller="management"]'));
+                        card_views.load_card_data(document.querySelector('[data-model="Type"]'));
                     },
                     null,
                     function() {

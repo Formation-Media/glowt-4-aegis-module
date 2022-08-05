@@ -9,29 +9,24 @@ class Project
     public function details($result)
     {
         return [
-            [
+            'dictionary.company' => [
                 'icon'  => 'building',
-                'label' => 'dictionary.company',
                 'value' => $result->company->name,
             ],
-            [
+            'dictionary.type' => [
                 'icon'  => 'building',
-                'label' => 'dictionary.type',
                 'value' => $result->type->name,
             ],
-            [
+            'phrases.added-by' => [
                 'icon'  => 'user',
-                'label' => 'phrases.added-by',
                 'value' => $result->user->name,
             ],
-            [
+            'dictionary.added' => [
                 'icon'  => FontAwesome::datetime_icon($result->created_at->format('Y-m-d H:i:s'), true),
-                'label' => 'dictionary.updated',
                 'value' => $result->nice_created_at,
             ],
-            [
+            'dictionary.updated' => [
                 'icon'  => FontAwesome::datetime_icon($result->updated_at->format('Y-m-d H:i:s'), true),
-                'label' => 'dictionary.updated',
                 'value' => $result->nice_updated_at,
             ],
         ];
