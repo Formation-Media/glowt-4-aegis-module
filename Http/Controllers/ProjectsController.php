@@ -25,7 +25,7 @@ class ProjectsController extends Controller
         $tabs                     = [
             'details' => ['name' => 'dictionary.details'],
         ];
-        $types    = Type::where('status', true)->getOrdered()->selectTree(select_parent: true);
+        $types    = Type::where('status', true)->getOrdered()->selectTree();
         $variants = $project->variants;
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
@@ -63,7 +63,7 @@ class ProjectsController extends Controller
     {
         $companies = Company::MDSS()->ordered()->pluck('name', 'id')->toArray();
         $customer  = Customer::find($id);
-        $types     = Type::where('status', true)->getOrdered()->selectTree(select_parent: true);
+        $types     = Type::where('status', true)->getOrdered()->selectTree();
         return parent::view(compact(
             'companies',
             'customer',
