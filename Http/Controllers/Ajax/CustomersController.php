@@ -155,26 +155,26 @@ class CustomersController extends Controller
                     'columns' => 'id',
                     'display' => false,
                 ),
-                ___('dictionary.name') => array(
+                'dictionary.name' => array(
                     'columns'      => 'name',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                ___('dictionary.reference') => array(
+                'dictionary.reference' => array(
                     'columns'      => 'reference',
                     'default_sort' => 'asc',
                     'sortable'     => true,
                 ),
-                ___('phrases.added-by') => array(
-                    'sortable' => true,
-                ),
-                ___('phrases.added-at') => array(
+                'dictionary.added' => array(
                     'columns'  => 'created_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
                     'method'   => 'datetime',
                 ),
-                ___('phrases.updated-at') => array(
+                'phrases.added-by' => array(
+                    'sortable' => true,
+                ),
+                'dictionary.updated' => array(
                     'columns'  => 'updated_at',
                     'sortable' => true,
                     'class'    => '\App\Helpers\Dates',
@@ -191,9 +191,9 @@ class CustomersController extends Controller
                 return $query;
             },
             function ($in, $out) {
-                $customer                     = Customer::where('id', $in['id'])->first();
-                $added_by                     = User::where('id', $customer->added_by)->first();
-                $out[___('phrases.added-by')] = $added_by->name;
+                $customer                = Customer::where('id', $in['id'])->first();
+                $added_by                = User::where('id', $customer->added_by)->first();
+                $out['phrases.added-by'] = $added_by?->name;
                 return $out;
             }
         );
