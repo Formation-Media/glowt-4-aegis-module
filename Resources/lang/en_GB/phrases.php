@@ -2,6 +2,7 @@
 
 return array(
     'add-document'    => 'Add Document to Project',
+    'aegis-companies' => 'AEGIS Companies',
     'all-companies'   => 'All Companies',
     'approve-as-role' => 'Approve As Role',
     'approved-as'     => 'Approved As',

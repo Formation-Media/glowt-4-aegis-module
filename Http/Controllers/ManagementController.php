@@ -114,22 +114,22 @@ class ManagementController extends Controller
     {
         $breadcrumbs  = [];
         $project_type = Type::find($id);
-        $parent_tree  = Type::getOrdered()->selectTree(select_parent: true);
+        $parent_tree  = Type::getOrdered()->selectTree();
 
         $page_menu = array(
             [
-                'href'  => '/a/m/AEGIS/management/project-type/'.$project_type->id,
-                'icon'  => 'pen',
-                'title' => 'dictionary.edit',
-            ],
-            array(
                 'class' => 'js-add-type',
                 'icon'  => 'plus',
                 'title' => ['phrases.add', ['item' => 'dictionary.type']],
-            ),
+            ],
         );
 
         if ($project_type) {
+            array_unshift($page_menu, [
+                'href'  => '/a/m/AEGIS/management/project-type/'.$project_type->id,
+                'icon'  => 'pen',
+                'title' => 'dictionary.edit',
+            ]);
             $breadcrumbs['m/AEGIS/management/project-types'] = 'aegis::phrases.project-types';
             if ($project_type->parents) {
                 foreach ($project_type->parents as $id => $parent) {

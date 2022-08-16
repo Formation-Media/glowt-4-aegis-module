@@ -2,7 +2,6 @@
 
 namespace Modules\AEGIS\Hooks\Modules\Documents\Filter;
 
-use App\Helpers\Dates;
 use App\Models\File;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\DocumentApprovalItemDetails;
