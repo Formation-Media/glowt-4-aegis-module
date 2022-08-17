@@ -2,6 +2,10 @@
 
 namespace Modules\AEGIS\Helpers;
 
+use App\Helpers\Dates;
+use Modules\AEGIS\Models\Customer;
+use Modules\AEGIS\Models\Training as ModelsTraining;
+
 class Training
 {
     public static function periods($period = null)
@@ -18,5 +22,11 @@ class Training
             return ___($periods[$period]);
         }
         return false;
+    }
+    public static function next_reference(Customer $customer)
+    {
+        $previous_training = ModelsTraining::orderBy('created_at', 'desc')->first();
+        $next              = $previous_training ? substr(explode('-', $previous_training->reference)[0], 2) + 1 : 1;
+        return 'TC'.$next.'-'.$customer->reference.date('y').'Q'.Dates::quarter(time());
     }
 }

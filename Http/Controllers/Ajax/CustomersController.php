@@ -12,16 +12,9 @@ class CustomersController extends Controller
 {
     public function add_customer($request)
     {
-        $i         = 0;
-        $reference = strtoupper(substr($request->name, 0, 3));
-        while (Customer::where('reference', $reference.str_pad(++$i, 3, '0', STR_PAD_LEFT))->count() > 0) {
-            // When the loop stops we've got the reference #
-            continue;
-        }
         return Customer::create([
-            'added_by'  => \Auth::id(),
-            'name'      => $request->name,
-            'reference' => $reference.str_pad($i, 3, '0', STR_PAD_LEFT),
+            'added_by' => \Auth::id(),
+            'name'     => $request->name,
         ]);
     }
     public function autocomplete_customers($request)
@@ -29,7 +22,8 @@ class CustomersController extends Controller
         $return = array();
         if ($customers = Customer::search(
             array(
-                'name'
+                'name',
+                'reference',
             ),
             '%'.$request->term.'%'
         )->paged()) {

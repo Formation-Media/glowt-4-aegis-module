@@ -2,9 +2,9 @@
 
 namespace Modules\AEGIS\Http\Controllers\Store;
 
-use App\Helpers\Dates;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Helpers\Training as HelpersTraining;
 use Modules\AEGIS\Models\Customer;
 use Modules\AEGIS\Models\Training;
 
@@ -27,9 +27,7 @@ class TrainingController extends Controller
                 'start_date'      => 'required|date|before:end_date',
             ],
             function ($validated, Customer $customer) {
-                $previous_training      = Training::orderBy('created_at', 'desc')->first();
-                $next                   = $previous_training ? substr(explode('-', $previous_training->reference)[0], 2) + 1 : 1;
-                $validated['reference'] = 'TC'.$next.'-'.$customer->reference.date('y').'Q'.Dates::quarter(time());
+                $validated['reference'] = HelpersTraining::next_reference($customer);
                 $training               = Training::create($validated);
                 return redirect($this->link_base.'training/'.$training->id);
             },
