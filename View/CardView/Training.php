@@ -26,7 +26,7 @@ class Training
             ],
             'dictionary.description' => [
                 'icon'  => Icons::description(),
-                'value' => $result->description,
+                'value' => strip_tags($result->description),
             ],
             'aegis::dictionary.dates' => [
                 'icon'  => Icons::date(),

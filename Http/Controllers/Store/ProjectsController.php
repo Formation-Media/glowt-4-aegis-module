@@ -108,7 +108,14 @@ class ProjectsController extends Controller
         $new_variant->save();
         return redirect($redirect);
     }
-
+    public function phase(Request $request, $id)
+    {
+        $project_variant       = ProjectVariant::find($id);
+        $redirect              = url('a/m/AEGIS/projects/project/'.$project_variant->project_id);
+        $project_variant->name = $request->name;
+        $project_variant->save();
+        return redirect($redirect);
+    }
     public function project(Request $request, $id)
     {
         $project = Project::findOrFail($id);
@@ -140,14 +147,5 @@ class ProjectsController extends Controller
                 return redirect($redirect);
             },
         );
-    }
-
-    public function variant(Request $request, $id)
-    {
-        $project_variant       = ProjectVariant::find($id);
-        $redirect              = url('a/m/AEGIS/projects/project/'.$project_variant->project_id);
-        $project_variant->name = $request->name;
-        $project_variant->save();
-        return redirect($redirect);
     }
 }
