@@ -65,6 +65,7 @@
             <div class="grid-2">
                 <x-field
                     label="aegis::phrases.duration-length"
+                    min="1"
                     name="duration_length"
                     required
                     type="number"
