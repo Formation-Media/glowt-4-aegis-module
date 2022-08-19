@@ -72,7 +72,7 @@ class PdfSignatureRenderer
 
             $bottom = $pdf->getY();
 
-            if (isset($author_signature)) {
+            if (isset($author_signature) && $author_signature->is_file) {
                 list($width, $height) = getimagesize($author_signature->absolute_path);
                 $ratio = $height / $width;
                 $pdf->Image(

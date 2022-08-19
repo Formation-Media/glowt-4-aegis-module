@@ -18,8 +18,8 @@ class CustomersController extends Controller
     {
         $customer         = Customer::findOrFail($id);
         $customer_details = [
-            ___('dictionary.reference') => $customer->reference,
-            ___('phrases.created-by')   => User::find($customer->added_by)->name,
+            'dictionary.reference' => $customer->reference,
+            'phrases.created-by'   => User::withTrashed()->find($customer->added_by)->name,
         ];
         return parent::view(compact(
             'customer',
