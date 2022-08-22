@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\Hooks\Core\Filter;
 
+use Modules\AEGIS\Helpers\Icons;
 use Modules\AEGIS\Models\VariantDocument;
 
 class CardViewResult
@@ -22,11 +23,15 @@ class CardViewResult
                 ->firstWhere('document_id', $data['result']->id);
             if ($variant_document) {
                 $additional_details['dictionary.project'] = [
-                    'icon'  => 'hashtag',
+                    'icon'  => Icons::project(),
                     'value' => $variant_document->project_variant->project->reference ?? null,
                 ];
+                $additional_details['dictionary.issue'] = [
+                    'icon'  => Icons::issue(),
+                    'value' => $variant_document->issue ?? null,
+                ];
                 $additional_details['dictionary.company'] = [
-                    'icon'  => 'building',
+                    'icon'  => Icons::company(),
                     'value' => $variant_document->project_variant->project->company->name,
                 ];
             }
