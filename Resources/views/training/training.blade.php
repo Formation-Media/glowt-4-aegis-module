@@ -8,7 +8,7 @@
     )
 )
 @section('content')
-    <x-card :details="$training->details" />
+    <x-card :details="$details" />
     <x-form name="training">
         <x-card body-class="grid-md-2">
             <x-field

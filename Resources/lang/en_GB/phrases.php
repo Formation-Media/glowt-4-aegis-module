@@ -31,17 +31,20 @@ return array(
 
     'live-document' => 'Live Document',
 
-    'pdf-footer'     => 'PDF Footer',
-    'phase-number'   => 'Phase Number',
-    'project-number' => 'Project Number',
-    'project-phase'  => 'Project Phase',
-    'project-title'  => 'Project Title',
-    'project-types'  => 'Project Types',
+    'pdf-footer'            => 'PDF Footer',
+    'phase-number'          => 'Phase Number',
+    'presentation-links'    => 'Presentation Links',
+    'presentation-material' => 'Presentation Material',
+    'project-number'        => 'Project Number',
+    'project-phase'         => 'Project Phase',
+    'project-title'         => 'Project Title',
+    'project-types'         => 'Project Types',
 
     'start-date'        => 'Start Date',
     'submit-as-company' => 'As Company',
     'submit-as-role'    => 'As Role',
 
-    'user-grades'    => 'User Grades',
-    'user-reference' => 'User Reference',
+    'training-course-name' => 'Training Course Name',
+    'user-grades'          => 'User Grades',
+    'user-reference'       => 'User Reference',
 );
