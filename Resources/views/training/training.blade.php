@@ -12,7 +12,7 @@
     <x-form name="training">
         <x-card body-class="grid-md-2">
             <x-field
-                label="dictionary.name"
+                label="aegis::phrases.training-course-name"
                 name="name"
                 required
                 type="text"
@@ -95,18 +95,11 @@
                 ]"
             />
             <x-field
-                allow-add
-                controller="training"
-                label="aegis::dictionary.presentation"
-                method="presentation"
-                module="AEGIS"
+                label="aegis::phrases.presentation-material"
                 name="presentation"
                 required
-                type="autocomplete"
-                :value="[
-                    'text'  => $training->presentation,
-                    'value' => $training->presentation,
-                ]"
+                type="editor"
+                :value="$training->presentation"
             />
             <x-field
                 label="dictionary.reference"

@@ -11,7 +11,7 @@
     <x-form name="project">
         <x-card body-class="grid-md-2">
             <x-field
-                label="dictionary.name"
+                label="aegis::phrases.training-course-name"
                 name="name"
                 required
                 type="text"
@@ -84,14 +84,10 @@
                 type="autocomplete"
             />
             <x-field
-                allow-add
-                controller="training"
-                label="aegis::dictionary.presentation"
-                method="presentation"
-                module="AEGIS"
+                label="aegis::phrases.presentation-material"
                 name="presentation"
                 required
-                type="autocomplete"
+                type="editor"
             />
             <x-field
                 label="dictionary.reference"
