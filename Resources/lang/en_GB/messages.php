@@ -11,6 +11,10 @@ return array(
     'document' => [
         'duplicate-approval-item-users' => 'At least one user has been selected multiple times',
     ],
+    'previous-issue-not-approved' => [
+        'message' => 'The previous document issue is not yet approved',
+        'title'   => 'Invalid Issue Number',
+    ],
     'project' => [
         'reference-exists' => 'A project with this reference already exists.',
     ],
