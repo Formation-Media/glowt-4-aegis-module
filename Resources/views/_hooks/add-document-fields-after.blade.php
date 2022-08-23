@@ -36,7 +36,7 @@
             :value="isset($reference) ? str_replace($selected_variant ? $selected_variant->reference.'/'.($document->category->prefix ?? '') : '', '', $reference) : null"
         />
         <x-field
-            disabled="true"
+            readonly="true"
             label="dictionary.issue"
             name="aegis[issue]"
             type="number"

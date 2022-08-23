@@ -8,11 +8,14 @@ class Icons
     {
         $type  = \Str::singular($type);
         $types = [
+            'company'  => 'buildings',
             'customer' => 'building',
 
             'date'        => 'calendar-day',
             'description' => 'align-justify',
             'duration'    => 'timer',
+
+            'issue' => 'hashtag',
 
             'project' => 'folder',
 

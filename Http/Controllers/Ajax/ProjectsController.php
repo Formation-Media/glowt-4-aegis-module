@@ -3,6 +3,7 @@
 namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
+use App\Notifications\Toast;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
@@ -48,6 +49,17 @@ class ProjectsController extends Controller
         ];
 
         $issues = VariantDocument::where('reference', $reference);
+
+        if ($issues->count()) {
+            $last_issue = $issues->with('document')->orderBy('created_at', 'desc')->first();
+            if ($last_issue->document->status !== 'Approved') {
+                \Auth::user()->notify(new Toast(
+                    'aegis::messages.previous-issue-not-approved.title',
+                    'aegis::messages.previous-issue-not-approved.message',
+                ));
+                return false;
+            }
+        }
 
         $return['issue'] = $issues->count() + 1;
 
@@ -95,11 +107,11 @@ class ProjectsController extends Controller
         $project_variant  = ProjectVariant::find($request->project_variant);
         $reference_prefix = $project_variant->reference.'/'.$category->prefix;
         $last_variant     = VariantDocument
-            ::where('reference', 'like', $reference_prefix.'%')
+            ::where('reference', 'REGEXP', '^'.$reference_prefix.'[0-9]+')
             ->orderBy('created_at', 'desc')
             ->first();
         if ($last_variant) {
-            $next_reference = str_replace($reference_prefix, '', $last_variant->reference) + 1;
+            $next_reference = (int) str_replace($reference_prefix, '', $last_variant->reference) + 1;
         } else {
             $next_reference = 1;
         }

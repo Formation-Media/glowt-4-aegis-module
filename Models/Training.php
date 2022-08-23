@@ -64,6 +64,21 @@ class Training extends Model
             get: fn () => $this->duration_length.' '.TrainingHelper::periods($this->duration_period),
         );
     }
+    public function presentationLinks(): Attribute
+    {
+        $dom = new \DOMDocument;
+        $dom->loadHTML($this->presentation);
+        $link_doms = $dom->getElementsByTagName('a');
+        $links     = [];
+        foreach ($link_doms as $link) {
+            $links[] = '<a href="'.$link->getAttribute('href').'" target="_blank" title="'.$link->nodeValue.'">'
+                .$link->nodeValue
+            .'</a>';
+        }
+        return new Attribute(
+            get: fn () => $links,
+        );
+    }
     public function title(): Attribute
     {
         return new Attribute(

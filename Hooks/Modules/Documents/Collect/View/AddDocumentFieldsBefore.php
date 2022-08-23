@@ -13,8 +13,8 @@ class AddDocumentFieldsBefore
         $project_variants = null;
         $selected_variant = null;
         $selected_project = null;
-        if (isset($_GET['project_variant'])) {
-            $selected_variant = ProjectVariant::find($_GET['project_variant']);
+        if (isset($_GET['project_phase'])) {
+            $selected_variant = ProjectVariant::find($_GET['project_phase']);
             $selected_project = $selected_variant->project;
             if ($variants = $selected_project->variants) {
                 foreach ($variants as $variant) {

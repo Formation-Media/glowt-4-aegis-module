@@ -46,24 +46,6 @@ class TrainingController extends Controller
         }
         return $return;
     }
-    public function autocomplete_presentation(Request $request)
-    {
-        $return = array();
-        if ($trainings = Training::search(
-            array(
-                'presentation'
-            ),
-            $request->term
-        )->paged()) {
-            foreach ($trainings as $training) {
-                $return[] = array(
-                    'value'   => $training->presentation,
-                    'content' => $training->presentation,
-                );
-            }
-        }
-        return $return;
-    }
     public function next_reference(Request $request)
     {
         return parent::validate(
