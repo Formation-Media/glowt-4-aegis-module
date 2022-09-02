@@ -20,7 +20,7 @@
     <x-modal id="add-type" title="{{___('Add Type')}}" save-style="success" save-text="Add">
         <x-form name="types">
             <x-field
-                label="{{ ___('Name') }}"
+                label="dictionary.name"
                 name="name"
                 required
                 type="text"
@@ -29,6 +29,7 @@
                 label="aegis::dictionary.parent"
                 name="parent_id"
                 :options="$parent_tree"
+                placeholder="dictionary.none"
                 type="select"
             />
         </x-form>

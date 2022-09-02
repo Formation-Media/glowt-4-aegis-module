@@ -17,13 +17,16 @@ class Icons
 
             'issue' => 'hashtag',
 
+            'phase'   => 'code-branch',
             'project' => 'folder',
 
             'template' => 'memo-circle-check',
             'training' => 'chalkboard-user',
+            'type'     => 'filter',
 
             'user' => 'user',
         ];
+
         if ($type === null) {
             return $types;
         } elseif (array_key_exists($type, $types)) {

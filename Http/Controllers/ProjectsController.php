@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Helpers\Modules;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Helpers\Icons;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\Customer;
@@ -20,31 +21,41 @@ class ProjectsController extends Controller
     public function project(Request $request, $id)
     {
         $documents_module_enabled = Modules::isEnabled('Documents');
+        $page_menu                = [];
+        $phases                   = [];
         $project                  = Project::find($id);
-        $customer                 = $project->customer ?? null;
-        $tabs                     = [
+        $types                    = Type::where('status', true)->getOrdered()->selectTree();
+        $variants                 = $project->variants;
+
+        $customer = $project->customer ?? null;
+        $tabs     = [
             'details' => ['name' => 'dictionary.details'],
         ];
-        $types    = Type::where('status', true)->getOrdered()->selectTree();
-        $variants = $project->variants;
+
+        if ($documents_module_enabled) {
+            $page_menu[] = array(
+                'class' => 'js-add-document',
+                'icon'  => 'file-plus',
+                'title' => ['phrases.add', ['item' => 'dictionary.document']],
+            );
+        }
+
         foreach ($variants as $i => $variant) {
             if ($variant->is_default == true) {
-                $default_variant = $variant;
-                $tabs['default'] = [
-                    'name' => count($variants) === 1
-                        ? ___('phrases.add', ['item' => 'dictionary.document'])
-                        : ___('aegis::phrases.default-phase').' ('.$variant->name.')',
+                $default_variant      = $variant;
+                $phases[$variant->id] = $variant->title;
+                $tabs['default']      = [
+                    'name' => ___('aegis::dictionary.phase').' '.$variant->title,
                 ];
             } else {
-                $tabs['phase-'.$i] = ['name' => ___('aegis::dictionary.phase').' '.($i).' ('.$variant->name.')'];
+                $phases[$variant->id] = $variant->title;
+                $tabs['phase-'.$i]    = ['name' => ___('aegis::dictionary.phase').' '.$variant->title];
             }
         }
-        $page_menu = array(
-            array(
-                'href'  => '/a/m/AEGIS/projects/add-phase/'.$project->id,
-                'icon'  => 'file-plus',
-                'title' => ['phrases.add', ['item' => 'aegis::dictionary.phase']],
-            ),
+        $page_menu[] = array(
+            'href'  => '/a/m/AEGIS/projects/add-phase/'.$project->id,
+            'icon'  => Icons::phase(),
+            'title' => ['phrases.add', ['item' => 'aegis::dictionary.phase']],
         );
 
         return parent::view(compact(
@@ -53,6 +64,7 @@ class ProjectsController extends Controller
             'project',
             'customer',
             'page_menu',
+            'phases',
             'tabs',
             'types',
             'variants'

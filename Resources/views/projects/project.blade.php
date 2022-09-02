@@ -59,7 +59,7 @@
                 </x-card>
                 <x-field type="actions">
                     <x-slot name="center">
-                        <x-field label="{{ ___('dictionary.update') }}" name="add" type="submit" style="primary"/>
+                        <x-field label="dictionary.update" name="add" type="submit" style="primary"/>
                     </x-slot>
                 </x-field>
             </x-form>
@@ -70,7 +70,7 @@
                     <x-form name="{{ 'default'.$variant->id }}" action="{{'/a/m/AEGIS/projects/phase/'.$variant->id}}">
                         <x-card body-class="grid-md-2">
                             <x-field
-                                label="dictionary.name"
+                                label="aegis::phrases.phase-name"
                                 name="name"
                                 required
                                 type="text"
@@ -86,7 +86,7 @@
                         </x-card>
                         <x-field type="actions">
                             <x-slot name="center">
-                                <x-field label="{{ ___('dictionary.update') }}" name="add" type="submit" style="primary"/>
+                                <x-field label="dictionary.update" name="add" type="submit" style="primary"/>
                             </x-slot>
                         </x-field>
                     </x-form>
@@ -99,11 +99,6 @@
                     >
                         @include('documents::_partials.card-view-filter')
                     </x-card-view>
-                    @if($documents_module_enabled)
-                        <div class="text-center">
-                            <x-link style="primary" title="aegis::phrases.add-document" href="{{ url('a/m/Documents/document/add?project_phase='.$variant->id)}}"/>
-                        </div>
-                    @endif
                 </x-tab>
             @else
                 <x-tab target="phase-{{ $i }}">
@@ -153,13 +148,22 @@
                     >
                         @include('documents::_partials.card-view-filter')
                     </x-card-view>
-                    @if($documents_module_enabled)
-                        <div class="text-center">
-                            <x-link style="primary" title="aegis::phrases.add-document" href="{{ url('a/m/Documents/document/add?project_phase='.$variant->id)}}"/>
-                        </div>
-                    @endif
                 </x-tab>
             @endif
         @endforeach
     </x-tabs>
+    <x-modal
+        id="add-document"
+        :title="['phrases.add', ['item' => 'dictionary.document']]"
+    >
+        <x-form name="add-document">
+            <x-field
+                label="aegis::dictionary.phase"
+                name="phase"
+                :options="$phases"
+                required
+                type="select"
+            />
+        </x-form>
+    </x-modal>
 @endsection

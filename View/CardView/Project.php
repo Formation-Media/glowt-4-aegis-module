@@ -2,7 +2,7 @@
 
 namespace Modules\AEGIS\View\CardView;
 
-use App\Helpers\FontAwesome;
+use Modules\AEGIS\Helpers\Icons;
 
 class Project
 {
@@ -10,24 +10,16 @@ class Project
     {
         return [
             'dictionary.company' => [
-                'icon'  => 'building',
+                'icon'  => Icons::company(),
                 'value' => $result->company->name,
             ],
             'dictionary.type' => [
-                'icon'  => 'building',
+                'icon'  => Icons::type(),
                 'value' => $result->type->name,
             ],
-            'phrases.added-by' => [
-                'icon'  => 'user',
-                'value' => $result->user->name,
-            ],
-            'dictionary.added' => [
-                'icon'  => FontAwesome::datetime_icon($result->created_at->format('Y-m-d H:i:s'), true),
-                'value' => $result->nice_created_at,
-            ],
-            'dictionary.updated' => [
-                'icon'  => FontAwesome::datetime_icon($result->updated_at->format('Y-m-d H:i:s'), true),
-                'value' => $result->nice_updated_at,
+            'aegis::dictionary.phases' => [
+                'icon'  => Icons::phase(),
+                'value' => $result->phases->count(),
             ],
         ];
     }

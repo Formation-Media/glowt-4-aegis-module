@@ -32,15 +32,19 @@ class TrainingController extends Controller
         $training_names = TrainingHelper::periods();
         $users          = User::staff()->ordered('first_name')->active()->get()->pluck('name', 'id');
 
-        $details = array_merge(
-            [
-                'aegis::phrases.presentation-links' => [
-                    'icon'  => 'link',
-                    'value' => '<ul class="mb-0"><li>'.implode('</li><li>', $training->presentation_links).'</li></ul>',
+        $details = $training->details;
+
+        if ($training->presentation_links) {
+            $details = array_merge(
+                [
+                    'aegis::phrases.presentation-links' => [
+                        'icon'  => 'link',
+                        'value' => '<ul class="mb-0"><li>'.implode('</li><li>', $training->presentation_links).'</li></ul>',
+                    ],
                 ],
-            ],
-            $training->details
-        );
+                $details
+            );
+        }
 
         return parent::view(compact(
             'details',

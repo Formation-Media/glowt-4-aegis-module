@@ -66,14 +66,16 @@ class Training extends Model
     }
     public function presentationLinks(): Attribute
     {
-        $dom = new \DOMDocument;
-        $dom->loadHTML($this->presentation);
-        $link_doms = $dom->getElementsByTagName('a');
-        $links     = [];
-        foreach ($link_doms as $link) {
-            $links[] = '<a href="'.$link->getAttribute('href').'" target="_blank" title="'.$link->nodeValue.'">'
-                .$link->nodeValue
-            .'</a>';
+        $links = [];
+        if ($this->presentation) {
+            $dom = new \DOMDocument;
+            $dom->loadHTML($this->presentation);
+            $link_doms = $dom->getElementsByTagName('a');
+            foreach ($link_doms as $link) {
+                $links[] = '<a href="'.$link->getAttribute('href').'" target="_blank" title="'.$link->nodeValue.'">'
+                    .$link->nodeValue
+                .'</a>';
+            }
         }
         return new Attribute(
             get: fn () => $links,

@@ -13,9 +13,9 @@
     <x-form name="project_variant">
         <x-card body-class="grid-md-2">
             <x-field
+                label="aegis::phrases.phase-name"
                 name="name"
                 type="text"
-                label="dictionary.name"
                 required
             />
             <x-field
