@@ -32,6 +32,7 @@ return array(
     'live-document' => 'Live Document',
 
     'pdf-footer'            => 'PDF Footer',
+    'phase-name'            => 'Phase Name',
     'phase-number'          => 'Phase Number',
     'presentation-links'    => 'Presentation Links',
     'presentation-material' => 'Presentation Material',

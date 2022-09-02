@@ -18,7 +18,7 @@ class AddDocumentFieldsBefore
             $selected_project = $selected_variant->project;
             if ($variants = $selected_project->variants) {
                 foreach ($variants as $variant) {
-                    $project_variants[$variant->id] = $variant->variant_number.' - '.$variant->name;
+                    $project_variants[$variant->id] = $variant->title;
                 }
             }
         }

@@ -3,6 +3,7 @@
 namespace Modules\AEGIS\Models;
 
 use App\Models\Base_Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Documents\Models\Document;
@@ -23,6 +24,12 @@ class ProjectVariant extends Model
     ];
     protected $table = 'm_aegis_project_variants';
 
+    public function title(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->variant_number.' - '.$this->name,
+        );
+    }
     public function documents()
     {
         return $this->belongsToMany(
