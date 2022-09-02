@@ -2,6 +2,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
+            'm/Documents/document'  => 'dictionary.documents',
             $module_base.'training' => 'aegis::dictionary.training',
             $training->title
         )

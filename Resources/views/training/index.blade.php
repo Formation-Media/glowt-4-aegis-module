@@ -3,6 +3,7 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
+            'm/Documents/document' => 'dictionary.documents',
             'aegis::dictionary.training',
         ),
     )
