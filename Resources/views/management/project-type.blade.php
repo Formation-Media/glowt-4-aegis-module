@@ -24,6 +24,7 @@
                 label="aegis::dictionary.parent"
                 name="parent_id"
                 :options="$parent_tree"
+                placeholder="dictionary.none"
                 type="select"
                 value="{{ $project_type->parent_id }}"
             />
