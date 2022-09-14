@@ -18,62 +18,66 @@ class ProjectsImport implements ToCollection
     }
     public function collection(Collection $rows)
     {
+        $user_id        = \Auth::id();
+        $this->projects = json_decode(
+            \Storage::get('modules/aegis/import/projects.json'),
+            true
+        );
+        $this->stream->send([
+            'percentage' => 0,
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Processing import file',
+        ]);
         foreach ($rows as $i => $row) {
             if ($i === 0) {
                 continue;
             }
+            $row = $this->row($row);
 
-            $project_description = $this->row($row, 'PROJECT DESCRIPTION');
-            $project_name        = $this->row($row, 'PROJECT NAME');
-            $project_reference   = $this->row($row, 'PROJECT IDENTIFICATION');
-            $project_type        = $this->row($row, 'PROJECT TYPE');
-            $customer            = $this->row($row, 'CUSTOMER/SCOPE');
-            $variant_description = $this->row($row, 'VARIANT DESCRIPTION');
-            $variant_number      = $this->row($row, 'VARIANT NUMBER');
+            $this->projects[$row['reference']]['added_by']    = $user_id;
+            $this->projects[$row['reference']]['company']     = $row['company'];
+            $this->projects[$row['reference']]['description'] = $row['description'];
+            $this->projects[$row['reference']]['name']        = $row['name'];
+            $this->projects[$row['reference']]['customer']    = $row['customer'];
+            $this->projects[$row['reference']]['type']        = $row['type'];
 
-            $project_company = explode('/', $project_reference)[0];
-
-            if (strlen($project_name) > 191) {
-                $project_name = substr($project_name, 0, 188).'...';
-            }
-
-            $this->projects[$project_reference]['added_by']    = \Auth::id();
-            $this->projects[$project_reference]['company']     = $project_company;
-            $this->projects[$project_reference]['description'] = $project_description ?? '';
-            $this->projects[$project_reference]['name']        = $project_name;
-            $this->projects[$project_reference]['customer']    = $customer;
-            $this->projects[$project_reference]['type']        = $project_type ?? 'Other';
-
-            $this->projects[$project_reference]['variants'][$variant_number]['description'] = $variant_description;
-            $this->projects[$project_reference]['variants'][$variant_number]['documents']   = [];
-
-            $j         = 1;
-            $reference = substr(str_replace(' ', '', $variant_number), 0, 3).'-';
-            while (in_array($reference.$j, $this->variant_references)) {
-                $j++;
-            }
-            $this->variant_references[] = $reference.$j;
-
-            $this->projects[$project_reference]['variants'][$variant_number]['reference'] = $reference.$j;
+            $this->projects[$row['reference']]['phases'][$row['phase-number']]['name']        = $row['phase-name'];
+            $this->projects[$row['reference']]['phases'][$row['phase-number']]['description'] = $row['phase-description'];
+            $this->projects[$row['reference']]['phases'][$row['phase-number']]['reference']   = $row['phase-reference'];
+            $this->projects[$row['reference']]['phases'][$row['phase-number']]['documents']   = [];
 
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
             ]);
         }
+        ksort($this->projects);
         \Storage::put('modules/aegis/import/projects.json', json_encode($this->projects));
     }
-    private function row($row, $key)
+    private function row($row)
     {
-        $keys = [
-            'PROJECT IDENTIFICATION',
-            'PROJECT NAME',
-            'CUSTOMER/SCOPE',
-            'PROJECT DESCRIPTION',
-            'PROJECT TYPE',
-            'VARIANT NAME',
-            'VARIANT NUMBER',
-            'VARIANT DESCRIPTION',
+        $data = [
+            'company'           => null,
+            'reference'         => $row[1],
+            'name'              => $row[2],
+            'customer'          => $row[3],
+            'description'       => $row[4] ?? '',
+            'type'              => $row[5] ?? 'Other',
+            'phase-name'        => $row[8],
+            'phase-number'      => $row[9],
+            'phase-description' => $row[10],
         ];
-        return $row[array_search($key, $keys)];
+        $data['company'] = explode('/', $data['reference'])[0];
+
+        if (strlen($data['name']) > 191) {
+            $data['name']        = substr($data['name'], 0, 188).'...';
+            $data['description'] = '...'.substr($data['name'], 188)."\r\n\r\n".$data['description'];
+        }
+
+        if ($data['phase-number'] === 0) {
+            $data['phase-reference'] = $data['reference'];
+        } else {
+            $data['phase-reference'] = $data['reference'].'/'.str_pad($data['phase-number'], 3, '0', STR_PAD_LEFT);
+        }
+
+        return $data;
     }
 }

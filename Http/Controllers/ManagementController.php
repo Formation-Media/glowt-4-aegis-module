@@ -76,6 +76,24 @@ class ManagementController extends Controller
             'users'
         ));
     }
+    public function import_testing(Request $request)
+    {
+        $files = array_reverse([
+            'modules/aegis/import/projects.json',
+            'modules/aegis/import/projects_and_documents.json',
+            'modules/aegis/import/projects_and_document_signatures.json',
+            'modules/aegis/import/project_data.json',
+        ]);
+        foreach ($files as $file) {
+            if (\Storage::exists($file)) {
+                $projects = json_decode(\Storage::get($file), true);
+                break;
+            }
+        }
+        return parent::view(compact(
+            'projects'
+        ));
+    }
     public function job_titles(Request $request)
     {
         return parent::view();

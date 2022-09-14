@@ -19,6 +19,8 @@ use Modules\Documents\Models\Group;
 
 class ManagementController extends Controller
 {
+    private $import_file_path = null;
+
     public function import(SSEStream $stream, Request $request)
     {
         ini_set('max_execution_time', 0);
@@ -26,10 +28,16 @@ class ManagementController extends Controller
             'percentage' => 0,
             'message'    => 'Loading required information',
         ]);
+        // Prepare blank .JSON
+        $this->import_file_path = \Module::getModulePath('AEGIS').'/Resources/files/import/';
         /*
             TRUNCATE `m_aegis_document_approval_item_details`;
+            TRUNCATE `m_aegis_feedback_list_types`;
+            TRUNCATE `m_aegis_job_titles`;
             TRUNCATE `m_aegis_projects`;
             TRUNCATE `m_aegis_project_variants`;
+            TRUNCATE `m_aegis_scopes`;
+            TRUNCATE `m_aegis_types`;
             TRUNCATE `m_aegis_variant_documents`;
             TRUNCATE `m_documents_approval_items`;
             TRUNCATE `m_documents_approval_items_groups`;
@@ -37,6 +45,7 @@ class ManagementController extends Controller
             TRUNCATE `m_documents_approval_stages`;
             TRUNCATE `m_documents_categories`;
             TRUNCATE `m_documents_category_approval_items`;
+            TRUNCATE `m_documents_category_approval_processes`;
             TRUNCATE `m_documents_comments`;
             TRUNCATE `m_documents_documents`;
             TRUNCATE `m_documents_documents_approval_items`;
@@ -44,72 +53,78 @@ class ManagementController extends Controller
             TRUNCATE `m_documents_meta`;
             TRUNCATE `m_documents_user_groups`;
         */
+        \Storage::delete([
+            // 'modules/aegis/import/errors.json',
+            // 'modules/aegis/import/projects.json',
+            // 'modules/aegis/import/projects_and_documents.json',
+            'modules/aegis/import/projects_and_document_signatures.json',
+            'modules/aegis/import/project_data.json',
+        ]);
+        \Storage::put('modules/aegis/import/projects.json', json_encode([]));
         $steps = [
-            'users' => [
-                'Processing Users&hellip;',
-                'Finished Processing Users.',
-            ],
-            'document_types' => [
-                'Processing Document Types&hellip;',
-                'Finished Processing Document Types.',
-            ],
-            'projects' => [
-                'Processing Projects&hellip;',
-                'Finished Processing Projects.',
-            ],
-            'documents' => [
-                'Processing Documents&hellip;',
-                'Finished Processing Documents.',
-            ],
+            // 'users' => [
+            //     'users.xlsx',
+            // ],
+            // 'document_types' => [
+            //     'processes.php',
+            // ],
+            // 'projects' => [
+            //     'acs/ALL_PROJECTS.xlsx',
+            //     'aes/ALL_PROJECTS.xlsx',
+            // ],
+            // 'documents' => [
+            //     'acs/DOCUMENTS.xlsx',
+            //     'aes/DOCUMENTS.xlsx',
+            // ],
             'document_signatures' => [
-                'Processing Document Signatures&hellip;',
-                'Finished Processing Document Signatures.',
+                'acs/DOCUMENTS_Signature.xlsx',
+                'aes/DOCUMENTS_Signature.xlsx',
             ],
-            'signatures' => [
-                'Processing Signatures&hellip;',
-                'Finished Processing Signatures.',
-            ],
-            'store' => [
-                'Storing Data&hellip;',
-                'Finished Storing Data.',
-            ],
+            // 'signatures' => [
+            //     'acs/SIGNATURE_CODE.xlsx',
+            //     'aes/SIGNATURE_CODE.xlsx',
+            // ]
         ];
-        foreach ($steps as $method => $messages) {
+        foreach ($steps as $method => $files) {
+            $name = ucwords(str_replace('_', ' ', $method));
             $stream->send([
                 'percentage' => 0,
-                'message'    => $messages[0],
+                'message'    => 'Processing files for '.$name,
             ]);
-            $this->$method($stream);
+            foreach ($files as $i => $file) {
+                $stream->send([
+                    'message' => '&nbsp;&nbsp;&nbsp;File #'.($i + 1),
+                ]);
+                $this->$method($stream, $file);
+            }
             $stream->send([
                 'percentage' => 100,
-                'message'    => $messages[1],
+                'message'    => 'Finished processing files for '.$name,
             ]);
         }
-        $this->store($stream);
+        // $this->store($stream);
         $stream->stop([
             'message'    => 'Finished importing data',
             'percentage' => 100,
-            'redirect'   => '/a/m/AEGIS/management/import-errors',
+            // 'redirect'   => '/a/m/AEGIS/management/import-errors',
+            'redirect'   => '/a/m/AEGIS/management/import-testing',
         ]);
     }
-    private function users($stream)
+    private function users($stream, $file)
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
-        \Excel::import(
-            new UsersImport($stream),
-            \Module::getModulePath('AEGIS').'/Resources/files/import/users.xlsx'
-        );
+        \Excel::import(new UsersImport($stream), $this->import_file($file));
     }
-    private function document_types($stream)
+    private function document_types($stream, $file)
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Creating Approval Groups and Processes',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creating Approval Groups and Processes',
         ]);
-        include \Module::getModulePath('AEGIS').'/Resources/files/import/processes.php';
+        include $this->import_file($file);
         foreach ($processes as $data) {
             if (count($data['stages'])) {
                 foreach ($data['stages'] as $stage) {
@@ -168,52 +183,45 @@ class ManagementController extends Controller
             }
         }
     }
-    private function projects($stream)
+    private function projects($stream, $file)
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
-        \Excel::import(
-            new ProjectsImport($stream),
-            \Module::getModulePath('AEGIS').'/Resources/files/import/projects.xlsx'
-        );
+        \Excel::import(new ProjectsImport($stream), $this->import_file($file));
     }
-    private function documents($stream)
+    private function documents($stream, $file)
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
-        \Excel::import(
-            new DocumentsImport($stream),
-            \Module::getModulePath('AEGIS').'/Resources/files/import/documents.xlsx'
-        );
+        \Excel::import(new DocumentsImport($stream), $this->import_file($file));
     }
-    private function document_signatures($stream)
+    private function document_signatures($stream, $file)
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
-        \Excel::import(
-            new DocumentSignatureImport($stream),
-            \Module::getModulePath('AEGIS').'/Resources/files/import/document-signatures.xlsx'
-        );
+        \Excel::import(new DocumentSignatureImport($stream), $this->import_file($file));
     }
-    private function signatures($stream)
+    private function signatures($stream, $file)
     {
         $stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading import file',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading import file',
         ]);
-        \Excel::import(
-            new SignatureImport($stream),
-            \Module::getModulePath('AEGIS').'/Resources/files/import/signatures.xlsx'
-        );
+        \Excel::import(new SignatureImport($stream), $this->import_file($file));
     }
     private function store($stream)
     {
         new StoreImport($stream);
+    }
+
+    private function import_file($file)
+    {
+        return $this->import_file_path.$file;
     }
 }

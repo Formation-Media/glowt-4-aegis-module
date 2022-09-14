@@ -1,10 +1,10 @@
 @extends(
     'layouts.account',
     array(
-        'breadcrumbs'=>array(
-            'management'=>___('dictionary.management'),
+        'breadcrumbs' => array(
+            'management' => 'dictionary.management',
             $module->getName(),
-            ___('dictionary.import')
+            'dictionary.import'
         ),
     )
 )
