@@ -54,28 +54,28 @@ class ManagementController extends Controller
             TRUNCATE `m_documents_user_groups`;
         */
         \Storage::delete([
-            // 'modules/aegis/import/errors.json',
-            // 'modules/aegis/import/projects.json',
-            // 'modules/aegis/import/projects_and_documents.json',
+            'modules/aegis/import/errors.json',
+            'modules/aegis/import/projects.json',
+            'modules/aegis/import/projects_and_documents.json',
             'modules/aegis/import/projects_and_document_signatures.json',
             'modules/aegis/import/project_data.json',
         ]);
         \Storage::put('modules/aegis/import/projects.json', json_encode([]));
         $steps = [
-            // 'users' => [
-            //     'users.xlsx',
-            // ],
-            // 'document_types' => [
-            //     'processes.php',
-            // ],
-            // 'projects' => [
-            //     'acs/ALL_PROJECTS.xlsx',
-            //     'aes/ALL_PROJECTS.xlsx',
-            // ],
-            // 'documents' => [
-            //     'acs/DOCUMENTS.xlsx',
-            //     'aes/DOCUMENTS.xlsx',
-            // ],
+            'users' => [
+                'users.xlsx',
+            ],
+            'document_types' => [
+                'processes.php',
+            ],
+            'projects' => [
+                'acs/ALL_PROJECTS.xlsx',
+                'aes/ALL_PROJECTS.xlsx',
+            ],
+            'documents' => [
+                'acs/DOCUMENTS.xlsx',
+                'aes/DOCUMENTS.xlsx',
+            ],
             'document_signatures' => [
                 'acs/DOCUMENTS_Signature.xlsx',
                 'aes/DOCUMENTS_Signature.xlsx',
