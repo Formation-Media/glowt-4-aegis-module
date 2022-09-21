@@ -18,73 +18,60 @@ class SignatureImport implements ToCollection
     }
     public function collection(Collection $rows)
     {
-        $signature_references = [];
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading previous data',
         ]);
         $this->errors = json_decode(
             \Storage::get('modules/aegis/import/errors.json'),
             true
         );
-        $this->projects = json_decode(
-            \Storage::get('modules/aegis/import/projects_and_document_signatures.json'),
-            true
-        );
+        if (\Storage::exists('modules/aegis/import/project_data.json')) {
+            $this->projects = json_decode(
+                \Storage::get('modules/aegis/import/project_data.json'),
+                true
+            );
+        } else {
+            $this->projects = json_decode(
+                \Storage::get('modules/aegis/import/projects_and_document_signatures.json'),
+                true
+            );
+        }
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Updating data with document signatures',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Updating data with document signatures',
         ]);
         foreach ($rows as $i => $row) {
             if ($i === 0) {
                 continue;
             }
+            extract($this->row($row));
 
-            $this->row           = $row;
-            $row['found']        = false;
-            $date                = $this->column('Date');
-            $document_reference  = $this->column('DOC-ID');
-            $issue               = $this->column('ISSUE');
-            $progressive_number  = $this->column('Progressive-number');
-            $role                = strtolower($this->column('Role(DOC)'));
-            $signature_reference = $this->column('Signature-Code');
-            $user_reference      = strtolower($this->column('USER-NICKNAME'));
-
+            if ($company === null) {
+                $this->errors['Signatures'][$document_reference] = 'Company does not exist (tried from "'
+                    .$document_reference.'" and "'.$user_reference.'").';
+                continue;
+            }
             if ($role === 'author') {
+                // \Debug::error($row);
                 continue;
             }
 
-            $company = strpos($signature_reference, '-') !== false
-                ? explode('-', $signature_reference)[0]
-                : null;
-            if (!$company) {
-                $company = strpos($signature_reference, '/') !== false
-                ? explode('/', $signature_reference)[0]
-                : null;
-            }
-            if (!$company) {
-                $company = strpos($document_reference, '/') !== false
-                ? explode('/', $document_reference)[0]
-                : null;
-            }
-
-            if (!$signature_reference) {
-                $signature_reference = $company.'-'.$user_reference.'-'.$progressive_number;
-            }
-
             foreach ($this->projects as $project_reference => $project) {
-                foreach ($project['variants'] as $variant_number => $variant) {
+                foreach ($project['phases'] as $variant_number => $variant) {
                     if (array_key_exists('documents', $variant)
                         && array_key_exists($document_reference, $variant['documents'])
                         && array_key_exists('approval', $variant['documents'][$document_reference])
                         && array_key_exists($role, $variant['documents'][$document_reference]['approval'])
+                        && array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])
                     ) {
                         $variant['documents'][$document_reference]['issue'] = max(
                             $variant['documents'][$document_reference]['issue'],
                             array_keys($variant['documents'][$document_reference]['approval'][$role])
                         );
 
-                        $user_key  = false;
+                        $user_key = false;
+
                         if (array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])) {
                             foreach ($variant['documents'][$document_reference]['approval'][$role][$issue] as $key => $item) {
                                 if (array_search($user_reference, array_keys($item)) !== false) {
@@ -96,47 +83,46 @@ class SignatureImport implements ToCollection
                             foreach ($variant['documents'][$document_reference]['approval'][$role] as $approval_issue => $items) {
                                 foreach ($items as $key => $item) {
                                     if (array_search($user_reference, array_keys($item)) !== false) {
-                                        $user_key  = $key;
+                                        $user_key = $key;
                                         break 2;
                                     }
                                 }
                             }
                         }
-
                         if ($user_key === false) {
                             continue;
                         }
 
                         $user = $variant['documents'][$document_reference]['approval'][$role][$issue][$user_key][$user_reference];
 
-                        if (!$date) {
-                            $date = date('Y-m-d H:i:s');
-                        } else {
-                            $date = $this->date_convert('Date');
-                        }
+                        $user = array_merge(
+                            $user,
+                            [
+                                'company'             => $company,
+                                'increment'           => $progressive_number,
+                                'signature_reference' => $signature_reference,
+                                'signed_date'         => $date,
 
-                        $user['company']             = $company;
-                        $user['signed_date']         = $date;
-                        $user['increment']           = $progressive_number;
-                        $user['signature_reference'] = $signature_reference;
-                        $user['created_at']          = date(
-                            'Y-m-d H:i:s',
-                            min(strtotime($date), strtotime($user['created_at']))
+                                'created_at' => date(
+                                    'Y-m-d H:i:s',
+                                    min(strtotime($date), strtotime($user['created_at']))
+                                ),
+                                'updated_at' => date(
+                                    'Y-m-d H:i:s',
+                                    max(strtotime($date), strtotime($user['updated_at']))
+                                ),
+                            ]
                         );
-                        $user['updated_at'] = date(
-                            'Y-m-d H:i:s',
-                            max(strtotime($date), strtotime($user['updated_at']))
-                        );
-                        $this->projects[$project_reference]['variants'][$variant_number]['documents'][$document_reference]['approval']
+                        $this->projects[$project_reference]['phases'][$variant_number]['documents'][$document_reference]['approval']
                             [$role][$issue][$user_key][$user_reference] = $user;
 
-                        $row['found'] = true;
+                        $found = true;
                         // Skip the rest of the projects and documents we've assigned the data where we can
                         break 2;
                     }
                 }
             }
-            if (!$row['found']) {
+            if (!$found) {
                 $old_document_id = explode('/', $document_reference)[1];
                 if (strlen($old_document_id) > 3 && $old_document_id < 9900) {
                     $exploded_document_reference = explode('/', $document_reference);
@@ -144,8 +130,8 @@ class SignatureImport implements ToCollection
                     $variant                     = false;
 
                     if (array_key_exists($project_id, $this->projects)) {
-                        if (array_key_exists('variants', $this->projects[$project_id])) {
-                            foreach ($this->projects[$project_id]['variants'] as $variant_number => $variant_details) {
+                        if (array_key_exists('phases', $this->projects[$project_id])) {
+                            foreach ($this->projects[$project_id]['phases'] as $variant_number => $variant_details) {
                                 if (array_key_exists('documents', $variant_details)
                                     && array_key_exists($document_reference, $variant_details['documents'])
                                 ) {
@@ -156,27 +142,27 @@ class SignatureImport implements ToCollection
                             if ($variant !== false) {
                                 if (array_key_exists(
                                     'approval',
-                                    $this->projects[$project_id]['variants'][$variant]['documents'][$document_reference]
+                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
                                 )) {
                                     if (array_key_exists(
                                         $role,
-                                        $this->projects[$project_id]['variants'][$variant]['documents'][$document_reference]
+                                        $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
                                             ['approval']
                                     )) {
                                         $issue_key = false;
                                         $user_key  = false;
-                                        if (array_key_exists($issue, $this->projects[$project_id]['variants'][$variant]['documents']
+                                        if (array_key_exists($issue, $this->projects[$project_id]['phases'][$variant]['documents']
                                             [$document_reference]['approval'][$role])
                                         ) {
-                                            $this->projects[$project_id]['variants'][$variant]['documents'][$document_reference]
+                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
                                                 ['issue'] = max(
-                                                    $this->projects[$project_id]['variants'][$variant]['documents']
+                                                    $this->projects[$project_id]['phases'][$variant]['documents']
                                                         [$document_reference]['issue'],
-                                                    array_keys($this->projects[$project_id]['variants'][$variant]['documents']
+                                                    array_keys($this->projects[$project_id]['phases'][$variant]['documents']
                                                             [$document_reference]['approval'][$role])
                                                 );
 
-                                            foreach ($this->projects[$project_id]['variants'][$variant]['documents']
+                                            foreach ($this->projects[$project_id]['phases'][$variant]['documents']
                                                 [$document_reference]['approval'][$role][$issue] as $key => $item
                                             ) {
                                                 if (array_search($user_reference, array_keys($item)) !== false) {
@@ -186,7 +172,7 @@ class SignatureImport implements ToCollection
                                                 }
                                             }
                                         } else {
-                                            foreach ($this->projects[$project_id]['variants'][$variant]['documents']
+                                            foreach ($this->projects[$project_id]['phases'][$variant]['documents']
                                                 [$document_reference]['approval'][$role] as $approval_issue => $items
                                             ) {
                                                 foreach ($items as $key => $item) {
@@ -200,14 +186,6 @@ class SignatureImport implements ToCollection
                                         }
                                         if ($user_key !== false) {
                                             // This was caught above
-
-                                            // \Log::debug([
-                                            //     __FILE__ => __LINE__,
-                                            //     $row,
-                                            //     $this->projects[$project_id]['variants'][$variant]['documents']
-                                            //         [$document_reference]['approval'][$role][$issue_key][$user_key][$user_reference],
-                                            // ]);
-                                            // $this->stream->stop();
                                         } else {
                                             $this->errors['Signatures'][$document_reference]
                                                 = 'Signature does not have a matching document signature matching role ('.$role
@@ -215,10 +193,7 @@ class SignatureImport implements ToCollection
                                         }
                                     }
                                 } else {
-                                    \Log::debug([
-                                        __FILE__ => __LINE__,
-                                        $this->projects[$project_id]['variants'][$variant]['documents'][$document_reference],
-                                    ]);
+                                    \Debug::debug($this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]);
                                     $this->stream->stop();
                                 }
                             } else {
@@ -240,9 +215,10 @@ class SignatureImport implements ToCollection
         \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors));
         \Storage::put('modules/aegis/import/project_data.json', json_encode($this->projects));
     }
-    private function column($key)
+    private function row($row)
     {
         $keys = [
+            'ID',
             'Signature-Code',
             'Progressive-number',
             'Role(DOC)',
@@ -252,12 +228,42 @@ class SignatureImport implements ToCollection
             'USER-NICKNAME',
             'ROLE-USER',
         ];
-        return $this->row[array_search($key, $keys)];
+        $row  = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+        $data = [
+            'company'             => null,
+            'date'                => $row['Date'],
+            'document_reference'  => $row['DOC-ID'],
+            'found'               => false,
+            'issue'               => $row['ISSUE'],
+            'progressive_number'  => $row['Progressive-number'],
+            'role'                => strtolower($row['Role(DOC)']),
+            'signature_reference' => $row['Signature-Code'],
+            'user_reference'      => strtolower($row['USER-NICKNAME']),
+        ];
+        if (!($data['company'] = strpos($data['document_reference'], '-') !== false
+            ? explode('-', $data['document_reference'])[0]
+            : null)
+        ) {
+            if (!($data['company'] = strpos($data['user_reference'], '/') !== false
+                ? explode('/', $data['user_reference'])[0]
+                : null)
+            ) {
+                $data['company'] = strpos($data['document_reference'], '/') !== false
+                    ? explode('/', $data['document_reference'])[0]
+                    : null;
+            }
+        }
+
+        if (!$data['date']) {
+            $data['date'] = date('Y-m-d H:i:s');
+        } else {
+            $data['date'] = $this->date_convert($data['date']);
+        }
+
+        return $data;
     }
     private function date_convert($date, $time = null)
     {
-        $date = $this->column($date);
-        $time = $time ? $this->column($time) : 0;
         if (!is_numeric($date)) {
             if (strpos($date, '/') !== false) {
                 list($day, $month, $year) = explode('/', $date);

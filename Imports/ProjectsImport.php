@@ -18,6 +18,7 @@ class ProjectsImport implements ToCollection
     }
     public function collection(Collection $rows)
     {
+        $errors         = [];
         $user_id        = \Auth::id();
         $this->projects = json_decode(
             \Storage::get('modules/aegis/import/projects.json'),
@@ -31,19 +32,24 @@ class ProjectsImport implements ToCollection
             if ($i === 0) {
                 continue;
             }
-            $row = $this->row($row);
+            extract($this->row($row));
 
-            $this->projects[$row['reference']]['added_by']    = $user_id;
-            $this->projects[$row['reference']]['company']     = $row['company'];
-            $this->projects[$row['reference']]['description'] = $row['description'];
-            $this->projects[$row['reference']]['name']        = $row['name'];
-            $this->projects[$row['reference']]['customer']    = $row['customer'];
-            $this->projects[$row['reference']]['type']        = $row['type'];
+            if (array_key_exists($reference, $this->projects)) {
+                $this->errors['Projects'][$reference] = 'Duplicate Project ('.$reference.') shipping additional projects.';
+                continue;
+            }
 
-            $this->projects[$row['reference']]['phases'][$row['phase-number']]['name']        = $row['phase-name'];
-            $this->projects[$row['reference']]['phases'][$row['phase-number']]['description'] = $row['phase-description'];
-            $this->projects[$row['reference']]['phases'][$row['phase-number']]['reference']   = $row['phase-reference'];
-            $this->projects[$row['reference']]['phases'][$row['phase-number']]['documents']   = [];
+            $this->projects[$reference]['added_by']    = $user_id;
+            $this->projects[$reference]['company']     = $company;
+            $this->projects[$reference]['description'] = $description;
+            $this->projects[$reference]['name']        = $name;
+            $this->projects[$reference]['customer']    = $customer;
+            $this->projects[$reference]['type']        = $type;
+
+            $this->projects[$reference]['phases'][$phase_number]['name']        = $phase_name;
+            $this->projects[$reference]['phases'][$phase_number]['description'] = $phase_description;
+            $this->projects[$reference]['phases'][$phase_number]['reference']   = $phase_number;
+            $this->projects[$reference]['phases'][$phase_number]['documents']   = [];
 
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
@@ -54,16 +60,31 @@ class ProjectsImport implements ToCollection
     }
     private function row($row)
     {
+        $keys = [
+            'PROJECT Internal ID',
+            'PROJECT IDENTIFICATION',
+            'PROJECT NAME',
+            'CUSTOMER/SCOPE',
+            'PROJECT DESCRIPTION',
+            'PROJECT TYPE',
+            'PROVA',
+            'PROGRESSIVE NUMBER',
+            'VARIANT NAME',
+            'VARIANT NUMBER',
+            'VARIANT DESCRIPTION',
+        ];
+        $row  = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+
         $data = [
             'company'           => null,
-            'reference'         => $row[1],
-            'name'              => $row[2],
-            'customer'          => $row[3],
-            'description'       => $row[4] ?? '',
-            'type'              => $row[5] ?? 'Other',
-            'phase-name'        => $row[8],
-            'phase-number'      => $row[9],
-            'phase-description' => $row[10],
+            'reference'         => $row['PROJECT IDENTIFICATION'],
+            'name'              => $row['PROJECT NAME'],
+            'customer'          => $row['CUSTOMER/SCOPE'],
+            'description'       => $row['PROJECT DESCRIPTION'] ?? '',
+            'type'              => $row['PROJECT TYPE'] ?? 'Other',
+            'phase_name'        => $row['VARIANT NAME'],
+            'phase_number'      => $row['VARIANT NUMBER'],
+            'phase_description' => $row['VARIANT DESCRIPTION'],
         ];
         $data['company'] = explode('/', $data['reference'])[0];
 
@@ -72,10 +93,10 @@ class ProjectsImport implements ToCollection
             $data['description'] = '...'.substr($data['name'], 188)."\r\n\r\n".$data['description'];
         }
 
-        if ($data['phase-number'] === 0) {
+        if ($data['phase_number'] === 0) {
             $data['phase-reference'] = $data['reference'];
         } else {
-            $data['phase-reference'] = $data['reference'].'/'.str_pad($data['phase-number'], 3, '0', STR_PAD_LEFT);
+            $data['phase-reference'] = $data['reference'].'/'.str_pad($data['phase_number'], 3, '0', STR_PAD_LEFT);
         }
 
         return $data;
