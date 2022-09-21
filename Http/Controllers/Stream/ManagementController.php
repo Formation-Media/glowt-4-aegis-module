@@ -15,6 +15,8 @@ use Modules\Documents\Models\ApprovalItemGroup;
 use Modules\Documents\Models\ApprovalProcess;
 use Modules\Documents\Models\ApprovalProcessItem;
 use Modules\Documents\Models\ApprovalProcessStage;
+use Modules\Documents\Models\Category;
+use Modules\Documents\Models\CategoryApprovalProcess;
 use Modules\Documents\Models\Group;
 
 class ManagementController extends Controller
@@ -80,10 +82,10 @@ class ManagementController extends Controller
                 'acs/DOCUMENTS_Signature.xlsx',
                 'aes/DOCUMENTS_Signature.xlsx',
             ],
-            // 'signatures' => [
-            //     'acs/SIGNATURE_CODE.xlsx',
-            //     'aes/SIGNATURE_CODE.xlsx',
-            // ]
+            'signatures' => [
+                'acs/SIGNATURE_CODE.xlsx',
+                'aes/SIGNATURE_CODE.xlsx',
+            ],
         ];
         foreach ($steps as $method => $files) {
             $name = ucwords(str_replace('_', ' ', $method));
@@ -179,6 +181,24 @@ class ManagementController extends Controller
                             );
                         }
                     }
+                }
+            }
+            if (count($data['types'])) {
+                foreach ($data['types'] as $i => $type) {
+                    $category = Category::firstOrCreate(
+                        [
+                            'name' => $type,
+                        ],
+                        [
+                            'prefix' => 'O',
+                        ]
+                    );
+                    CategoryApprovalProcess::firstOrCreate(
+                        [
+                            'category_id' => $category->id,
+                            'process_id'  => $approval_process->id,
+                        ]
+                    );
                 }
             }
         }

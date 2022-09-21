@@ -10,18 +10,10 @@ class DocumentSignatureImport implements ToCollection
 {
     private $errors;
     private $projects;
-    private $row;
-    private $statuses;
     private $stream;
 
     public function __construct(SSEStream $stream,)
     {
-        $this->statuses = [
-            'APPROVED'  => 'Approved',
-            'REJECTED'  => 'Rejected',
-            'REVIEWED'  => 'Awaiting Decision',
-            'SUBMITTED' => 'Awaiting Decision',
-        ];
         $this->stream = $stream;
     }
     public function collection(Collection $rows)
@@ -54,16 +46,13 @@ class DocumentSignatureImport implements ToCollection
                 continue;
             }
             $comments = [];
-            $row      = $this->row($row);
 
-            $created_at         = $row['created_at'];
-            $document_issue     = $row['document-issue'];
-            $document_reference = $row['document-reference'];
-            $phase_number       = $row['phase-number'];
-            $project_reference  = $row['project-reference'];
+            extract($this->row($row));
 
             if (!isset($this->projects[$project_reference])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project Not Found';
+                if (strpos($project_reference, '/') !== false && explode('/', $project_reference)[1] > 999) {
+                    $this->errors['Document Signatures'][$document_reference] = 'Project Not Found';
+                }
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
@@ -74,9 +63,7 @@ class DocumentSignatureImport implements ToCollection
                 $this->errors['Document Signatures'][$document_reference] = 'Project Phase ('.$phase_number.') has no documents';
                 continue;
             }
-            if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents']
-                [$document_reference])
-            ) {
+            if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project Phase ('.$phase_number
                     .') does not have a document with reference '.$document_reference;
                 continue;
@@ -84,58 +71,59 @@ class DocumentSignatureImport implements ToCollection
 
             $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference];
 
-            if ($row['reviewer']['author']) {
-                $document['approval']['reviewer'][$document_issue][0][$row['reviewer']['author']] = [
-                    'comments'            => $row['reviewer']['comments'],
+            if ($reviewer['author']) {
+                $document['approval']['reviewer'][$document_issue][0][$reviewer['author']] = [
+                    'comments'            => $reviewer['comments'],
                     'created_at'          => $created_at,
-                    'role'                => $row['reviewer']['role'],
+                    'role'                => $reviewer['role'],
                     'signature_reference' => '',
-                    'status'              => $row['status'],
-                    'updated_at'          => $row['reviewer']['date'],
+                    'status'              => $status,
+                    'updated_at'          => $reviewer['date'],
                 ];
             }
 
-            if ($row['approver']['author']) {
-                $document['approval']['approver'][$document_issue][0][$row['approver']['author']] = [
-                    'comments'            => $row['approver']['comments'],
-                    'created_at'          => $created_at,
-                    'role'                => $row['approver']['role'],
+            if ($approver['author']) {
+                $document['approval']['approver'][$document_issue][0][$approver['author']] = [
+                    'comments'            => $approver['comments'],
+                    'created_at'          => $approver['date'],
+                    'role'                => $approver['role'],
                     'signature_reference' => '',
-                    'status'              => $row['status'],
-                    'updated_at'          => $row['approver']['date'],
+                    'status'              => $status,
+                    'updated_at'          => $approver['date'],
                 ];
             }
-            if ($row['assessor-1']) {
-                $document['approval']['assessor'][$document_issue][0][$row['assessor-1']] = [
+            if ($assessor_1) {
+                $document['approval']['assessor'][$document_issue][0][$assessor_1] = [
                     'created_at' => $created_at,
-                    'status'     => $row['status'],
+                    'status'     => $status,
                     'updated_at' => $created_at,
                 ];
             }
-            if ($row['assessor-2']) {
-                $document['approval']['assessor'][$document_issue][1][$row['assessor-2']] = [
+            if ($assessor_2) {
+                $document['approval']['assessor'][$document_issue][1][$assessor_2] = [
                     'created_at' => $created_at,
-                    'status'     => $row['status'],
+                    'status'     => $status,
                     'updated_at' => $created_at,
                 ];
             }
-            if ($row['submitted']['comments']) {
+            if ($submitted['comments']) {
                 $comments[] = [
-                    'author'     => $row['submitted']['author'],
+                    'author'     => $submitted['author'],
                     'created_at' => $created_at,
-                    'content'    => $row['submitted']['comments'],
-                    'updated_at' => $created_at,
+                    'content'    => $submitted['comments'],
+                    'updated_at' => $submitted['date'],
                 ];
             }
 
-            $document['comments']     = $comments;
-            $document['issue']        = max($document['issue'], $document_issue);
-            $document['statuses'][]   = $row['status'];
-            $document['submitted_at'] = $row['submitted']['date'];
-            $document['submitted_by'] = $row['submitted']['author'];
+            $document['comments']        = $comments;
+            $document['issue']           = max($document['issue'], $document_issue);
+            $document['statuses'][]      = $status;
+            $document['submitted_at']    = $submitted['date'];
+            $document['submitted_by']    = $submitted['author'];
+            $document['created_by_role'] = $role;
 
             if ($document['category_prefix'] === 'FBL') {
-                $document['feedback_list']['final'] = $row['fbl-final'];
+                $document['feedback_list']['final'] = $fbl_final;
             }
 
             $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = $document;
@@ -145,7 +133,7 @@ class DocumentSignatureImport implements ToCollection
             ]);
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors));
-        \Storage::put('modules/aegis/import/projects_and_document_signatures.json', json_encode($this->projects));
+        \Storage::put('modules/aegis/import/projects_and_document_signatures.json', json_encode($this->projects, JSON_PRETTY_PRINT));
     }
     private function date_convert($date, $time = null)
     {
@@ -201,33 +189,87 @@ class DocumentSignatureImport implements ToCollection
     }
     private function row($row)
     {
+        $keys = [
+            0  => 'ID',
+            1  => 'DOC-IDENTIFICATION',
+            2  => 'ISSUE',
+            3  => 'DOC-NAME',
+            4  => 'DOC-TYPE',
+            5  => 'CREATION-DATE',
+            6  => 'AUTHOR',
+            7  => 'DOC-DESCRIPTION',
+            8  => 'PROJECT IDENTIFICATION',
+            9  => 'VARIANT NUMBER',
+            10 => 'PROJECT NAME',
+            11 => 'STATUS',
+            12 => 'SUBMIT-DATE',
+            13 => 'REVIEWER',
+            14 => 'REVIEW-DATE',
+            15 => 'APPROVER',
+            16 => 'APPROVAL-DATE',
+            17 => 'REJECT DATE',
+            18 => 'AUTHOR-ROLE',
+            19 => 'REVIEWER-ROLE',
+            20 => 'APPROVER-ROLE',
+            21 => 'COMMENT-REVIEWER',
+            22 => 'SUBMITTER-NAME',
+            23 => 'COMMENT-APPROVER',
+            24 => 'REJECTED-BY',
+            25 => 'CRE-TIME',
+            26 => 'SUB-TIME',
+            27 => 'REV-TIME',
+            28 => 'REJ-TIME',
+            29 => 'APP-TIME',
+            30 => 'DOC-LETTER',
+            31 => 'FBL_FINAL',
+            32 => 'ASSESSOR_1',
+            33 => 'ASSESSOR_2',
+            34 => 'ADD_FBL_ASSESSOR',
+            35 => 'CLOSED',
+            36 => 'COMMENT-SUBMITTER',
+            37 => 'PROPOSAL-VALUE',
+        ];
+        $statuses = [
+            'APPROVED'  => 'Approved',
+            'REJECTED'  => 'Rejected',
+            'REVIEWED'  => 'Awaiting Decision',
+            'SUBMITTED' => 'Awaiting Decision',
+        ];
+        $row = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+
         $data = [
             'approver'    => [
-                'author'   => strtolower(str_replace('---', '', $row[15])),
-                'date'     => $row[16] && $row[16] !== '---' ? $this->date_convert($row[16], $row[29]) : null,
-                'comments' => str_replace('---', '', $row[23]),
-                'role'     => str_replace('---', '', $row[20]),
+                'author'   => strtolower(str_replace('---', '', $row['APPROVER'])),
+                'date'     => $row['APPROVAL-DATE'] && $row['APPROVAL-DATE'] !== '---'
+                    ? $this->date_convert($row['APPROVAL-DATE'], $row['APP-TIME'])
+                    : null,
+                'comments' => str_replace('---', '', $row['COMMENT-APPROVER']),
+                'role'     => str_replace('---', '', $row['APPROVER-ROLE']),
             ],
-            'assessor-1'         => $row[32],
-            'assessor-2'         => $row[33],
-            'created_at'         => $row[5] ? $this->date_convert($row[5], $row[25]) : date('Y-m-d H:i:s'),
-            'document-issue'     => $row[2],
-            'document-reference' => $row[1],
-            'fbl-final'          => strtolower($row[31]) === 'yes' ? true : false,
-            'phase-number'       => $row[9],
-            'project-reference'  => $row[8],
+            'assessor_1'         => $row['ASSESSOR_1'],
+            'assessor_2'         => $row['ASSESSOR_2'],
+            'created_at'         => $row['CREATION-DATE']
+                ? $this->date_convert($row['CREATION-DATE'], $row['CRE-TIME'])
+                : date('Y-m-d H:i:s'),
+            'document_issue'     => $row['ISSUE'],
+            'document_reference' => $row['DOC-IDENTIFICATION'],
+            'fbl_final'          => strtolower($row['FBL_FINAL']) === 'yes' ? true : false,
+            'phase_number'       => $row['VARIANT NUMBER'],
+            'project_reference'  => $row['PROJECT IDENTIFICATION'],
             'reviewer'           => [
-                'author'   => strtolower(str_replace('---', '', $row[13])),
-                'date'     => $row[14] && $row[14] !== '---' ? $this->date_convert($row[14], $row[27]) : null,
-                'comments' => str_replace('---', '', $row[21]),
-                'role'     => str_replace('---', '', $row[19]),
+                'author'   => strtolower(str_replace('---', '', $row['REVIEWER'])),
+                'date'     => $row['REVIEW-DATE'] && $row['REVIEW-DATE'] !== '---'
+                    ? $this->date_convert($row['REVIEW-DATE'], $row['REV-TIME'])
+                    : null,
+                'comments' => str_replace('---', '', $row['COMMENT-REVIEWER']),
+                'role'     => str_replace('---', '', $row['REVIEWER-ROLE']),
             ],
-            'role'       => str_replace('---', '', $row[18]),
-            'status'    => $this->statuses[$row[11]],
+            'role'      => str_replace('---', '', $row['AUTHOR-ROLE']),
+            'status'    => $statuses[$row['STATUS']],
             'submitted' => [
-                'author'   => strtolower(str_replace('---', '', $row[22])),
-                'comments' => str_replace('---', '', $row[36]),
-                'date'     => $row[12] ? $this->date_convert($row[12], $row[26]) : date('Y-m-d H:i:s'),
+                'author'   => strtolower(str_replace('---', '', $row['SUBMITTER-NAME'])),
+                'comments' => str_replace('---', '', $row['COMMENT-SUBMITTER']),
+                'date'     => $row['SUBMIT-DATE'] ? $this->date_convert($row['SUBMIT-DATE'], $row['SUB-TIME']) : date('Y-m-d H:i:s'),
             ],
         ];
 

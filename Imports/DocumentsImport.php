@@ -41,26 +41,29 @@ class DocumentsImport implements ToCollection
             if ($i === 0) {
                 continue;
             }
-            $row = $this->row($row);
+            extract($this->row($row));
 
-            if (!isset($this->projects[$row['project-reference']])) {
-                $this->errors['Documents'][$row['reference']] = 'Project not found';
+            if (!isset($this->projects[$project_reference])) {
+                if (strpos($project_reference, '/') !== false && explode('/', $project_reference)[1] > 999) {
+                    $this->errors['Documents'][$reference] = 'Project not found';
+                }
                 continue;
             }
 
-            if (!isset($this->projects[$row['project-reference']]['phases'][$row['phase-number']])) {
-                $this->errors['Documents'][$row['reference']] = 'Project Phase ('.$row['phase-number'].') not found';
+            if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
+                $this->errors['Documents'][$reference] = 'Project Phase ('.$phase_number.') not found';
                 continue;
             }
 
-            $this->projects[$row['project-reference']]['phases'][$row['phase-number']]['documents'][$row['reference']] = [
-                'category'        => $row['type'],
-                'category_prefix' => $row['prefix'],
-                'created_at'      => $row['created_at'],
-                'created_by'      => $row['created_by'],
-                'feedback_list'   => $row['fbl'],
-                'issue'           => $row['issue'],
-                'name'            => $row['name'],
+            $this->projects[$project_reference]['phases'][$phase_number]['documents'][$reference] = [
+                'category'        => $type,
+                'category_prefix' => $prefix,
+                'created_at'      => $created_at,
+                'created_by'      => $created_by,
+                'created_by_role' => null,
+                'feedback_list'   => $fbl,
+                'issue'           => $issue,
+                'name'            => $name,
                 'statuses'        => [],
                 'approval'        => [],
                 'comments'        => [],
@@ -126,35 +129,60 @@ class DocumentsImport implements ToCollection
     }
     private function row($row)
     {
+        $keys = [
+            'DOC-ID Internal',
+            'DOC-IDENTIFICATION',
+            'VARIANT NUMBER',
+            'VARIANT NAME',
+            'DOC-NAME',
+            'DOC-TYPE',
+            'CREATION-DATE',
+            'AUTHOR',
+            'DOC-DESCRIPTION',
+            'PROJECT-IDENTIFICATION',
+            'PROJECT NAME',
+            'DOC-PROGR-NUM',
+            'PROVA',
+            'ISSUE',
+            'CRE-TIME',
+            'DOC-LETTER',
+            'FBL TYPE',
+            'PRE-TITLE FBL',
+            'GEN_LETTER',
+        ];
+        $row  = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
         $data = [
-            'reference'         => $row[1],
-            'phase-number'      => $row[2],
-            'phase-name'        => $row[3],
-            'name'              => $row[4],
-            'type'              => $row[5] ?? 'Other',
-            'created_at'        => $row[6] ? $this->date_convert($row[6], $row[14]) : date('Y-m-d H:i:s'),
-            'created_by'        => strtolower($row[7]),
-            'description'       => $row[8],
-            'project-reference' => $row[9],
-            'project-name'      => $row[10],
-            'issue'             => $row[13],
-            'prefix'            => $row[18],
+            'reference'         => $row['DOC-IDENTIFICATION'],
+            'phase_number'      => $row['VARIANT NUMBER'],
+            'phase_name'        => $row['VARIANT NAME'],
+            'name'              => $row['DOC-NAME'],
+            'type'              => $row['DOC-TYPE'] ?? 'Other',
+            'created_by'        => strtolower($row['AUTHOR']),
+            'description'       => $row['DOC-DESCRIPTION'],
+            'project_reference' => $row['PROJECT-IDENTIFICATION'],
+            'project_name'      => $row['PROJECT NAME'],
+            'issue'             => $row['ISSUE'],
+            'prefix'            => $row['GEN_LETTER'],
             'fbl'               => null,
+
+            'created_at' => $row['CREATION-DATE']
+                ? $this->date_convert($row['CREATION-DATE'], $row['CRE-TIME'])
+                : date('Y-m-d H:i:s'),
         ];
 
         if (strlen($data['name']) > 191) {
             $data['name']        = substr($data['name'], 0, 188).'...';
             $data['description'] = '...'.substr($data['name'], 188)."\r\n\r\n".$data['description'];
         }
-        if (strlen($data['project-name']) > 191) {
-            $data['project-name'] = substr($data['project-name'], 0, 188).'...';
+        if (strlen($data['project_name']) > 191) {
+            $data['project_name'] = substr($data['project_name'], 0, 188).'...';
         }
 
         if ($data['prefix'] === 'FBL') {
             $data['fbl'] = [
                 'final' => false,
-                'type'  => $row[16],
-                'name'  => $row[17],
+                'type'  => $row['FBL TYPE'],
+                'name'  => $row['PRE-TITLE FBL'],
             ];
         }
 

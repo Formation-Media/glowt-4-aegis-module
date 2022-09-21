@@ -30,7 +30,7 @@ class ManagementController extends Controller
         if (is_formation() || is_dev()) {
             return parent::view();
         }
-        abort(401);
+        return redirect('a/m/AEGIS/management/import-testing');
     }
     public function import_errors(Request $request)
     {
@@ -78,20 +78,35 @@ class ManagementController extends Controller
     }
     public function import_testing(Request $request)
     {
-        $files = array_reverse([
-            'modules/aegis/import/projects.json',
-            'modules/aegis/import/projects_and_documents.json',
-            'modules/aegis/import/projects_and_document_signatures.json',
+        $errors      = [];
+        $errors_file = 'modules/aegis/import/errors.json';
+        $files       = [
             'modules/aegis/import/project_data.json',
-        ]);
+            'modules/aegis/import/projects_and_document_signatures.json',
+            'modules/aegis/import/projects_and_documents.json',
+            'modules/aegis/import/projects.json',
+        ];
+        $projects = [];
+        $tabs     = [];
+        if (\Storage::exists($errors_file)) {
+            $errors = json_decode(\Storage::get($errors_file), true);
+            $tabs[] = 'Errors';
+        }
+        $this->errors = json_decode(
+            \Storage::get('modules/aegis/import/errors.json'),
+            true
+        );
         foreach ($files as $file) {
             if (\Storage::exists($file)) {
                 $projects = json_decode(\Storage::get($file), true);
+                $tabs[]   = 'Data';
                 break;
             }
         }
         return parent::view(compact(
-            'projects'
+            'errors',
+            'projects',
+            'tabs'
         ));
     }
     public function job_titles(Request $request)
