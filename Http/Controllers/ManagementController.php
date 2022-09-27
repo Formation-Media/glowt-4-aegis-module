@@ -147,7 +147,7 @@ class ManagementController extends Controller
     {
         $breadcrumbs  = [];
         $project_type = Type::find($id);
-        $parent_tree  = Type::getOrdered()->selectTree();
+        $parent_tree  = Type::getOrdered()->selectTree(select_parent: true);
 
         $page_menu = array(
             [
