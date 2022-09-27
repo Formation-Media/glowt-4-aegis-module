@@ -14,5 +14,4 @@ class CompanyType extends Model
         'type_id',
     ];
     protected $table = 'm_aegis_company_types';
-
 }
