@@ -23,7 +23,7 @@ class ProjectsController extends Controller
         $documents_module_enabled = Modules::isEnabled('Documents');
         $page_menu                = [];
         $phases                   = [];
-        $project                  = Project::find($id);
+        $project                  = Project::findOrFail($id);
         $types                    = Type::where('status', true)->getOrdered()->selectTree();
         $variants                 = $project->variants;
 
