@@ -14,14 +14,16 @@ class SubmitDocumentValidation
                 $users = [];
                 foreach ($args['validated']['approval_process_items'] as $stages) {
                     foreach ($stages as $item) {
-                        if (in_array($item['approver'], $users)) {
-                            $args['validator']->errors()->add(
-                                'global_errors',
-                                'aegis::messages.document.duplicate-approval-item-users',
-                            );
-                            break;
+                        if ($item['approver-autocomplete']) {
+                            if (in_array($item['approver'], $users)) {
+                                $args['validator']->errors()->add(
+                                    'global_errors',
+                                    'aegis::messages.document.duplicate-approval-item-users',
+                                );
+                                break;
+                            }
+                            $users[] = $item['approver'];
                         }
-                        $users[] = $item['approver'];
                     }
                 }
             }
