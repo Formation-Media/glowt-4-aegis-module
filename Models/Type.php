@@ -2,13 +2,15 @@
 
 namespace Modules\AEGIS\Models;
 
-use \App\Models\Base_Model;
+use App\Models\Base_Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Type extends Model
 {
     use Base_Model;
+    use SoftDeletes;
 
     protected $fillable = [
         'added_by',
