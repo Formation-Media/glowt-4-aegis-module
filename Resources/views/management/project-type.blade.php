@@ -28,6 +28,15 @@
                 type="select"
                 value="{{ $project_type->parent_id }}"
             />
+            <x-field
+                label="dictionary.company"
+                multiple
+                name="company_ids[]"
+                :options="$companies"
+                required
+                type="select"
+                :value="$project_type->companies->pluck('id')->toArray()"
+            />
         </x-card>
         <x-field type="actions">
             <x-slot name="center">

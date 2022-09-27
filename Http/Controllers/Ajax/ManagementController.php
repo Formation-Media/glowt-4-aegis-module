@@ -3,9 +3,9 @@
 namespace Modules\AEGIS\Http\Controllers\Ajax;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Notifications\Toast;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Models\CompanyType;
 use Modules\AEGIS\Models\JobTitle;
 use Modules\AEGIS\Models\UserGrade;
 use Modules\AEGIS\Models\Type;
@@ -31,12 +31,28 @@ class ManagementController extends Controller
     }
     public function add_type(Request $request)
     {
-        $type            = new Type();
-        $type->name      = $request->name;
-        $type->added_by  = \Auth::id();
-        $type->parent_id = $request->parent_id;
-        $type->save();
-        return $type;
+        return parent::validate(
+            $request,
+            [
+                'company_ids' => 'required|array',
+                'name'        => 'required',
+                'parent_id'   => 'nullable|exists:m_aegis_types,id',
+            ],
+            function ($validated) {
+                $type            = new Type();
+                $type->name      = $validated['name'];
+                $type->added_by  = \Auth::id();
+                $type->parent_id = $validated['parent_id'];
+                $type->save();
+                foreach ($validated['company_ids'] as $company_id) {
+                    CompanyType::create([
+                        'company_id' => $company_id,
+                        'type_id'    => $type->id,
+                    ]);
+                }
+                return $type;
+            },
+        );
     }
     public function delete_job_title(Request $request)
     {

@@ -6,6 +6,7 @@ use App\Helpers\FontAwesome;
 use App\Notifications\Toast;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Helpers\Icons;
 use Modules\AEGIS\Models\Type as ModelsType;
 
 class Type
@@ -65,6 +66,10 @@ class Type
             'dictionary.children' => [
                 'icon'  => 'list-tree',
                 'value' => $result->children()->count(),
+            ],
+            'dictionary.companies' => [
+                'icon'  => Icons::company(),
+                'value' => $result->companies->pluck('name')->toArray(),
             ],
             'dictionary.added' => [
                 'icon'  => FontAwesome::datetime_icon($result->created_at->format('Y-m-d H:i:s'), true),

@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Type;
 
 class ManagementController extends Controller
@@ -116,6 +117,7 @@ class ManagementController extends Controller
     public function project_type(Request $request, $id)
     {
         $breadcrumbs  = [];
+        $companies    = Company::Ordered()->pluck('name', 'id')->toArray();
         $page_menu    = [];
         $project_type = Type::findOrFail($id);
         $parent_tree  = Type::where('id', '<>', $id)->getOrdered()->selectTree(select_parent: true);
@@ -138,6 +140,7 @@ class ManagementController extends Controller
 
         return parent::render(compact(
             'breadcrumbs',
+            'companies',
             'page_menu',
             'parent_tree',
             'project_type',
@@ -146,6 +149,7 @@ class ManagementController extends Controller
     public function project_types(Request $request, $id = null)
     {
         $breadcrumbs  = [];
+        $companies    = Company::Ordered()->pluck('name', 'id')->toArray();
         $project_type = Type::find($id);
         $parent_tree  = Type::getOrdered()->selectTree(select_parent: true);
 
@@ -176,6 +180,7 @@ class ManagementController extends Controller
 
         return parent::view(compact(
             'breadcrumbs',
+            'companies',
             'page_menu',
             'parent_tree',
             'project_type',

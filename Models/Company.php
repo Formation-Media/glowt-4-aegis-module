@@ -16,11 +16,16 @@ class Company extends Model
     protected $fillable = [];
     protected $table    = 'm_aegis_companies';
 
+    // Relations
     public function pdf_footer()
     {
         return $this->morphOne(File::class, 'fileable');
     }
-
+    public function types()
+    {
+        return $this->belongsToMany(Type::class, 'm_aegis_company_types');
+    }
+    // Scopes
     public function scopeMDSS(Builder $query)
     {
         return $query->where('show_for_mdss', true);

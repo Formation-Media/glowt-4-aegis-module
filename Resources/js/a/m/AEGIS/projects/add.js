@@ -7,19 +7,39 @@ let add = {
         let reference = document.querySelector('.reference-outer');
         let next      = reference.querySelector('input');
         let prefix    = reference.querySelector('.input-group-text');
+        let types     = document.querySelector('[name="type"]');
         document.querySelector('[name="company_id"]').addEventListener('change', function() {
             next.value       = '';
             prefix.innerHTML = '&hellip;/';
             if (this.value) {
                 app.show_loader();
                 app.ajax(
-                    'm/AEGIS/companies/get-reference',
+                    'm/AEGIS/companies/get-details',
                     {
                         company_id: this.value
                     },
                     function(json) {
                         if (json.status) {
+                            let html         = '<option value="">Select&hellip;</option>';
                             prefix.innerHTML = json.data.prefix + '/';
+                            if (json.data.types) {
+                                for (let id in json.data.types) {
+                                    let type = json.data.types[id];
+                                    if (typeof type === 'string') {
+                                        html += '<option value="' + id + '">' + type + '</option>';
+                                    } else {
+                                        html += '<optgroup label="' + id + '">';
+                                        for (let child in type) {
+                                            html += '<option value="' + type[child] + '">' + child + '</option>';
+                                        }
+                                        html += '</option>';
+                                    }
+                                }
+                                types.disabled = false;
+                            } else {
+                                types.disabled = true;
+                            }
+                            types.innerHTML = html;
                         }
                     },
                     null,

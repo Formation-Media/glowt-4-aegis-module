@@ -23,8 +23,8 @@ class ProjectsController extends Controller
         $documents_module_enabled = Modules::isEnabled('Documents');
         $page_menu                = [];
         $phases                   = [];
-        $project                  = Project::findOrFail($id);
-        $types                    = Type::where('status', true)->getOrdered()->selectTree();
+        $project                  = Project::with('company')->findOrFail($id);
+        $types                    = $project->company->types()->where('status', true)->getOrdered()->selectTree();
         $variants                 = $project->variants;
 
         $customer = $project->customer ?? null;
@@ -75,11 +75,9 @@ class ProjectsController extends Controller
     {
         $companies = Company::MDSS()->ordered()->pluck('name', 'id')->toArray();
         $customer  = Customer::find($id);
-        $types     = Type::where('status', true)->getOrdered()->selectTree();
         return parent::view(compact(
             'companies',
             'customer',
-            'types'
         ));
     }
 

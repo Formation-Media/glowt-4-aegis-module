@@ -14,6 +14,7 @@ class Type extends Model
 
     protected $fillable = [
         'added_by',
+        'company_id',
         'name',
         'parent_id',
     ];
@@ -36,6 +37,10 @@ class Type extends Model
     public function children()
     {
         return $this->hasMany(Type::class, 'parent_id');
+    }
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'm_aegis_company_types');
     }
     public function parent()
     {

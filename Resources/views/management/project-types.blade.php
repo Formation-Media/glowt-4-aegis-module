@@ -32,6 +32,14 @@
                 placeholder="dictionary.none"
                 type="select"
             />
+            <x-field
+                label="dictionary.company"
+                multiple
+                name="company_ids[]"
+                :options="$companies"
+                required
+                type="select"
+            />
         </x-form>
     </x-modal>
 @endsection
