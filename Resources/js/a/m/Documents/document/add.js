@@ -19,6 +19,7 @@ var add = {
     check_issue:function(reference) {
         if (this.category && this.variant && reference.length > 0) {
             app.show_loader();
+            let submit = document.querySelector('[name="document"] [name="add"][type="submit"]');
             app.ajax(
                 'm/AEGIS/projects/check-issue',
                 {
@@ -37,8 +38,11 @@ var add = {
                             document.querySelector('[name="description"]').value                = json.data.previous_document.document.description;
                             document.querySelector('[name="link"]').value                       = json.data.previous_document.document.link;
                             document.querySelector('[name="name"]').value                       = json.data.previous_document.document.name;
-                            console.log(json.data.previous_document);
                         }
+                        app.unset_hidden(submit);
+                    } else {
+                        add.issue.value = json.data.issue;
+                        app.set_hidden(submit);
                     }
                 },
                 null,

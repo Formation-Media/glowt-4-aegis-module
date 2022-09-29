@@ -44,9 +44,10 @@
                 type="textarea"
             />
             <x-field
+                disabled
                 label="dictionary.type"
                 name="type"
-                :options="$types"
+                :options="[]"
                 required
                 type="select"
             />

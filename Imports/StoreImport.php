@@ -58,7 +58,6 @@ class StoreImport
 
         $companies         = Company::withTrashed()->pluck('id', 'abbreviation')->toArray();
         $errors            = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
-        $existing_projects = Project::pluck('id', 'reference')->toArray();
         $groups            = Group::all();
         $projects          = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
         $users             = User::withTrashed()->get();
@@ -82,10 +81,20 @@ class StoreImport
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;Processing data',
         ]);
-        $i = 0;
+        // Loop through Projects
+        $i     = 0;
+        $limit = 100;
+        \Log::emergency('----- LIMITING TO FIRST '.$limit.' PROJECTS -----');
+        $stream->send([
+            'percentage' => 0,
+            'message'    => '&nbsp;&nbsp;&nbsp;----- LIMITING TO FIRST '.$limit.' PROJECTS -----',
+        ]);
+        $projects = array_slice($projects, 0, $limit);
         foreach ($projects as $project_reference => $project) {
             $customer_id   = $this->get_customer($project['customer']);
             $type_id       = $this->get_type($project['type']);
+
+            // Create/Load Project
             $project_model = Project::firstOrNew([
                 'reference' => $project_reference,
             ]);
@@ -97,14 +106,17 @@ class StoreImport
             $project_model->type_id     = $type_id;
             $project_model->save(['timestamps' => false]);
 
+            // Loop through phases if there are any
             if ($project['phases']) {
                 foreach ($project['phases'] as $variant_number => $variant) {
+                    // Get reference
                     if ($variant_number === 0) {
                         $reference = $project_model->reference;
                     } else {
-                        \Debug::debug($variant);
-                        break;
+                        \Debug::emergency($variant);
+                        $this->stream->stop();
                     }
+                    // Create/Load Variant
                     $project_variant_model = ProjectVariant::firstOrNew([
                         'project_id'     => $project_model->id,
                         'is_default'     => $variant_number === 0 ? true : false,
@@ -117,228 +129,258 @@ class StoreImport
                     $project_variant_model->reference   = $reference;
                     $project_variant_model->save(['timestamps' => false]);
 
+                    // Loop through documents if there are any
                     if (!isset($variant['documents'])) {
-                        \Debug::debug($variant);
-                        break 2;
-                    } elseif ($variant['documents']) {
-                        foreach ($variant['documents'] as $document_reference => $document) {
-                            $category_id = $this->get_category($document['category'], $document['category_prefix']);
-                            $meta        = [];
-                            $process_id  = $this->get_approval_process($document['category']);
-                            try {
-                                $document_model = Document::firstOrNew([
-                                    'name' => $document['name'],
-                                ]);
-                                $document_model->author_reference = 'N/a';
-                                $document_model->category_id      = $category_id;
-                                $document_model->created_by       = $this->get_user($document['created_by']);
-                                $document_model->status           = 'Approved';
-                                $document_model->submitted_at     = $document['submitted_at'];
-                                $document_model->process_id       = $process_id;
-                                $document_model->save(['timestamps' => false]);
-                            } catch (\Exception $e) {
-                                \Debug::debug([$document['name'] => $e->getMessage()]);
-                                $this->stream->stop();
-                            }
-                            $variant_model = VariantDocument::firstOrNew([
-                                'variant_id'  => $project_variant_model->id,
-                                'document_id' => $document_model->id,
-                                'issue'       => $document['issue'],
-                            ]);
-                            $variant_model->created_at = $document['created_at'];
-                            $variant_model->reference  = $document_reference;
-                            $variant_model->save(['timestamps' => false]);
-
-                            if ($document['category_prefix'] === 'FBL') {
-                                if ($document['feedback_list']) {
-                                    if ($document['feedback_list']['type']) {
-                                        $meta['feedback_list_type_id'] = $this->get_feedback_list_type(
-                                            $document['feedback_list']['type'],
-                                            $document['feedback_list']['name'],
-                                            $document_reference
-                                        );
-                                    }
-                                    $meta['final_feedback_list'] = $document['feedback_list']['final'];
-                                }
-                            }
+                        \Debug::emergency($variant);
+                        $this->stream->stop();
+                        continue;
+                    }
+                    foreach ($variant['documents'] as $document_reference => $document) {
+                        // Get Category and Process
+                        $category_id = $this->get_category($document['category'], $document['category_prefix']);
+                        $process_id  = $this->get_approval_process($document['category']);
+                        // Clear document meta (additional information for AEGIS)
+                        $meta = [];
+                        // If author role, set
+                        if ($document['created_by_role']) {
                             $meta['author_role'] = $this->get_job_title($document['created_by_role']);
-                            $document_model->setMeta($meta);
-                            $document_model->save(['timestamps' => false]);
-                            if (!isset($document['comments'])) {
-                                \Debug::debug($document);
-                                break 3;
-                            } elseif ($document['comments']) {
-                                foreach ($document['comments'] as $comment) {
-                                    $comment = Comment::firstOrNew([
-                                        'content'                   => $comment['content'],
-                                        'document_approval_item_id' => null,
-                                        'document_id'               => $document_model->id,
-                                        'user_id'                   => $this->get_user($comment['author']),
-                                    ]);
-                                    $comment->created_at = $comment['created_at'];
-                                    $comment->updated_at = $comment['updated_at'];
-                                    $comment->save(['timestamps' => false]);
+                        }
+                        // Create/Load Document
+                        $document_model = Document::firstOrNew([
+                            'name' => trim($document['name']),
+                        ]);
+                        $is_new                           = $document_model->id ? false : true;
+                        $document_model->author_reference = 'N/a';
+                        $document_model->category_id      = $category_id;
+                        $document_model->created_by       = $this->get_user($document['created_by']);
+                        $document_model->status           = isset($document['submitted_at']) ? 'Approved' : 'In Approval';
+                        $document_model->submitted_at     = isset($document['submitted_at']) ? $document['submitted_at'] : null;
+                        $document_model->process_id       = $process_id;
+                        $document_model->save(['timestamps' => false]);
+                        // Log "New Document"
+                        if ($is_new) {
+                            $document_model->log(
+                                'documents::messages.created-on-behalf',
+                                ['who' => $document_model->created_by->name]
+                            );
+                        }
+                        // Create/Load Document Variant
+                        $variant_model = VariantDocument::firstOrNew([
+                            'variant_id'  => $project_variant_model->id,
+                            'document_id' => $document_model->id,
+                            'issue'       => $document['issue'],
+                        ]);
+                        $variant_model->created_at = $document['created_at'];
+                        $variant_model->reference  = $document_reference;
+                        $variant_model->save(['timestamps' => false]);
+
+                        // If FBL
+                        if ($document['category_prefix'] === 'FBL') {
+                            if ($document['feedback_list']) {
+                                if ($document['feedback_list']['type']) {
+                                    $meta['feedback_list_type_id'] = $this->get_feedback_list_type(
+                                        $document['feedback_list']['type'],
+                                        $document['feedback_list']['name'],
+                                        $document_reference
+                                    );
                                 }
+                                $meta['final_feedback_list'] = $document['feedback_list']['final'];
                             }
-                            if ($document['approval']) {
-                                foreach ($document['approval'] as $role => $approval_issues) {
-                                    $approval_process      = $document_model->approval_process;
-                                    $signature             = [
-                                        'group_id' => $this->get_group($role),
-                                    ];
-                                    // Get Approval Stage
-                                    if ($approval_process->name === 'Archived') {
-                                        $approval_stage = $approval_process->approval_process_stages->first();
-                                    } elseif ($approval_process
-                                        ->approval_process_stages
-                                        ->where('name', ucwords($role))
+                        }
+                        // Save Meta
+                        $document_model->setMeta($meta);
+                        $document_model->save(['timestamps' => false]);
+
+                        // Loop through Comments if there are any
+                        if (!isset($document['comments'])) {
+                            \Debug::debug($document);
+                            $this->stream->stop();
+                        } elseif ($document['comments']) {
+                            foreach ($document['comments'] as $comment) {
+                                $comment_model = Comment::firstOrNew([
+                                    'content'                   => $comment['content'],
+                                    'document_approval_item_id' => null,
+                                    'document_id'               => $document_model->id,
+                                    'user_id'                   => $this->get_user($comment['author']),
+                                ]);
+                                $comment_model->created_at = $comment['created_at'];
+                                $comment_model->updated_at = $comment['updated_at'];
+                                $comment_model->save(['timestamps' => false]);
+                            }
+                        }
+                        // Loop through approval if there are any
+                        if (!$document['approval']) {
+                            continue;
+                        }
+                        foreach ($document['approval'] as $role => $approval_issues) {
+                            $approval_process = $document_model->approval_process;
+                            $signature        = [
+                                'group_id' => $this->get_group($role),
+                            ];
+                            // Get Approval Stage
+                            if ($approval_process->name === 'Archived') {
+                                // The first stage will be "Archived"
+                                $approval_stage = $approval_process->approval_process_stages->first();
+                            } elseif ($approval_process
+                                ->approval_process_stages
+                                ->where('name', ucwords($role))
+                                ->count() === 1
+                            ) {
+                                // Use the first stage if there's only one
+                                $approval_stage = $approval_process
+                                    ->approval_process_stages
+                                    ->where('name', ucwords($role))
+                                    ->first();
+                            } else {
+                                // If there's more than one stage
+                                $role_convert = [
+                                    'Report' => [
+                                        'Reviewer' => 'Checker',
+                                    ],
+                                ];
+                                // Convert the role then check for stages
+                                if (array_key_exists($approval_process->name, $role_convert)) {
+                                    $new_role = $role_convert[$approval_process->name][ucwords($role)];
+                                    if ($approval_process->approval_process_stages
+                                        ->where('name', $new_role)
                                         ->count() === 1
                                     ) {
                                         $approval_stage = $approval_process
                                             ->approval_process_stages
-                                            ->where('name', ucwords($role))
+                                            ->where('name', $new_role)
                                             ->first();
                                     } else {
-                                        $role_convert = [
-                                            'Report' => [
-                                                'Reviewer' => 'Checker',
-                                            ],
-                                        ];
-                                        if (array_key_exists($approval_process->name, $role_convert)) {
-                                            if (array_key_exists(ucwords($role), $role_convert[$approval_process->name])) {
-                                                $new_role = $role_convert[$approval_process->name][ucwords($role)];
-                                                if ($approval_process->approval_process_stages
-                                                    ->where('name', $new_role)
-                                                    ->count() === 1
-                                                ) {
-                                                    $approval_stage = $approval_process
-                                                        ->approval_process_stages
-                                                        ->where('name', $new_role)
-                                                        ->first();
-                                                } else {
-                                                    \Debug::debug([
-                                                        'name'   => $new_role,
-                                                        $approval_process->approval_process_stages->count(),
-                                                    ]);
-                                                    break 4;
-                                                }
-                                            }
-                                        } elseif ($approval_process
-                                            ->approval_process_stages
-                                            ->where('name', ucwords($role))
-                                            ->count() === 0
-                                        ) {
-                                            $numbers = [
-                                                'Letter / Memo' => [
-                                                    'Reviewer' => 0,
-                                                ],
-                                                'Proposal' => [
-                                                    'Reviewer' => 0,
-                                                ],
-                                                'Report' => [
-                                                    'Assessor' => 2,
-                                                ],
-                                            ];
-                                            if (array_key_exists($approval_process->name, $numbers)
-                                                && array_key_exists(ucwords($role), $numbers[$approval_process->name])
-                                            ) {
-                                                $number = $numbers[$approval_process->name][ucwords($role)];
-                                                $stage  = ApprovalProcessStage::firstOrNew([
-                                                    'approval_process_id' => $approval_process->id,
-                                                    'name'                => ucwords($role),
-                                                ]);
-                                                $stage->approvals_until_progressed = 0;
-                                                $stage->number                     = $number;
-                                                $stage->save(['timestamps' => false]);
-                                                \Debug::debug([
-                                                    $approval_process->approval_process_stages
-                                                        ->where('name', ucwords($role))
-                                                        ->count(),
-                                                    $stage->toArray(),
-                                                ]);
-                                                \Debug::debug([
-                                                    ApprovalProcessItem::class,
-                                                    [
-                                                        'approval_stage_id'    => $stage->id,
-                                                        'required_to_progress' => false,
-                                                    ],
-                                                ]);
-                                                break 4;
-                                            } else {
-                                                \Debug::debug(
-                                                    $approval_process->name,
-                                                    ucwords($role),
-                                                );
-                                                break 4;
-                                            }
-                                        } else {
-                                            \Debug::debug(
-                                                $approval_process->name,
-                                                ucwords($role)
-                                            );
-                                            break 4;
-                                        }
+                                        \Debug::debug([
+                                            'name' => $new_role,
+                                            'approval_process_stages' => $approval_process->approval_process_stages->count(),
+                                        ]);
+                                        $this->stream->stop();
                                     }
-                                    // Get Approval Item
-                                    if ($approval_stage->approval_process_items->count() === 1) {
-                                        $approval_item = $approval_stage->approval_process_items()->first();
-                                    } elseif ($approval_stage->approval_process_items->count() === 0) {
-                                        $approval_item = ApprovalProcessItem::firstOrCreate([
-                                            'approval_stage_id'    => $approval_stage->id,
+                                } elseif ($approval_process
+                                    ->approval_process_stages
+                                    ->where('name', ucwords($role))
+                                    ->count() === 0
+                                ) {
+                                    // If there's no approval process stages
+                                    $numbers = [
+                                        'Feedback List' => [
+                                            'Reviewer' => 0,
+                                        ],
+                                        'Letter / Memo' => [
+                                            'Reviewer' => 0,
+                                        ],
+                                        'Proposal' => [
+                                            'Reviewer' => 0,
+                                        ],
+                                        'Report' => [
+                                            'Assessor' => 2,
+                                        ],
+                                    ];
+                                    // If the approval process and role is in $numbers, create the stage and item
+                                    if (array_key_exists($approval_process->name, $numbers)
+                                        && array_key_exists(ucwords($role), $numbers[$approval_process->name])
+                                    ) {
+                                        $number = $numbers[$approval_process->name][ucwords($role)];
+                                        $stage  = ApprovalProcessStage::firstOrNew([
+                                            'approval_process_id' => $approval_process->id,
+                                            'name'                => ucwords($role),
+                                        ]);
+                                        $stage->approvals_until_progressed = 0;
+                                        $stage->number                     = $number;
+                                        $stage->save(['timestamps' => false]);
+
+                                        ApprovalProcessItem::firstOrCreate([
+                                            'approval_stage_id'    => $stage->id,
                                             'required_to_progress' => false,
                                         ]);
-                                        ApprovalItemGroup::firstOrCreate(
-                                            [
-                                                'approval_item_id' => $approval_item->id,
-                                                'group_id'         => $this->get_group($role),
-                                            ]
-                                        );
+                                    } else {
+                                        // There's no approval process stage and the approval process and role isn't in $numbers
+                                        \Debug::debug([
+                                            'approval process name' => $approval_process->name,
+                                            'role'                  => ucwords($role),
+                                        ]);
+                                        $this->stream->stop();
                                     }
-                                    foreach ($approval_issues as $issue => $approval_users) {
-                                        foreach ($approval_users as $approval_references) {
-                                            foreach ($approval_references as $user_reference => $approval) {
-                                                if (!isset($approval['signed_date'])) {
-                                                    \Debug::debug($approval);
-                                                    continue;
-                                                }
-                                                $signature['job_title_id'] = $this->get_job_title($approval['role']);
-                                                $signature['user_id']      = $this->get_user($user_reference);
-
-                                                $this->check_user_group($role, $signature['user_id']);
-
-                                                $approval_process_item = DocumentApprovalProcessItem::firstOrNew([
-                                                    'agent_id'         => $signature['user_id'],
-                                                    'approval_item_id' => $approval_item->id,
-                                                    'document_id'      => $document_model->id,
-                                                    'reference'        => $approval['signature_reference'],
-                                                ]);
-                                                $approval_process_item->created_at  = $approval['created_at'];
-                                                $approval_process_item->status      = $approval['status'];
-                                                $approval_process_item->updated_at  = $approval['updated_at'];
-
-                                                $approval_process_item->save(['timestamps' => false]);
-
-                                                if ($approval['comments']) {
-                                                    $comment = Comment::firstOrNew([
-                                                        'content'                   => $approval['comments'],
-                                                        'document_approval_item_id' => $approval_process_item->id,
-                                                        'document_id'               => $document_model->id,
-                                                        'user_id'                   => $approval_process_item->agent_id,
-                                                    ]);
-                                                    $comment->created_at = $approval['created_at'];
-                                                    $comment->updated_at = $approval['updated_at'];
-                                                    $comment->save(['timestamps' => false]);
-                                                }
-                                                DocumentApprovalItemDetails::firstOrCreate(
-                                                    [
-                                                        'approval_item_id' => $approval_process_item->id,
-                                                        'company_id'       => $this->get_company($approval['company']),
-                                                        'job_title_id'     => $this->get_job_title($approval['role']),
-                                                    ],
-                                                    []
-                                                );
-                                            }
+                                } else {
+                                    // there's more than one approval process stage
+                                    \Debug::debug([
+                                        'approval process name' => $approval_process->name,
+                                        'role'                  => ucwords($role),
+                                    ]);
+                                    $this->stream->stop();
+                                }
+                            }
+                            // Get Approval Item
+                            if ($approval_stage->approval_process_items->count() === 1) {
+                                // If only 1
+                                $approval_item = $approval_stage->approval_process_items()->first();
+                            } elseif ($approval_stage->approval_process_items->count() === 0) {
+                                // If there's none, create the item and group
+                                $approval_item = ApprovalProcessItem::firstOrCreate([
+                                    'approval_stage_id'    => $approval_stage->id,
+                                    'required_to_progress' => false,
+                                ]);
+                                ApprovalItemGroup::firstOrCreate(
+                                    [
+                                        'approval_item_id' => $approval_item->id,
+                                        'group_id'         => $this->get_group($role),
+                                    ]
+                                );
+                            }
+                            foreach ($approval_issues as $issue => $approval_users) {
+                                if ($role === 'author') {
+                                    $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
+                                        .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
+                                        .' needs processing';
+                                    continue;
+                                }
+                                foreach ($approval_users as $approval_references) {
+                                    foreach ($approval_references as $user_reference => $approval) {
+                                        if (!isset($approval['company'])) {
+                                            $approval['company'] = $project['company'];
                                         }
+                                        if (!array_key_exists('role', $approval)) {
+                                            $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
+                                                .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
+                                                .' does not have an assigned role';
+                                            continue;
+                                        }
+                                        $signature['job_title_id'] = $this->get_job_title($approval['role']);
+                                        $signature['user_id']      = $this->get_user($user_reference);
+
+                                        $this->check_user_group($role, $signature['user_id']);
+
+                                        $approval_process_item = DocumentApprovalProcessItem::firstOrNew([
+                                            'agent_id'         => $signature['user_id'],
+                                            'approval_item_id' => $approval_item->id,
+                                            'document_id'      => $document_model->id,
+                                            'reference'        => $approval['signature_reference'],
+                                        ]);
+                                        $approval_process_item->created_at  = $approval['created_at'];
+                                        $approval_process_item->status      = $approval['status'];
+                                        $approval_process_item->updated_at  = $approval['updated_at'];
+
+                                        $approval_process_item->save(['timestamps' => false]);
+
+                                        if ($approval['comments']) {
+                                            $comment = Comment::firstOrNew([
+                                                'content'                   => $approval['comments'],
+                                                'document_approval_item_id' => $approval_process_item->id,
+                                                'document_id'               => $document_model->id,
+                                                'user_id'                   => $approval_process_item->agent_id,
+                                            ]);
+                                            $comment->created_at = $approval['created_at'];
+                                            $comment->updated_at = $approval['updated_at'];
+                                            $comment->save(['timestamps' => false]);
+                                        }
+                                        DocumentApprovalItemDetails::firstOrCreate(
+                                            [
+                                                'approval_item_id' => $approval_process_item->id,
+                                                'company_id'       => $this->get_company($approval['company']),
+                                                'job_title_id'     => $this->get_job_title($approval['role']),
+                                            ],
+                                            []
+                                        );
                                     }
                                 }
                             }
@@ -360,10 +402,10 @@ class StoreImport
                 );
             }
             $this->stream->send([
-                'percentage' => round(($i ++) / count($projects) * 100, 1),
+                'percentage' => number_format(($i ++) / count($projects) * 100, 2),
             ]);
         }
-        \Storage::put('modules/aegis/import/errors.json', json_encode($errors));
+        \Storage::put('modules/aegis/import/errors.json', json_encode($errors, JSON_PRETTY_PRINT));
     }
     private function check_user_group($group, $user_id)
     {
@@ -398,6 +440,7 @@ class StoreImport
     }
     private function get_category($name, $prefix)
     {
+        $name = trim($name);
         if (array_key_exists($name, $this->categories)) {
             $category_id = $this->categories[$name];
         } else {
@@ -521,34 +564,50 @@ class StoreImport
             if (($email_position = array_search($new_user_data['email'], $user_emails)) !== false) {
                 $user = $this->users[array_keys($this->users)[$email_position]];
             } else {
-                $first_name   = ucwords(substr($reference, 0, 1));
-                $last_name    = ucwords(substr($reference, 1));
-                $user         = User::create([
-                    'title'      => '',
-                    'first_name' => $first_name,
-                    'last_name'  => $last_name,
-                    'email'      => $new_user_data['email'],
-                    'status'     => false,
-                ]);
-
-                $i              = 1;
-                $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
-
-                while (in_array($user_reference.$i, $this->user_references->toArray())) {
-                    $i++;
+                $found = false;
+                foreach ([
+                    'aegis-cert.co.uk',
+                    'aegisengineering.co.uk',
+                ] as $email_domain) {
+                    if ($db_user = User::firstWhere('email', $reference.'@'.$email_domain)) {
+                        $this->users[$reference] = [
+                            'id'    => $db_user->id,
+                            'email' => $db_user->email,
+                        ];
+                        $found = true;
+                        $user  = $this->users[$reference];
+                    }
                 }
-                $user->setMeta([
-                    'aegis.type'             => 1,
-                    'aegis.import-reference' => $reference,
-                    'aegis.user-reference'   => $user_reference.$i,
-                ]);
-                $user->roles()->sync([config('roles.by_name.core.staff')]);
-                $user->save();
-                $new_user_data['id']     = $user->id;
-                $this->users[$reference] = $new_user_data;
-                $this->stream->send([
-                    'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
-                ]);
+                if (!$found) {
+                    $first_name   = ucwords(substr($reference, 0, 1));
+                    $last_name    = ucwords(substr($reference, 1));
+                    $user         = User::create([
+                        'title'      => '',
+                        'first_name' => $first_name,
+                        'last_name'  => $last_name,
+                        'email'      => $new_user_data['email'],
+                        'status'     => false,
+                    ]);
+
+                    $i              = 1;
+                    $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
+
+                    while (in_array($user_reference.$i, $this->user_references->toArray())) {
+                        $i++;
+                    }
+                    $user->setMeta([
+                        'aegis.type'             => 1,
+                        'aegis.import-reference' => $reference,
+                        'aegis.user-reference'   => $user_reference.$i,
+                    ]);
+                    $user->roles()->sync([config('roles.by_name.core.staff')]);
+                    $user->save();
+                    $new_user_data['id']     = $user->id;
+                    $this->users[$reference] = $new_user_data;
+                    $this->stream->send([
+                        'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+                    ]);
+                }
             }
         } else {
             $user = $this->users[$reference];

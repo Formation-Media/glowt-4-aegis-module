@@ -98,6 +98,6 @@ class UsersImport implements ToCollection
             'is_lead_assessor'   => 'Lead_Assessor',
         ];
 
-        return $this->row[array_search($columns[$key], array_values($columns))];
+        return trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $this->row[array_search($columns[$key], array_values($columns))]));
     }
 }

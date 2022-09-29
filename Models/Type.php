@@ -2,16 +2,19 @@
 
 namespace Modules\AEGIS\Models;
 
-use \App\Models\Base_Model;
+use App\Models\Base_Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Type extends Model
 {
     use Base_Model;
+    use SoftDeletes;
 
     protected $fillable = [
         'added_by',
+        'company_id',
         'name',
         'parent_id',
     ];
@@ -34,6 +37,10 @@ class Type extends Model
     public function children()
     {
         return $this->hasMany(Type::class, 'parent_id');
+    }
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'm_aegis_company_types');
     }
     public function parent()
     {

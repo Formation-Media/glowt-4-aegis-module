@@ -8,9 +8,9 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 
 class ProjectsImport implements ToCollection
 {
+    private $errors;
     private $projects;
     private $stream;
-    private $variant_references = [];
 
     public function __construct(SSEStream $stream)
     {
@@ -18,8 +18,11 @@ class ProjectsImport implements ToCollection
     }
     public function collection(Collection $rows)
     {
-        $errors         = [];
         $user_id        = \Auth::id();
+        $this->errors = json_decode(
+            \Storage::get('modules/aegis/import/errors.json'),
+            true
+        );
         $this->projects = json_decode(
             \Storage::get('modules/aegis/import/projects.json'),
             true
@@ -34,17 +37,21 @@ class ProjectsImport implements ToCollection
             }
             extract($this->row($row));
 
-            if (array_key_exists($reference, $this->projects)) {
-                $this->errors['Projects'][$reference] = 'Duplicate Project ('.$reference.') shipping additional projects.';
+            if (array_key_exists($reference, $this->projects)
+                && array_key_exists($phase_number, $this->projects[$reference]['phases'])
+            ) {
+                $this->errors['Projects'][$reference] = 'Project '.$reference.', Phase '.$phase_number
+                    .' is a duplicate, skipping additional projects';
                 continue;
             }
-
-            $this->projects[$reference]['added_by']    = $user_id;
-            $this->projects[$reference]['company']     = $company;
-            $this->projects[$reference]['description'] = $description;
-            $this->projects[$reference]['name']        = $name;
-            $this->projects[$reference]['customer']    = $customer;
-            $this->projects[$reference]['type']        = $type;
+            if (!array_key_exists($reference, $this->projects)) {
+                $this->projects[$reference]['added_by']    = $user_id;
+                $this->projects[$reference]['company']     = $company;
+                $this->projects[$reference]['description'] = $description;
+                $this->projects[$reference]['name']        = $name;
+                $this->projects[$reference]['customer']    = $customer;
+                $this->projects[$reference]['type']        = $type;
+            }
 
             $this->projects[$reference]['phases'][$phase_number]['name']        = $phase_name;
             $this->projects[$reference]['phases'][$phase_number]['description'] = $phase_description;
@@ -56,7 +63,8 @@ class ProjectsImport implements ToCollection
             ]);
         }
         ksort($this->projects);
-        \Storage::put('modules/aegis/import/projects.json', json_encode($this->projects));
+        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));
+        \Storage::put('modules/aegis/import/projects.json', json_encode($this->projects, JSON_PRETTY_PRINT));
     }
     private function row($row)
     {
@@ -73,7 +81,11 @@ class ProjectsImport implements ToCollection
             'VARIANT NUMBER',
             'VARIANT DESCRIPTION',
         ];
-        $row  = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+        $row = $row->toArray();
+        foreach ($row as &$cell) {
+            $cell = trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $cell));
+        }
+        $row  = array_combine($keys, array_slice($row, 0, count($keys)));
 
         $data = [
             'company'           => null,

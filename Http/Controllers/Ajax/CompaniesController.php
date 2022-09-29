@@ -17,31 +17,32 @@ class CompaniesController extends Controller
         $company->delete();
         return true;
     }
-    public function get_reference(Request $request)
+    public function get_details(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            array(
+        return parent::validate(
+            $request,
+            [
                 'company_id' => 'required|exists:m_aegis_companies,id',
-            )
-        );
-        if ($validator->fails()) {
-            return parent::errors($validator);
-        }
-        $validated = $validator->validated();
-        $prefix    = Company::find($validated['company_id'])->abbreviation;
-        $next      = Project::where('reference', 'like', $prefix.'/%')->orderBy('id', 'desc')->first();
-        if ($next) {
-            $next = substr($next->reference, 4) + 1;
-            while (Project::where('reference', $prefix.'/'.$next)->count()) {
-                $next++;
-            }
-        } else {
-            $next = '001';
-        }
-        return compact(
-            'prefix',
-            'next',
+            ],
+            function ($validated) {
+                $company   = Company::find($validated['company_id']);
+                $prefix    = $company->abbreviation;
+                $next      = Project::where('reference', 'like', $prefix.'/%')->orderBy('id', 'desc')->first();
+                $types     = $company->types()->with('parent')->where('status', true)->getOrdered()->selectTree();
+                if ($next) {
+                    $next = substr($next->reference, 4) + 1;
+                    while (Project::where('reference', $prefix.'/'.$next)->count()) {
+                        $next++;
+                    }
+                } else {
+                    $next = '001';
+                }
+                return compact(
+                    'prefix',
+                    'next',
+                    'types',
+                );
+            },
         );
     }
     public function restore_company(Request $request)

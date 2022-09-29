@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Http\Controllers\Stream;
 use App\Helpers\SSEStream;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Modules\AEGIS\Imports\DocumentSignatureImport;
 use Modules\AEGIS\Imports\DocumentsImport;
 use Modules\AEGIS\Imports\ProjectsImport;
@@ -32,29 +33,35 @@ class ManagementController extends Controller
         ]);
         // Prepare blank .JSON
         $this->import_file_path = \Module::getModulePath('AEGIS').'/Resources/files/import/';
-        /*
-            TRUNCATE `m_aegis_document_approval_item_details`;
-            TRUNCATE `m_aegis_feedback_list_types`;
-            TRUNCATE `m_aegis_job_titles`;
-            TRUNCATE `m_aegis_projects`;
-            TRUNCATE `m_aegis_project_variants`;
-            TRUNCATE `m_aegis_scopes`;
-            TRUNCATE `m_aegis_types`;
-            TRUNCATE `m_aegis_variant_documents`;
-            TRUNCATE `m_documents_approval_items`;
-            TRUNCATE `m_documents_approval_items_groups`;
-            TRUNCATE `m_documents_approval_processes`;
-            TRUNCATE `m_documents_approval_stages`;
-            TRUNCATE `m_documents_categories`;
-            TRUNCATE `m_documents_category_approval_items`;
-            TRUNCATE `m_documents_category_approval_processes`;
-            TRUNCATE `m_documents_comments`;
-            TRUNCATE `m_documents_documents`;
-            TRUNCATE `m_documents_documents_approval_items`;
-            TRUNCATE `m_documents_groups`;
-            TRUNCATE `m_documents_meta`;
-            TRUNCATE `m_documents_user_groups`;
-        */
+
+        // Schema::disableForeignKeyConstraints();
+        // foreach ([
+        //     '\Modules\AEGIS\Models\CompanyType',
+        //     '\Modules\AEGIS\Models\DocumentApprovalItemDetails',
+        //     '\Modules\AEGIS\Models\FeedbackListType',
+        //     '\Modules\AEGIS\Models\JobTitle',
+        //     '\Modules\AEGIS\Models\Project',
+        //     '\Modules\AEGIS\Models\ProjectVariant',
+        //     '\Modules\AEGIS\Models\Scope',
+        //     '\Modules\AEGIS\Models\Type',
+        //     '\Modules\AEGIS\Models\VariantDocument',
+
+        //     '\Modules\Documents\Models\ApprovalItemGroup',
+        //     '\Modules\Documents\Models\ApprovalProcess',
+        //     '\Modules\Documents\Models\ApprovalProcessItem',
+        //     '\Modules\Documents\Models\ApprovalProcessStage',
+        //     '\Modules\Documents\Models\Category',
+        //     '\Modules\Documents\Models\CategoryApprovalProcess',
+        //     '\Modules\Documents\Models\CategoryApprovalProcessItem',
+        //     '\Modules\Documents\Models\Comment',
+        //     '\Modules\Documents\Models\Document',
+        //     '\Modules\Documents\Models\DocumentApprovalProcessItem',
+        //     '\Modules\Documents\Models\Group',
+        //     '\Modules\Documents\Models\UserGroup',
+        // ] as $class) {
+        //     $class::truncate();
+        // }
+        // Schema::enableForeignKeyConstraints();
         \Storage::delete([
             'modules/aegis/import/errors.json',
             'modules/aegis/import/projects.json',
@@ -62,6 +69,7 @@ class ManagementController extends Controller
             'modules/aegis/import/projects_and_document_signatures.json',
             'modules/aegis/import/project_data.json',
         ]);
+        \Storage::put('modules/aegis/import/errors.json', json_encode([]));
         \Storage::put('modules/aegis/import/projects.json', json_encode([]));
         $steps = [
             'users' => [
@@ -237,6 +245,10 @@ class ManagementController extends Controller
     }
     private function store($stream)
     {
+        $stream->send([
+            'percentage' => 0,
+            'message'    => 'Storing Data',
+        ]);
         new StoreImport($stream);
     }
 
