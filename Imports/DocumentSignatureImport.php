@@ -51,25 +51,29 @@ class DocumentSignatureImport implements ToCollection
 
             if (!isset($this->projects[$project_reference])) {
                 if (strpos($project_reference, '/') !== false && explode('/', $project_reference)[1] > 999) {
-                    $this->errors['Document Signatures'][$document_reference] = 'Project Not Found';
+                    $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found';
                 }
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project Phase ('.$phase_number.') not found';
+                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
+                    .$phase_number.' not found';
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project Phase ('.$phase_number.') has no documents';
+                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
+                    .$phase_number.' has no documents';
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project Phase ('.$phase_number
-                    .') does not have a document with reference '.$document_reference;
+                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
+                    .$phase_number.' does not have a document with this reference';
                 continue;
             }
 
             $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference];
+
+            $document['approval']['author'][$document_issue] = [];
 
             if ($reviewer['author']) {
                 $document['approval']['reviewer'][$document_issue][0][$reviewer['author']] = [
@@ -132,7 +136,7 @@ class DocumentSignatureImport implements ToCollection
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
             ]);
         }
-        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors));
+        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));
         \Storage::put('modules/aegis/import/projects_and_document_signatures.json', json_encode($this->projects, JSON_PRETTY_PRINT));
     }
     private function date_convert($date, $time = null)
@@ -235,7 +239,11 @@ class DocumentSignatureImport implements ToCollection
             'REVIEWED'  => 'Awaiting Decision',
             'SUBMITTED' => 'Awaiting Decision',
         ];
-        $row = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+        $row = $row->toArray();
+        foreach ($row as &$cell) {
+            $cell = trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $cell));
+        }
+        $row  = array_combine($keys, array_slice($row, 0, count($keys)));
 
         $data = [
             'approver'    => [

@@ -3,13 +3,11 @@
 namespace Modules\AEGIS\Imports;
 
 use App\Helpers\SSEStream;
-use App\Models\User;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 
 class SignatureImport implements ToCollection
 {
-    private $row;
     private $stream;
 
     public function __construct(SSEStream $stream)
@@ -52,10 +50,6 @@ class SignatureImport implements ToCollection
                     .$document_reference.'" and "'.$user_reference.'").';
                 continue;
             }
-            if ($role === 'author') {
-                // \Debug::error($row);
-                continue;
-            }
 
             foreach ($this->projects as $project_reference => $project) {
                 foreach ($project['phases'] as $variant_number => $variant) {
@@ -65,39 +59,8 @@ class SignatureImport implements ToCollection
                         && array_key_exists($role, $variant['documents'][$document_reference]['approval'])
                         && array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])
                     ) {
-                        $variant['documents'][$document_reference]['issue'] = max(
-                            $variant['documents'][$document_reference]['issue'],
-                            array_keys($variant['documents'][$document_reference]['approval'][$role])
-                        );
-
-                        $user_key = false;
-
-                        if (array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])) {
-                            foreach ($variant['documents'][$document_reference]['approval'][$role][$issue] as $key => $item) {
-                                if (array_search($user_reference, array_keys($item)) !== false) {
-                                    $user_key = $key;
-                                    break;
-                                }
-                            }
-                        } else {
-                            foreach ($variant['documents'][$document_reference]['approval'][$role] as $approval_issue => $items) {
-                                foreach ($items as $key => $item) {
-                                    if (array_search($user_reference, array_keys($item)) !== false) {
-                                        $user_key = $key;
-                                        break 2;
-                                    }
-                                }
-                            }
-                        }
-                        if ($user_key === false) {
-                            continue;
-                        }
-
-                        $user = $variant['documents'][$document_reference]['approval'][$role][$issue][$user_key][$user_reference];
-
-                        $user = array_merge(
-                            $user,
-                            [
+                        if ($role === 'author') {
+                            $variant['documents'][$document_reference]['approval'][$role][$issue] = [
                                 'company'             => $company,
                                 'increment'           => $progressive_number,
                                 'signature_reference' => $signature_reference,
@@ -105,16 +68,65 @@ class SignatureImport implements ToCollection
 
                                 'created_at' => date(
                                     'Y-m-d H:i:s',
-                                    min(strtotime($date), strtotime($user['created_at']))
+                                    strtotime($date)
                                 ),
                                 'updated_at' => date(
                                     'Y-m-d H:i:s',
-                                    max(strtotime($date), strtotime($user['updated_at']))
+                                    strtotime($date)
                                 ),
-                            ]
-                        );
-                        $this->projects[$project_reference]['phases'][$variant_number]['documents'][$document_reference]['approval']
-                            [$role][$issue][$user_key][$user_reference] = $user;
+                            ];
+                        } else {
+                            $variant['documents'][$document_reference]['issue'] = max(
+                                $variant['documents'][$document_reference]['issue'],
+                                array_keys($variant['documents'][$document_reference]['approval'][$role])
+                            );
+
+                            $user_key = false;
+
+                            if (array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])) {
+                                foreach ($variant['documents'][$document_reference]['approval'][$role][$issue] as $key => $item) {
+                                    if (array_search($user_reference, array_keys($item)) !== false) {
+                                        $user_key = $key;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                foreach ($variant['documents'][$document_reference]['approval'][$role] as $approval_issue => $items) {
+                                    foreach ($items as $key => $item) {
+                                        if (array_search($user_reference, array_keys($item)) !== false) {
+                                            $user_key = $key;
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
+                            if ($user_key === false) {
+                                continue;
+                            }
+
+                            $user = $variant['documents'][$document_reference]['approval'][$role][$issue][$user_key][$user_reference];
+
+                            $user = array_merge(
+                                $user,
+                                [
+                                    'company'             => $company,
+                                    'increment'           => $progressive_number,
+                                    'signature_reference' => $signature_reference,
+                                    'signed_date'         => $date,
+
+                                    'created_at' => date(
+                                        'Y-m-d H:i:s',
+                                        min(strtotime($date), strtotime($user['created_at']))
+                                    ),
+                                    'updated_at' => date(
+                                        'Y-m-d H:i:s',
+                                        max(strtotime($date), strtotime($user['updated_at']))
+                                    ),
+                                ]
+                            );
+                            $this->projects[$project_reference]['phases'][$variant_number]['documents'][$document_reference]
+                                ['approval'][$role][$issue][$user_key][$user_reference] = $user;
+                        }
 
                         $found = true;
                         // Skip the rest of the projects and documents we've assigned the data where we can
@@ -187,9 +199,9 @@ class SignatureImport implements ToCollection
                                         if ($user_key !== false) {
                                             // This was caught above
                                         } else {
-                                            $this->errors['Signatures'][$document_reference]
-                                                = 'Signature does not have a matching document signature matching role ('.$role
-                                                    .') and user ('.$user_reference.')';
+                                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.', Phase '
+                                                .$variant.'. Signature does not have a matching "document signature" matching role ('
+                                                .$role.') and user ('.$user_reference.')';
                                         }
                                     }
                                 } else {
@@ -197,7 +209,7 @@ class SignatureImport implements ToCollection
                                     $this->stream->stop();
                                 }
                             } else {
-                                $this->errors['Signatures'][$document_reference] = 'Project '.$project_id
+                                $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.', Phase '.$variant
                                     .' does not have a document with this reference';
                             }
                         } else {
@@ -212,8 +224,8 @@ class SignatureImport implements ToCollection
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
             ]);
         }
-        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors));
-        \Storage::put('modules/aegis/import/project_data.json', json_encode($this->projects));
+        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));
+        \Storage::put('modules/aegis/import/project_data.json', json_encode($this->projects, JSON_PRETTY_PRINT));
     }
     private function row($row)
     {
@@ -228,7 +240,11 @@ class SignatureImport implements ToCollection
             'USER-NICKNAME',
             'ROLE-USER',
         ];
-        $row  = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+        $row = $row->toArray();
+        foreach ($row as &$cell) {
+            $cell = trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $cell));
+        }
+        $row  = array_combine($keys, array_slice($row, 0, count($keys)));
         $data = [
             'company'             => null,
             'date'                => $row['Date'],

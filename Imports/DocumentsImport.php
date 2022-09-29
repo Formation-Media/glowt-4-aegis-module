@@ -45,13 +45,13 @@ class DocumentsImport implements ToCollection
 
             if (!isset($this->projects[$project_reference])) {
                 if (strpos($project_reference, '/') !== false && explode('/', $project_reference)[1] > 999) {
-                    $this->errors['Documents'][$reference] = 'Project not found';
+                    $this->errors['Documents'][$reference] = 'Project '.$project_reference.' not found';
                 }
                 continue;
             }
 
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
-                $this->errors['Documents'][$reference] = 'Project Phase ('.$phase_number.') not found';
+                $this->errors['Documents'][$reference] = 'Project '.$project_reference.', Phase '.$phase_number.' not found';
                 continue;
             }
 
@@ -65,15 +65,17 @@ class DocumentsImport implements ToCollection
                 'issue'           => $issue,
                 'name'            => $name,
                 'statuses'        => [],
-                'approval'        => [],
+                'approval'        => [
+                    'author' => [],
+                ],
                 'comments'        => [],
             ];
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
             ]);
         }
-        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors));
-        \Storage::put('modules/aegis/import/projects_and_documents.json', json_encode($this->projects));
+        \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));
+        \Storage::put('modules/aegis/import/projects_and_documents.json', json_encode($this->projects, JSON_PRETTY_PRINT));
     }
     private function date_convert($date, $time = null)
     {
@@ -124,7 +126,11 @@ class DocumentsImport implements ToCollection
             $date_as_time = strtotime('1900-01-01 + '.($date - 2).' days');
         }
         $created_date = date('Y-m-d', $date_as_time);
-        $created_time = date('H:i:s', $time * 24 * 60 * 60);
+        if ($time) {
+            $created_time = date('H:i:s', $time * 24 * 60 * 60);
+        } else {
+            $created_time = '00:00:00';
+        }
         return $created_date.' '.$created_time;
     }
     private function row($row)
@@ -150,7 +156,11 @@ class DocumentsImport implements ToCollection
             'PRE-TITLE FBL',
             'GEN_LETTER',
         ];
-        $row  = array_combine($keys, array_slice($row->toArray(), 0, count($keys)));
+        $row = $row->toArray();
+        foreach ($row as &$cell) {
+            $cell = trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $cell));
+        }
+        $row  = array_combine($keys, array_slice($row, 0, count($keys)));
         $data = [
             'reference'         => $row['DOC-IDENTIFICATION'],
             'phase_number'      => $row['VARIANT NUMBER'],

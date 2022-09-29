@@ -19,7 +19,11 @@
                             @php
                                 ksort($items);
                             @endphp
-                            <x-details :details="$items" />
+                            <ol class="cols-md-2">
+                                @foreach ($items as $document => $error)
+                                    <li><strong>{{ $document }}</strong> {{ $error }}</li>
+                                @endforeach
+                            </ol>
                         </x-list-group-item>
                     @endforeach
                 </x-list-group>
