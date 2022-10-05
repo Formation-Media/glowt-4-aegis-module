@@ -50,7 +50,7 @@ class HooksController extends AEGISController
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ],
-        )->first();
+        );
 
         if (!$item->approval_process_item->approval_stage->next_stage() && $args['approved']) {
             // Everything's approved
@@ -186,7 +186,7 @@ class HooksController extends AEGISController
         }
         $user->setMeta([
             'aegis.default-sections' => $aegis['default-sections'] ?? null,
-            'aegis.discipline'       => $aegis['discipline'],
+            'aegis.discipline'       => $aegis['discipline'] ?? null,
             'aegis.grade'            => $aegis['grade'] ?? null,
             'aegis.type'             => $aegis['type'],
             'aegis.user-reference'   => $aegis['user-reference'],
