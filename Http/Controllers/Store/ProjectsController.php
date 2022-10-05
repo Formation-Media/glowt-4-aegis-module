@@ -10,41 +10,37 @@ use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\Customer;
+use Modules\AEGIS\Models\Type;
 
 class ProjectsController extends Controller
 {
     public function add(Request $request)
     {
-        $company_reference = Validator::make(
+        $validator = Validator::make(
             $request->all(),
             array(
                 'company_id'  => 'required|exists:'.Company::class.',id',
+                'customer'    => 'required|exists:'.Customer::class.',id',
+                'description' => 'nullable',
+                'name'        => 'required',
                 'reference'   => [
                     'max:'.str_pad('', config('settings.aegis.project.character-limit'), 9),
                     'numeric',
                     'required',
-                ]
+                ],
+                'type' => 'required|exists:'.Type::class.',id',
             )
         );
-        if ($company_reference->fails()) {
+        if ($validator->fails()) {
             return redirect()
                 ->back()
-                ->withErrors($company_reference)
+                ->withErrors($validator)
                 ->withInput();
         }
-        $company_reference    = $company_reference->validated();
-        $company_abbreviation = Company::find($company_reference['company_id'])->abbreviation;
-        $project_reference    = strtoupper($company_abbreviation.'/'.$company_reference['reference']);
+        $validated            = $validator->validated();
+        $company_abbreviation = Company::find($validated['company_id'])->abbreviation;
+        $project_reference    = strtoupper($company_abbreviation.'/'.$validated['reference']);
 
-        $validator = Validator::make(
-            $request->all(),
-            array(
-                'customer'    => 'required|exists:'.Customer::class.',id',
-                'description' => 'nullable',
-                'name'        => 'required',
-                'type'        => 'required',
-            )
-        );
         $validator->after(function ($validator) use ($project_reference) {
             if (Project::where('reference', $project_reference)->count()) {
                 $validator->errors()->add(
@@ -59,10 +55,6 @@ class ProjectsController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $validated = array_merge(
-            $company_reference,
-            $validator->validated()
-        );
         $user                     = \Auth::user();
         $new_project              = new Project();
         $new_project->company_id  = $validated['company_id'];
