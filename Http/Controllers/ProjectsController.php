@@ -24,7 +24,7 @@ class ProjectsController extends Controller
         $page_menu                = [];
         $phases                   = [];
         $project                  = Project::with('company')->findOrFail($id);
-        $types                    = $project->company->types()->where('status', true)->getOrdered()->selectTree();
+        $types                    = $project->company->types()->where('status', true)->get()->selectTree();
         $variants                 = $project->variants;
 
         $customer = $project->customer ?? null;

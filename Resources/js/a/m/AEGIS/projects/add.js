@@ -1,54 +1,67 @@
-let add = {
-    init:function() {
-        this.watch_company();
-        this.watch_customer();
+const add = {
+    reference: null,
+    next:      null,
+    prefix:    null,
+    types:     null,
+    init: () => {
+        add.reference = document.querySelector('.reference-outer');
+        add.next      = add.reference.querySelector('input');
+        add.prefix    = add.reference.querySelector('.input-group-text');
+        add.types     = document.querySelector('[name="type"]');
+        add.watch_company();
+        add.watch_customer();
+        add.watch_type();
+    },
+    get_details:function(value, set_previous = false) {
+        if (value) {
+            app.show_loader();
+            app.ajax(
+                'm/AEGIS/companies/get-details',
+                {
+                    company_id: value
+                },
+                function(json) {
+                    if (json.status) {
+                        let html             = '<option value="">Select&hellip;</option>';
+                        add.prefix.innerHTML = json.data.prefix + '/';
+                        if (json.data.types) {
+                            for (let id in json.data.types) {
+                                let type = json.data.types[id];
+                                if (typeof type === 'string') {
+                                    html += '<option value="' + id + '">' + type + '</option>';
+                                } else {
+                                    html += '<optgroup label="' + id + '">';
+                                    for (let child in type) {
+                                        html += '<option value="' + child + '">' + type[child] + '</option>';
+                                    }
+                                    html += '</optgroup>';
+                                }
+                            }
+                            add.types.disabled = false;
+                        } else {
+                            add.types.disabled = true;
+                        }
+                        add.types.innerHTML = html;
+                        if (set_previous) {
+                            add.types.value = window.localStorage.getItem('aegis.projects.add.type');
+                        }
+                    }
+                },
+                null,
+                function() {
+                    app.hide_loader();
+                },
+                '.project .card-body'
+            );
+        }
     },
     watch_company:function() {
-        let reference = document.querySelector('.reference-outer');
-        let next      = reference.querySelector('input');
-        let prefix    = reference.querySelector('.input-group-text');
-        let types     = document.querySelector('[name="type"]');
-        document.querySelector('[name="company_id"]').addEventListener('change', function() {
-            next.value       = '';
-            prefix.innerHTML = '&hellip;/';
-            if (this.value) {
-                app.show_loader();
-                app.ajax(
-                    'm/AEGIS/companies/get-details',
-                    {
-                        company_id: this.value
-                    },
-                    function(json) {
-                        if (json.status) {
-                            let html         = '<option value="">Select&hellip;</option>';
-                            prefix.innerHTML = json.data.prefix + '/';
-                            if (json.data.types) {
-                                for (let id in json.data.types) {
-                                    let type = json.data.types[id];
-                                    if (typeof type === 'string') {
-                                        html += '<option value="' + id + '">' + type + '</option>';
-                                    } else {
-                                        html += '<optgroup label="' + id + '">';
-                                        for (let child in type) {
-                                            html += '<option value="' + type[child] + '">' + child + '</option>';
-                                        }
-                                        html += '</option>';
-                                    }
-                                }
-                                types.disabled = false;
-                            } else {
-                                types.disabled = true;
-                            }
-                            types.innerHTML = html;
-                        }
-                    },
-                    null,
-                    function() {
-                        app.hide_loader();
-                    },
-                    '.project .card-body'
-                );
-            }
+        let company = document.querySelector('[name="company_id"]');
+        add.get_details(company.value, true);
+        company.addEventListener('change', function() {
+            add.next.value       = '';
+            add.prefix.innerHTML = '&hellip;/';
+            add.get_details(this.value);
         });
     },
     watch_customer:function() {
@@ -70,8 +83,11 @@ let add = {
                 }
             );
         });
-    }
+    },
+    watch_type: () => {
+        add.types.addEventListener('change', (e) => {
+            window.localStorage.setItem('aegis.projects.add.type', e.target.value);
+        });
+    },
 };
-document.addEventListener('DOMContentLoaded', function() {
-    add.init();
-}, false);
+document.addEventListener('DOMContentLoaded', add.init);
