@@ -25,10 +25,10 @@ class CompaniesController extends Controller
                 'company_id' => 'required|exists:m_aegis_companies,id',
             ],
             function ($validated) {
-                $company   = Company::find($validated['company_id']);
-                $prefix    = $company->abbreviation;
-                $next      = Project::where('reference', 'like', $prefix.'/%')->orderBy('id', 'desc')->first();
-                $types     = $company->types()->with('parent')->where('status', true)->getOrdered()->selectTree();
+                $company = Company::find($validated['company_id']);
+                $prefix  = $company->abbreviation;
+                $next    = Project::where('reference', 'like', $prefix.'/%')->orderBy('id', 'desc')->first();
+                $types   = $company->types()->where('status', true)->with('parent')->get()->selectTree();
                 if ($next) {
                     $next = substr($next->reference, 4) + 1;
                     while (Project::where('reference', $prefix.'/'.$next)->count()) {

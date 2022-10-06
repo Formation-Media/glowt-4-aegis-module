@@ -21,7 +21,7 @@ class UsersImport implements ToCollection
     {
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
+            'message'    => '&nbsp;&nbsp;&nbsp;Loading data',
         ]);
         $grades = UserGrade::ordered()->pluck('name', 'id')->map(function ($value) {
             return strtolower($value);

@@ -28,6 +28,8 @@
                     @endforeach
                 </x-list-group>
             </x-tab>
+        @else
+            <x-alert style="success">No errors encountered</x-alert>
         @endif
         @if ($projects)
             <x-tab target="data">

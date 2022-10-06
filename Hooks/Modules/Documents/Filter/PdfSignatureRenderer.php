@@ -108,7 +108,7 @@ class PdfSignatureRenderer
                     $details = [
                         'aegis::phrases.document-id'        => $variant_document->reference,
                         'dictionary.issue'                  => $variant_document->issue,
-                        'documents::phrases.signature-date' => $item->nice_date('created_at'),
+                        'documents::phrases.signature-date' => $item->nice_date('updated_at'),
                         'dictionary.stage'                  => $item->approval_process_item->approval_stage->name,
                         'documents::phrases.signatory-name' => $item->agent->name,
                     ];
@@ -124,7 +124,7 @@ class PdfSignatureRenderer
 
                     $bottom = $pdf->getY();
 
-                    if ($signature) {
+                    if ($signature && $signature->is_file) {
                         list($width, $height) = getimagesize($signature->absolute_path);
                         $ratio = $height / $width;
                         $pdf->Image(
