@@ -63,8 +63,6 @@ class ManagementController extends Controller
         // }
         // Schema::enableForeignKeyConstraints();
         \Storage::delete([
-            'modules/aegis/import/errors.json',
-            'modules/aegis/import/projects.json',
             'modules/aegis/import/projects_and_documents.json',
             'modules/aegis/import/projects_and_document_signatures.json',
             'modules/aegis/import/project_data.json',
@@ -103,7 +101,7 @@ class ManagementController extends Controller
             ]);
             foreach ($files as $i => $file) {
                 $stream->send([
-                    'message' => '&nbsp;&nbsp;&nbsp;File #'.($i + 1),
+                    'message' => '&nbsp;&nbsp;&nbsp;File #'.($i + 1).' ('.$file.')',
                 ]);
                 $this->$method($stream, $file);
             }

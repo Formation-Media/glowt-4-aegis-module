@@ -44,7 +44,7 @@ class StoreImport
 
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading previous data',
+            'message'    => '&nbsp;&nbsp;&nbsp;Loading data',
         ]);
 
         $this->approval_processes  = ApprovalProcess::pluck('id', 'name')->toArray();
@@ -84,7 +84,7 @@ class StoreImport
         // Loop through Projects
         $i     = 0;
         $limit = 100;
-        \Log::emergency('----- LIMITING TO FIRST '.$limit.' PROJECTS -----');
+        \Log::critical('----- LIMITING TO FIRST '.$limit.' PROJECTS -----');
         $stream->send([
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;----- LIMITING TO FIRST '.$limit.' PROJECTS -----',

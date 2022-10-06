@@ -20,7 +20,7 @@ class DocumentSignatureImport implements ToCollection
     {
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading previous data',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
         ]);
         $this->errors = json_decode(
             \Storage::get('modules/aegis/import/errors.json'),
@@ -50,25 +50,51 @@ class DocumentSignatureImport implements ToCollection
             extract($this->row($row));
 
             if (!isset($this->projects[$project_reference])) {
-                if (strpos($project_reference, '/') !== false && explode('/', $project_reference)[1] > 999) {
-                    $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found';
-                }
+                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found';
+                \Debug::debug('Project '.$project_reference.' not Found');
+                // $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
                     .$phase_number.' not found';
+                \Debug::debug('Project '.$project_reference.', Phase '.$phase_number.' not found');
+                $this->stream->send([
+                    'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creating Project \''
+                        .$project_reference.'\' from document signature data',
+                ]);
+                // $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
                     .$phase_number.' has no documents';
+                \Debug::debug('Project '.$project_reference.', Phase '.$phase_number.' has no documents');
+                // $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
-                    .$phase_number.' does not have a document with this reference';
-                continue;
+                if ($document_prefix === 'FBL') {
+                    $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
+                        .$phase_number.' does not have a document with this reference and it could not be populate automatically due '
+                        .'to missing Feedback List `Type` and `Name`';
+                    continue;
+                }
+                $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = [
+                    'category'        => $document_type,
+                    'category_prefix' => $document_prefix,
+                    'created_at'      => $created_at,
+                    'created_by'      => $document_created_by,
+                    'created_by_role' => null,
+                    'feedback_list'   => null,
+                    'issue'           => $document_issue,
+                    'name'            => $document_name,
+                    'statuses'        => [],
+                    'approval'        => [
+                        'author' => [],
+                    ],
+                    'comments' => [],
+                ];
             }
 
             $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference];
@@ -259,12 +285,17 @@ class DocumentSignatureImport implements ToCollection
             'created_at'         => $row['CREATION-DATE']
                 ? $this->date_convert($row['CREATION-DATE'], $row['CRE-TIME'])
                 : date('Y-m-d H:i:s'),
-            'document_issue'     => $row['ISSUE'],
-            'document_reference' => $row['DOC-IDENTIFICATION'],
-            'fbl_final'          => strtolower($row['FBL_FINAL']) === 'yes' ? true : false,
-            'phase_number'       => $row['VARIANT NUMBER'],
-            'project_reference'  => $row['PROJECT IDENTIFICATION'],
-            'reviewer'           => [
+            'document_created_by' => strtolower($row['AUTHOR']),
+            'document_issue'      => $row['ISSUE'],
+            'document_name'       => $row['DOC-NAME'],
+            'document_prefix'     => $row['DOC-LETTER'],
+            'document_reference'  => $row['DOC-IDENTIFICATION'],
+            'document_type'       => $row['DOC-TYPE'] ?? 'Other',
+            'fbl_final'           => strtolower($row['FBL_FINAL']) === 'yes' ? true : false,
+            'phase_number'        => $row['VARIANT NUMBER'],
+            'project_name'        => $row['PROJECT NAME'],
+            'project_reference'   => $row['PROJECT IDENTIFICATION'],
+            'reviewer'            => [
                 'author'   => strtolower(str_replace('---', '', $row['REVIEWER'])),
                 'date'     => $row['REVIEW-DATE'] && $row['REVIEW-DATE'] !== '---'
                     ? $this->date_convert($row['REVIEW-DATE'], $row['REV-TIME'])

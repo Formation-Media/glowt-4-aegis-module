@@ -18,7 +18,7 @@ class SignatureImport implements ToCollection
     {
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading previous data',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
         ]);
         $this->errors = json_decode(
             \Storage::get('modules/aegis/import/errors.json'),

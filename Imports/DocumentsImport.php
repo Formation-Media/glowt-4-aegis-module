@@ -20,8 +20,9 @@ class DocumentsImport implements ToCollection
     {
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading previous data',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
         ]);
+        $user_id = \Auth::id();
         if (\Storage::exists('modules/aegis/import/projects_and_documents.json')) {
             $this->projects = json_decode(
                 \Storage::get('modules/aegis/import/projects_and_documents.json'),
@@ -37,6 +38,7 @@ class DocumentsImport implements ToCollection
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Updating data with documents',
         ]);
+        $j = 0;
         foreach ($rows as $i => $row) {
             if ($i === 0) {
                 continue;
@@ -44,15 +46,41 @@ class DocumentsImport implements ToCollection
             extract($this->row($row));
 
             if (!isset($this->projects[$project_reference])) {
-                if (strpos($project_reference, '/') !== false && explode('/', $project_reference)[1] > 999) {
-                    $this->errors['Documents'][$reference] = 'Project '.$project_reference.' not found';
+                if (!$project_reference) {
+                    $this->errors['Projects']['N/a #'. (++$j)] = 'Could not process row: '.json_encode(array_filter($this->row($row)));
+                    $this->stream->send([
+                        'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could not process row: '
+                            .json_encode(array_filter($this->row($row))),
+                    ]);
+                    continue;
+                } else {
+                    $this->projects[$project_reference] = [
+                        'added_by'    => $user_id,
+                        'company'     => explode('/', $project_reference)[0],
+                        'description' => '',
+                        'name'        => $project_name,
+                        'customer'    => 'Other',
+                        'type'        => 'Other',
+                        'phases'      => [],
+                    ];
+                    $this->stream->send([
+                        'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creating Project \''
+                            .$project_reference.'\' from document data',
+                    ]);
                 }
-                continue;
             }
 
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
-                $this->errors['Documents'][$reference] = 'Project '.$project_reference.', Phase '.$phase_number.' not found';
-                continue;
+                $this->projects[$project_reference]['phases'][$phase_number] = [
+                    'name'        => $phase_name,
+                    'description' => '',
+                    'reference'   => $phase_number,
+                    'documents'   => [],
+                ];
+                $this->stream->send([
+                    'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creating Project \''
+                        .$project_reference.'\', Phase \''.$phase_number.'\' from document data',
+                ]);
             }
 
             $this->projects[$project_reference]['phases'][$phase_number]['documents'][$reference] = [
@@ -68,7 +96,7 @@ class DocumentsImport implements ToCollection
                 'approval'        => [
                     'author' => [],
                 ],
-                'comments'        => [],
+                'comments' => [],
             ];
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
@@ -161,6 +189,7 @@ class DocumentsImport implements ToCollection
             $cell = trim(preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $cell));
         }
         $row  = array_combine($keys, array_slice($row, 0, count($keys)));
+
         $data = [
             'reference'         => $row['DOC-IDENTIFICATION'],
             'phase_number'      => $row['VARIANT NUMBER'],
@@ -172,7 +201,7 @@ class DocumentsImport implements ToCollection
             'project_reference' => $row['PROJECT-IDENTIFICATION'],
             'project_name'      => $row['PROJECT NAME'],
             'issue'             => $row['ISSUE'],
-            'prefix'            => $row['GEN_LETTER'],
+            'prefix'            => $row['DOC-LETTER'],
             'fbl'               => null,
 
             'created_at' => $row['CREATION-DATE']
