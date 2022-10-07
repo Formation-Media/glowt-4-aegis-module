@@ -40,6 +40,7 @@ return array(
     'project-number'        => 'Project Number',
     'project-phase'         => 'Project Phase',
     'project-title'         => 'Project Title',
+    'project-type'          => 'Project Type',
     'project-types'         => 'Project Types',
 
     'start-date'        => 'Start Date',

@@ -58,7 +58,7 @@ class Project extends Model
     }
     public function type()
     {
-        return $this->belongsTo(Type::class, 'type_id', 'id');
+        return $this->belongsTo(Type::class, 'type_id', 'id')->withTrashed();
     }
     public function user()
     {
