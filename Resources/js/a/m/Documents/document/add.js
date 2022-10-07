@@ -1,7 +1,8 @@
 var add = {
-    category: null,
-    issue: null,
-    variant: null,
+    category:  null,
+    issue:     null,
+    populated: false,
+    variant:   null,
     init:function() {
         if (window._GET.category) {
             add.category = window._GET.category;
@@ -54,6 +55,7 @@ var add = {
     },
     get_reference:function() {
         let reference = document.getElementById('aegisreference');
+        console.log(this.category, this.variant);
         if (this.category && this.variant) {
             app.show_loader();
             app.ajax(
@@ -91,53 +93,39 @@ var add = {
             app.set_hidden(feedback_list_type.parentNode);
             app.set_hidden(final_feedback_list.parentNode);
         }
+        add.populated = true;
     },
     watch_category:function() {
         let category_id = document.querySelector('[name="category"]');
-        if (category_id.value) {
-            app.show_loader();
-            app.ajax(
-                'm/Documents/categories/get-category',
-                {
-                    category: category_id.value,
-                },
-                function(json) {
-                    // Call successful
-                    if (json.status) {
-                        // Action successful
-                        add.toggle_feedback_list_type(json.data.prefix);
+        setInterval(() => {
+            if (category_id.value && !add.populated) {
+                app.show_loader();
+                add.category = category_id.value;
+                app.ajax(
+                    'm/Documents/categories/get-category',
+                    {
+                        category: category_id.value,
+                    },
+                    function(json) {
+                        // Call successful
+                        if (json.status) {
+                            // Action successful
+                            add.toggle_feedback_list_type(json.data.prefix);
+                            add.get_reference();
+                        }
+                    },
+                    null,
+                    function() {
+                        // Success or failed, this'll trigger
+                        app.hide_loader();
                     }
-                },
-                null,
-                function() {
-                    // Success or failed, this'll trigger
-                    app.hide_loader();
-                }
-            );
-        }
+                );
+            }
+        }, 1000);
         category_id.addEventListener('change', function() {
             add.category    = this.value;
             add.issue.value = 1;
-            app.show_loader();
-            app.ajax(
-                'm/Documents/categories/get-category',
-                {
-                    category: this.value,
-                },
-                function(json) {
-                    // Call successful
-                    if (json.status) {
-                        // Action successful
-                        add.toggle_feedback_list_type(json.data.prefix);
-                        add.get_reference();
-                    }
-                },
-                null,
-                function() {
-                    // Success or failed, this'll trigger
-                    app.hide_loader();
-                }
-            );
+            add.populated   = false;
         });
     },
     watch_create_as:function() {
