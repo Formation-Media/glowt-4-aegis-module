@@ -23,7 +23,7 @@ class ProjectsController extends Controller
                     'name',
                     'reference',
                 ),
-                '%'.$request->term.'%'
+                $request->term
             )
             ->paged()
         ) {
@@ -41,8 +41,7 @@ class ProjectsController extends Controller
     {
         $category        = Category::find($request->category);
         $project_variant = ProjectVariant::find($request->project_variant);
-        $reference       = $project_variant->project->reference.'/'.$category->prefix
-                            .str_pad($request->reference, 2, '0', STR_PAD_LEFT);
+        $reference       = $project_variant->reference.'/'.$category->prefix.str_pad($request->reference, 2, '0', STR_PAD_LEFT);
         $return          = [
             'issue'             => 0,
             'previous_document' => null,
@@ -108,8 +107,9 @@ class ProjectsController extends Controller
         $reference_prefix = $project_variant->reference.'/'.$category->prefix;
         $last_variant     = VariantDocument
             ::where('reference', 'REGEXP', '^'.$reference_prefix.'[0-9]+')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('reference', 'desc')
             ->first();
+
         if ($last_variant) {
             $next_reference = (int) str_replace($reference_prefix, '', $last_variant->reference) + 1;
         } else {
@@ -159,7 +159,7 @@ class ProjectsController extends Controller
                     'sortable' => true,
                 ),
                 'phrases.added-by' => array(),
-                'phrases.added-at' => array(
+                'phrases.added-on' => array(
                     'columns'      => 'm_documents_documents.created_at',
                     'sortable'     => true,
                     'class'        => '\App\Helpers\Dates',
