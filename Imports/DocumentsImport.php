@@ -47,19 +47,24 @@ class DocumentsImport implements ToCollection
 
             if (!isset($this->projects[$project_reference])) {
                 if (!$project_reference) {
-                    $this->errors['Projects']['N/a #'. (++$j)] = 'Could not process row: '.json_encode(array_filter($this->row($row)));
-                    $this->stream->send([
-                        'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could not process row: '
-                            .json_encode(array_filter($this->row($row))),
-                    ]);
+                    $debug = $this->row($row);
+                    unset($debug['created_at']);
+                    $debug = array_filter($debug);
+                    if ($debug) {
+                        $this->errors['Projects']['N/a #'. (++$j)] = 'Could not process row: '.json_encode($debug);
+                        $this->stream->send([
+                            'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could not process row: '
+                                .json_encode($debug),
+                        ]);
+                    }
                     continue;
                 } else {
                     $this->projects[$project_reference] = [
                         'added_by'    => $user_id,
                         'company'     => explode('/', $project_reference)[0],
+                        'customer'    => 'Other',
                         'description' => '',
                         'name'        => $project_name,
-                        'customer'    => 'Other',
                         'type'        => 'Other',
                         'phases'      => [],
                     ];
@@ -93,13 +98,16 @@ class DocumentsImport implements ToCollection
                 'issue'           => $issue,
                 'name'            => $name,
                 'statuses'        => [],
-                'approval'        => [
+                'approval' => [
                     'author' => [],
+                ],
+                'author' => [
+                    'reference' => 'N/a',
                 ],
                 'comments' => [],
             ];
             $this->stream->send([
-                'percentage' => round(($i + 1) / count($rows) * 100, 1),
+                'percentage' => round(($i + 1) / count($rows) * 100, 2),
             ]);
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));

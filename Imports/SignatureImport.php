@@ -48,6 +48,8 @@ class SignatureImport implements ToCollection
             if ($company === null) {
                 $this->errors['Signatures'][$document_reference] = 'Company does not exist (tried from "'
                     .$document_reference.'" and "'.$user_reference.'").';
+                \Debug::debug('Company does not exist (tried from "'.$document_reference.'" and "'.$user_reference.'").');
+                $this->stream->stop();
                 continue;
             }
 
@@ -60,7 +62,8 @@ class SignatureImport implements ToCollection
                         && array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])
                     ) {
                         if ($role === 'author') {
-                            $variant['documents'][$document_reference]['approval'][$role][$issue] = [
+                            $variant['documents'][$document_reference]['author']['reference']       = $signature_reference;
+                            $variant['documents'][$document_reference]['approval'][$role][$issue][] = [
                                 'company'             => $company,
                                 'increment'           => $progressive_number,
                                 'signature_reference' => $signature_reference,
@@ -196,12 +199,31 @@ class SignatureImport implements ToCollection
                                                 }
                                             }
                                         }
-                                        if ($user_key !== false) {
-                                            // This was caught above
+                                        if ($user_key === false) {
+                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                                                ['author']['reference'] = $signature_reference;
+                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                                                ['approval'][$role][$issue][0][$user_reference] = [
+                                                    'comments'            => '',
+                                                    'created_at'          => $date,
+                                                    'role'                => $user_role,
+                                                    'signature_reference' => $signature_reference,
+                                                    'status'              => 'Approved',
+                                                    'updated_at'          => $date,
+                                                ];
+
+                                                \Debug::info('Creating Document Signature for Document \''.$document_reference
+                                                    .'\', Issue \''.$issue.'\', Role \''.$role.'\', User \''.$user_reference
+                                                    .'\' from signature code data');
+                                            $user_key = $user_reference;
+                                        }
+                                        if ($user_key === false) {
+                                            \Debug::debug($role, $document_reference);
+                                            $this->stream->stop();
                                         } else {
-                                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.', Phase '
-                                                .$variant.'. Signature does not have a matching "document signature" matching role ('
-                                                .$role.') and user ('.$user_reference.')';
+                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                                                ['approval'][$role][$issue][$user_key][$user_reference]['signature_reference']
+                                                     = $signature_reference;
                                         }
                                     }
                                 } else {
@@ -209,19 +231,23 @@ class SignatureImport implements ToCollection
                                     $this->stream->stop();
                                 }
                             } else {
-                                $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.', Phase '.$variant
+                                $this->errors['Signatures'][$document_reference] = 'Project '.$project_id
                                     .' does not have a document with this reference';
                             }
                         } else {
                             $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any phases.';
+                            \Debug::debug('Project '.$project_id.' does not have any phases.');
+                            $this->stream->stop();
                         }
                     } else {
                         $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not exist.';
+                        \Debug::debug('Project '.$project_id.' does not exist.');
+                        $this->stream->stop();
                     }
                 }
             }
             $this->stream->send([
-                'percentage' => round(($i + 1) / count($rows) * 100, 1),
+                'percentage' => round(($i + 1) / count($rows) * 100, 2),
             ]);
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));
@@ -255,6 +281,7 @@ class SignatureImport implements ToCollection
             'role'                => strtolower($row['Role(DOC)']),
             'signature_reference' => $row['Signature-Code'],
             'user_reference'      => strtolower($row['USER-NICKNAME']),
+            'user_role'           => $row['ROLE-USER'],
         ];
         if (!($data['company'] = strpos($data['document_reference'], '-') !== false
             ? explode('-', $data['document_reference'])[0]
