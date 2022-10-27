@@ -1,10 +1,22 @@
-let doc = {
-    category: null,
-    issue:    null,
-    variant:  null,
+let document_page = {
+    approval_modal_dom:  null,
+    approval_modal_role: null,
+    category:            null,
+    issue:               null,
+    items_table:         null,
+    variant:             null,
     init:function() {
-        doc.issue   = document.querySelector('[name="aegis[issue]"]');
-        doc.variant = document.querySelector('[name="aegis[project_variant]"]')?.value;
+        document_page.approval_modal_dom = document.querySelector('#modal-add-approval-comments');
+        document_page.issue              = document.querySelector('[name="aegis[issue]"]');
+        document_page.items_table        = document.querySelector('.table[data-method="documentapprovalitemsview"]');
+        document_page.variant            = document.querySelector('[name="aegis[project_variant]"]')?.value;
+        if (document_page.items_table && document_page.approval_modal_dom) {
+            document_page.approval_modal_role = document_page.approval_modal_dom.querySelector('#aegisrole-outer label');
+            document_page.items_table.addEventListener('table-loaded', function() {
+                document_page.watch_approves();
+                document_page.watch_denies();
+            });
+        }
         this.watch_category();
         this.watch_create_as();
         this.watch_reference();
@@ -23,7 +35,7 @@ let doc = {
                 },
                 function(json) {
                     if (json.status) {
-                        doc.issue.value = json.data;
+                        document_page.issue.value = json.data;
                     }
                 },
                 null,
@@ -73,6 +85,16 @@ let doc = {
             app.set_hidden(final_feedback_list.parentNode);
         }
     },
+    watch_approves: () => {
+        if (document_page.approval_modal_dom) {
+            let approves = document.querySelectorAll('.js-approve-item');
+            approves.forEach(function(approve) {
+                approve.addEventListener('click', function() {
+                    document_page.approval_modal_role.innerText = 'Approve As Role';
+                });
+            });
+        }
+    },
     watch_category:function() {
         let category_id = document.querySelector('[name="category"]');
         if (category_id?.value) {
@@ -85,7 +107,7 @@ let doc = {
                 function(json) {
                     // Call successful
                     if (json.status) {
-                        doc.toggle_feedback_list_type(json.data.prefix);
+                        document_page.toggle_feedback_list_type(json.data.prefix);
                     }
                 },
                 null,
@@ -96,8 +118,8 @@ let doc = {
             );
         }
         category_id?.addEventListener('change', function() {
-            doc.category    = this.value;
-            doc.issue.value = 1;app.show_loader();
+            document_page.category    = this.value;
+            document_page.issue.value = 1;app.show_loader();
             app.ajax(
                 'm/Documents/categories/get-category',
                 {
@@ -106,8 +128,8 @@ let doc = {
                 function(json) {
                     // Call successful
                     if (json.status) {
-                        doc.toggle_feedback_list_type(json.data.prefix);
-                        doc.get_reference();
+                        document_page.toggle_feedback_list_type(json.data.prefix);
+                        document_page.get_reference();
                     }
                 },
                 null,
@@ -154,13 +176,23 @@ let doc = {
             }
         });
     },
+    watch_denies: () => {
+        if (document_page.approval_modal_dom) {
+            let denies = document.querySelectorAll('.js-deny-item');
+            denies.forEach(function(deny) {
+                deny.addEventListener('click', function() {
+                    document_page.approval_modal_role.innerText = 'Reject As Role';
+                });
+            });
+        }
+    },
     watch_reference: function() {
         let reference = document.querySelector('[name="aegis[reference]"]');
         reference?.addEventListener('change', function() {
-            doc.get_issue(this.value);
+            document_page.get_issue(this.value);
         });
         reference?.addEventListener('keyup', function() {
-            doc.get_issue(this.value);
+            document_page.get_issue(this.value);
         });
     },
     watch_select_project:function() {
@@ -183,9 +215,9 @@ let doc = {
                         }
                         if (json.data.default_variant) {
                             variants.value = json.data.default_variant;
-                            doc.variant    = json.data.default_variant;
+                            document_page.variant    = json.data.default_variant;
                         }
-                        doc.get_reference();
+                        document_page.get_reference();
                     },
                     null,
                     function() {
@@ -199,12 +231,12 @@ let doc = {
         document.getElementById('aegisproject-variant')?.addEventListener(
             'change',
             function(e) {
-                doc.variant = e.target.value;
-                doc.get_reference();
+                document_page.variant = e.target.value;
+                document_page.get_reference();
             }
         );
     }
 };
 document.addEventListener('DOMContentLoaded', function() {
-    doc.init();
+    document_page.init();
 }, false);
