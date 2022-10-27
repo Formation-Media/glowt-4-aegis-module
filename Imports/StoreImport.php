@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Imports;
 use App\Helpers\SSEStream;
 use App\Models\User;
 use Modules\AEGIS\Models\Company;
+use Modules\AEGIS\Models\CompanyType;
 use Modules\AEGIS\Models\Customer;
 use Modules\AEGIS\Models\DocumentApprovalItemDetails;
 use Modules\AEGIS\Models\FeedbackListType;
@@ -23,6 +24,7 @@ use Modules\Documents\Models\Document;
 use Modules\Documents\Models\DocumentApprovalProcessItem;
 use Modules\Documents\Models\Group;
 use Modules\Documents\Models\UserGroup;
+use Spatie\Activitylog\Facades\CauserResolver;
 
 class StoreImport
 {
@@ -56,11 +58,12 @@ class StoreImport
         $this->types               = Type::pluck('id', 'name')->toArray();
         $this->variant_references  = ProjectVariant::pluck('reference')->toArray();
 
-        $companies         = Company::withTrashed()->pluck('id', 'abbreviation')->toArray();
         $errors            = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
         $groups            = Group::all();
         $projects          = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
         $users             = User::withTrashed()->get();
+
+        $project_count = count($projects);
 
         foreach ($groups as $group) {
             $this->groups[$group->name]['id']    = $group->id;
@@ -83,13 +86,16 @@ class StoreImport
         ]);
         // Loop through Projects
         $i     = 0;
-        $limit = 100;
-        \Log::critical('----- LIMITING TO FIRST '.$limit.' PROJECTS -----');
-        $stream->send([
-            'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;----- LIMITING TO FIRST '.$limit.' PROJECTS -----',
-        ]);
-        $projects = array_slice($projects, 0, $limit);
+        $limit = 2 ** 12;
+        if ($project_count > $limit) {
+            $message = '----- LIMITING TO FIRST '.number_format($limit).'/'.number_format($project_count).' PROJECTS -----';
+            \Debug::critical($message);
+            $stream->send([
+                'percentage' => 0,
+                'message'    => '&nbsp;&nbsp;&nbsp;'.$message,
+            ]);
+            $projects = array_slice($projects, 0, $limit);
+        }
         foreach ($projects as $project_reference => $project) {
             $customer_id   = $this->get_customer($project['customer']);
             $type_id       = $this->get_type($project['type']);
@@ -99,7 +105,7 @@ class StoreImport
                 'reference' => $project_reference,
             ]);
             $project_model->added_by    = $project['added_by'];
-            $project_model->company_id  = $companies[$project['company']];
+            $project_model->company_id  = $this->companies[$project['company']];
             $project_model->description = $project['description'] ?? '';
             $project_model->name        = $project['name'];
             $project_model->scope_id    = $customer_id;
@@ -113,8 +119,7 @@ class StoreImport
                     if ($variant_number === 0) {
                         $reference = $project_model->reference;
                     } else {
-                        \Debug::emergency($variant);
-                        $this->stream->stop();
+                        $reference = $project_model->reference.'/'.str_pad($variant_number, 3, '0', STR_PAD_LEFT);
                     }
                     // Create/Load Variant
                     $project_variant_model = ProjectVariant::firstOrNew([
@@ -150,15 +155,16 @@ class StoreImport
                             'name' => trim($document['name']),
                         ]);
                         $is_new                           = $document_model->id ? false : true;
-                        $document_model->author_reference = 'N/a';
+                        $document_model->author_reference = $document['author']['reference'];
                         $document_model->category_id      = $category_id;
                         $document_model->created_by       = $this->get_user($document['created_by']);
+                        $document_model->process_id       = $process_id;
                         $document_model->status           = isset($document['submitted_at']) ? 'Approved' : 'In Approval';
                         $document_model->submitted_at     = isset($document['submitted_at']) ? $document['submitted_at'] : null;
-                        $document_model->process_id       = $process_id;
                         $document_model->save(['timestamps' => false]);
                         // Log "New Document"
                         if ($is_new) {
+                            CauserResolver::setCauser($document_model->created_by);
                             $document_model->log(
                                 'documents::messages.created-on-behalf',
                                 ['who' => $document_model->created_by->name]
@@ -206,6 +212,8 @@ class StoreImport
                                 $comment_model->created_at = $comment['created_at'];
                                 $comment_model->updated_at = $comment['updated_at'];
                                 $comment_model->save(['timestamps' => false]);
+
+                                $document_model->updated_by = $comment_model->user_id;
                             }
                         }
                         // Loop through approval if there are any
@@ -213,6 +221,9 @@ class StoreImport
                             continue;
                         }
                         foreach ($document['approval'] as $role => $approval_issues) {
+                            if (!$approval_issues) {
+                                continue;
+                            }
                             $approval_process = $document_model->approval_process;
                             $signature        = [
                                 'group_id' => $this->get_group($role),
@@ -239,7 +250,9 @@ class StoreImport
                                     ],
                                 ];
                                 // Convert the role then check for stages
-                                if (array_key_exists($approval_process->name, $role_convert)) {
+                                if (array_key_exists($approval_process->name, $role_convert)
+                                    && array_key_exists(ucwords($role), $role_convert[$approval_process->name])
+                                ) {
                                     $new_role = $role_convert[$approval_process->name][ucwords($role)];
                                     if ($approval_process->approval_process_stages
                                         ->where('name', $new_role)
@@ -293,8 +306,7 @@ class StoreImport
                                             'approval_stage_id'    => $stage->id,
                                             'required_to_progress' => false,
                                         ]);
-                                    } else {
-                                        // There's no approval process stage and the approval process and role isn't in $numbers
+                                    } elseif (ucwords($role) !== 'Author') {
                                         \Debug::debug([
                                             'approval process name' => $approval_process->name,
                                             'role'                  => ucwords($role),
@@ -328,12 +340,13 @@ class StoreImport
                                 );
                             }
                             foreach ($approval_issues as $issue => $approval_users) {
-                                if ($role === 'author') {
-                                    $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
-                                        .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
-                                        .' needs processing';
-                                    continue;
-                                }
+                                // if ($role === 'author') {
+                                //     \Debug::debug($approval_users);
+                                //     $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
+                                //         .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
+                                //         .' needs processing';
+                                //     continue;
+                                // }
                                 foreach ($approval_users as $approval_references) {
                                     foreach ($approval_references as $user_reference => $approval) {
                                         if (!isset($approval['company'])) {
@@ -360,7 +373,9 @@ class StoreImport
                                         $approval_process_item->status      = $approval['status'];
                                         $approval_process_item->updated_at  = $approval['updated_at'];
 
+                                        // \Debug::debug($project_reference, $document_reference);
                                         $approval_process_item->save(['timestamps' => false]);
+
 
                                         if ($approval['comments']) {
                                             $comment = Comment::firstOrNew([
@@ -373,6 +388,9 @@ class StoreImport
                                             $comment->updated_at = $approval['updated_at'];
                                             $comment->save(['timestamps' => false]);
                                         }
+
+                                        $document_model->updated_by = $approval_process_item->agent_id;
+
                                         DocumentApprovalItemDetails::firstOrCreate(
                                             [
                                                 'approval_item_id' => $approval_process_item->id,
@@ -385,6 +403,7 @@ class StoreImport
                                 }
                             }
                         }
+                        $document_model->save();
                     }
                 }
             } else {
@@ -402,7 +421,7 @@ class StoreImport
                 );
             }
             $this->stream->send([
-                'percentage' => number_format(($i ++) / count($projects) * 100, 2),
+                'percentage' => number_format(($i ++) / $project_count * 100, 2),
             ]);
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($errors, JSON_PRETTY_PRINT));
@@ -542,6 +561,14 @@ class StoreImport
                     'added_by' => \Auth::id(),
                 ]
             );
+            foreach ($this->companies as $id) {
+                CompanyType::firstOrCreate(
+                    [
+                        'company_id' => $id,
+                        'type_id'    => $type_model->id,
+                    ]
+                );
+            }
             $type_id            = $type_model->id;
             $this->types[$name] = $type_id;
         }

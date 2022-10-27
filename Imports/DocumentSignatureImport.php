@@ -12,12 +12,13 @@ class DocumentSignatureImport implements ToCollection
     private $projects;
     private $stream;
 
-    public function __construct(SSEStream $stream,)
+    public function __construct(SSEStream $stream)
     {
         $this->stream = $stream;
     }
     public function collection(Collection $rows)
     {
+        $to_retry = [];
         $this->stream->send([
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
@@ -52,7 +53,18 @@ class DocumentSignatureImport implements ToCollection
             if (!isset($this->projects[$project_reference])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found';
                 \Debug::debug('Project '.$project_reference.' not Found');
-                // $this->stream->stop();
+                // \Debug::debug([
+                //     $project_reference => [
+                //         'added_by'    => $user_id,
+                //         'company'     => explode('/', $project_reference)[0],
+                //         'customer'    => 'Other',
+                //         'description' => '',
+                //         'name'        => $project_name,
+                //         'type'        => 'Other',
+                //         'phases'      => [],
+                //     ],
+                // ]);
+                $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
@@ -63,21 +75,22 @@ class DocumentSignatureImport implements ToCollection
                     'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creating Project \''
                         .$project_reference.'\' from document signature data',
                 ]);
-                // $this->stream->stop();
+                $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
                     .$phase_number.' has no documents';
                 \Debug::debug('Project '.$project_reference.', Phase '.$phase_number.' has no documents');
-                // $this->stream->stop();
+                $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference])) {
                 if ($document_prefix === 'FBL') {
                     $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
                         .$phase_number.' does not have a document with this reference and it could not be populate automatically due '
-                        .'to missing Feedback List `Type` and `Name`';
+                        .'to missing Feedback List `Type` and `Name`.';/* Retrying later in case something\'s missing.'*/
+                    // $to_retry[] = $this->row($row);
                     continue;
                 }
                 $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = [
@@ -90,16 +103,17 @@ class DocumentSignatureImport implements ToCollection
                     'issue'           => $document_issue,
                     'name'            => $document_name,
                     'statuses'        => [],
-                    'approval'        => [
+                    'approval' => [
                         'author' => [],
+                    ],
+                    'author' => [
+                        'reference' => 'N/a',
                     ],
                     'comments' => [],
                 ];
             }
 
             $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference];
-
-            $document['approval']['author'][$document_issue] = [];
 
             if ($reviewer['author']) {
                 $document['approval']['reviewer'][$document_issue][0][$reviewer['author']] = [
@@ -159,9 +173,10 @@ class DocumentSignatureImport implements ToCollection
             $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = $document;
 
             $this->stream->send([
-                'percentage' => round(($i + 1) / count($rows) * 100, 1),
+                'percentage' => round(($i + 1) / count($rows) * 100, 2),
             ]);
         }
+        \Storage::put('modules/aegis/import/retry_document_signatures.json', json_encode($to_retry, JSON_PRETTY_PRINT));
         \Storage::put('modules/aegis/import/errors.json', json_encode($this->errors, JSON_PRETTY_PRINT));
         \Storage::put('modules/aegis/import/projects_and_document_signatures.json', json_encode($this->projects, JSON_PRETTY_PRINT));
     }
