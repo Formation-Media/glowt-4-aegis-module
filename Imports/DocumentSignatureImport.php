@@ -5,6 +5,7 @@ namespace Modules\AEGIS\Imports;
 use App\Helpers\SSEStream;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Modules\AEGIS\Models\Company;
 
 class DocumentSignatureImport implements ToCollection
 {
@@ -23,7 +24,8 @@ class DocumentSignatureImport implements ToCollection
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
         ]);
-        $this->errors = json_decode(
+        $this->companies = Company::withTrashed()->pluck('abbreviation')->toArray();
+        $this->errors    = json_decode(
             \Storage::get('modules/aegis/import/errors.json'),
             true
         );
@@ -51,7 +53,7 @@ class DocumentSignatureImport implements ToCollection
             extract($this->row($row));
 
             if (!isset($this->projects[$project_reference])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found';
+                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found (L'.__LINE__.')';
                 \Debug::debug('Project '.$project_reference.' not Found');
                 // \Debug::debug([
                 //     $project_reference => [
@@ -69,7 +71,7 @@ class DocumentSignatureImport implements ToCollection
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
-                    .$phase_number.' not found';
+                    .$phase_number.' not found (L'.__LINE__.')';
                 \Debug::debug('Project '.$project_reference.', Phase '.$phase_number.' not found');
                 $this->stream->send([
                     'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Creating Project \''
@@ -80,37 +82,57 @@ class DocumentSignatureImport implements ToCollection
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'])) {
                 $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
-                    .$phase_number.' has no documents';
+                    .$phase_number.' has no documents (L'.__LINE__.')';
                 \Debug::debug('Project '.$project_reference.', Phase '.$phase_number.' has no documents');
                 $this->stream->stop();
                 continue;
             }
             if (!isset($this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference])) {
-                if ($document_prefix === 'FBL') {
-                    $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.', Phase '
-                        .$phase_number.' does not have a document with this reference and it could not be populate automatically due '
-                        .'to missing Feedback List `Type` and `Name`.';/* Retrying later in case something\'s missing.'*/
-                    // $to_retry[] = $this->row($row);
-                    continue;
+                // Try in other project references
+                $exploded_document_reference = explode('/', $document_reference);
+                $old_document_id             = $exploded_document_reference[1];
+                $project_id                  = implode('/', array_slice($exploded_document_reference, 0, 2));
+                $variant                     = false;
+                $old_abbreviation            = explode('/', $project_reference);
+                foreach ($this->companies as $abbreviation) {
+                    $abbreviation = strtoupper($abbreviation);
+                    if ($old_abbreviation[0] === $abbreviation) {
+                        continue;
+                    }
+                    $old_abbreviation[0] = $abbreviation;
+                    $new_project_id      = implode('/', $old_abbreviation);
+                    if (array_key_exists($new_project_id, $this->projects)) {
+                        foreach ($this->projects[$new_project_id]['phases'] as $variant_number => $variant_details) {
+                            if (array_key_exists('documents', $variant_details)
+                                && array_key_exists($document_reference, $variant_details['documents'])
+                            ) {
+                                $project_reference = $new_project_id;
+                                $variant           = $variant_number;
+                                break 2;
+                            }
+                        }
+                    }
                 }
-                $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = [
-                    'category'        => $document_type,
-                    'category_prefix' => $document_prefix,
-                    'created_at'      => $created_at,
-                    'created_by'      => $document_created_by,
-                    'created_by_role' => null,
-                    'feedback_list'   => null,
-                    'issue'           => $document_issue,
-                    'name'            => $document_name,
-                    'statuses'        => [],
-                    'approval' => [
-                        'author' => [],
-                    ],
-                    'author' => [
-                        'reference' => 'N/a',
-                    ],
-                    'comments' => [],
-                ];
+                if ($variant === false) {
+                    $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = [
+                        'category'        => $document_type,
+                        'category_prefix' => $document_prefix,
+                        'created_at'      => $created_at,
+                        'created_by'      => $document_created_by,
+                        'created_by_role' => null,
+                        'feedback_list'   => null,
+                        'issue'           => $document_issue,
+                        'name'            => $document_name,
+                        'statuses'        => [],
+                        'approval' => [
+                            'author' => [],
+                        ],
+                        'author' => [
+                            'reference' => 'N/a',
+                        ],
+                        'comments' => [],
+                    ];
+                }
             }
 
             $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference];
@@ -138,16 +160,22 @@ class DocumentSignatureImport implements ToCollection
             }
             if ($assessor_1) {
                 $document['approval']['assessor'][$document_issue][0][$assessor_1] = [
-                    'created_at' => $created_at,
-                    'status'     => $status,
-                    'updated_at' => $created_at,
+                    'comments'            => '',
+                    'created_at'          => $created_at,
+                    'role'                => 'Assessor',
+                    'signature_reference' => 'N/a',
+                    'status'              => $status,
+                    'updated_at'          => $created_at,
                 ];
             }
             if ($assessor_2) {
                 $document['approval']['assessor'][$document_issue][1][$assessor_2] = [
-                    'created_at' => $created_at,
-                    'status'     => $status,
-                    'updated_at' => $created_at,
+                    'comments'            => '',
+                    'created_at'          => $created_at,
+                    'role'                => 'Assessor',
+                    'signature_reference' => 'N/a',
+                    'status'              => $status,
+                    'updated_at'          => $created_at,
                 ];
             }
             if ($submitted['comments']) {
@@ -223,6 +251,9 @@ class DocumentSignatureImport implements ToCollection
                 if (strlen($year) === 2) {
                     $year = 20 . $year;
                 }
+            } else {
+                \Debug::debug($date, $time, debug_backtrace(0, 2));
+                $this->stream->stop();
             }
             $date_as_time = strtotime($year.'-'.$month.'-'.$day);
         } else {
@@ -299,7 +330,7 @@ class DocumentSignatureImport implements ToCollection
             'assessor_2'         => $row['ASSESSOR_2'],
             'created_at'         => $row['CREATION-DATE']
                 ? $this->date_convert($row['CREATION-DATE'], $row['CRE-TIME'])
-                : date('Y-m-d H:i:s'),
+                : null,
             'document_created_by' => strtolower($row['AUTHOR']),
             'document_issue'      => $row['ISSUE'],
             'document_name'       => $row['DOC-NAME'],
@@ -323,7 +354,7 @@ class DocumentSignatureImport implements ToCollection
             'submitted' => [
                 'author'   => strtolower(str_replace('---', '', $row['SUBMITTER-NAME'])),
                 'comments' => str_replace('---', '', $row['COMMENT-SUBMITTER']),
-                'date'     => $row['SUBMIT-DATE'] ? $this->date_convert($row['SUBMIT-DATE'], $row['SUB-TIME']) : date('Y-m-d H:i:s'),
+                'date'     => $row['SUBMIT-DATE'] ? $this->date_convert($row['SUBMIT-DATE'], $row['SUB-TIME']) : null,
             ],
         ];
 

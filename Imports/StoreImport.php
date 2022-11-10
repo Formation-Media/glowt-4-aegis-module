@@ -58,10 +58,12 @@ class StoreImport
         $this->types               = Type::pluck('id', 'name')->toArray();
         $this->variant_references  = ProjectVariant::pluck('reference')->toArray();
 
-        $errors            = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
-        $groups            = Group::all();
-        $projects          = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
-        $users             = User::withTrashed()->get();
+        $errors        = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
+        $groups        = Group::all();
+        $limit_percent = 3;
+        $me            = \Auth::user();
+        $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
+        $users         = User::withTrashed()->get();
 
         $project_count = count($projects);
 
@@ -86,7 +88,7 @@ class StoreImport
         ]);
         // Loop through Projects
         $i     = 0;
-        $limit = 2 ** 12;
+        $limit = min($project_count, ceil($project_count / 100 * $limit_percent));
         if ($project_count > $limit) {
             $message = '----- LIMITING TO FIRST '.number_format($limit).'/'.number_format($project_count).' PROJECTS -----';
             \Debug::critical($message);
@@ -104,13 +106,26 @@ class StoreImport
             $project_model = Project::firstOrNew([
                 'reference' => $project_reference,
             ]);
+            $is_new_project             = !$project_model->id;
             $project_model->added_by    = $project['added_by'];
             $project_model->company_id  = $this->companies[$project['company']];
             $project_model->description = $project['description'] ?? '';
             $project_model->name        = $project['name'];
             $project_model->scope_id    = $customer_id;
+            $project_model->status      = $project['status'];
             $project_model->type_id     = $type_id;
             $project_model->save(['timestamps' => false]);
+
+            if ($is_new_project) {
+                CauserResolver::setCauser($me);
+                $project_model->log(
+                    'messages.added.x-to-y',
+                    [
+                        'x' => $project_model->reference,
+                        'y' => 'dictionary.projects',
+                    ]
+                );
+            }
 
             // Loop through phases if there are any
             if ($project['phases']) {
@@ -127,12 +142,24 @@ class StoreImport
                         'is_default'     => $variant_number === 0 ? true : false,
                         'variant_number' => $variant_number,
                     ]);
-                    $project_variant_model->added_by    = \Auth::id();
+                    $is_new_phase                       = !$project_variant_model->id;
+                    $project_variant_model->added_by    = $me->id;
                     $project_variant_model->description = $variant['description'];
                     $project_variant_model->name        = $variant['name']
                                                             ?? ($variant_number === 0 ? 'Default' : 'Phase'.$variant_number);
                     $project_variant_model->reference   = $reference;
                     $project_variant_model->save(['timestamps' => false]);
+
+                    if ($is_new_phase) {
+                        CauserResolver::setCauser($me);
+                        $project_variant_model->log(
+                            'aegis::messages.added-project-phase',
+                            [
+                                'phase'   => $project_variant_model->name,
+                                'project' => $project_model->reference,
+                            ]
+                        );
+                    }
 
                     // Loop through documents if there are any
                     if (!isset($variant['documents'])) {
@@ -165,10 +192,7 @@ class StoreImport
                         // Log "New Document"
                         if ($is_new) {
                             CauserResolver::setCauser($document_model->created_by);
-                            $document_model->log(
-                                'documents::messages.created-on-behalf',
-                                ['who' => $document_model->created_by->name]
-                            );
+                            $document_model->log('documents::phrases.created-document', ['document' => $document_model->name]);
                         }
                         // Create/Load Document Variant
                         $variant_model = VariantDocument::firstOrNew([
@@ -214,6 +238,7 @@ class StoreImport
                                 $comment_model->save(['timestamps' => false]);
 
                                 $document_model->updated_by = $comment_model->user_id;
+
                             }
                         }
                         // Loop through approval if there are any
@@ -344,7 +369,7 @@ class StoreImport
                                 //     \Debug::debug($approval_users);
                                 //     $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
                                 //         .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
-                                //         .' needs processing';
+                                //         .' needs processing (L'.__LINE__.')';
                                 //     continue;
                                 // }
                                 foreach ($approval_users as $approval_references) {
@@ -353,9 +378,11 @@ class StoreImport
                                             $approval['company'] = $project['company'];
                                         }
                                         if (!array_key_exists('role', $approval)) {
-                                            $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
-                                                .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
-                                                .' does not have an assigned role';
+                                            if ($role !== 'author') {
+                                                $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
+                                                    .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
+                                                    .' does not have an assigned role (L'.__LINE__.')';
+                                            }
                                             continue;
                                         }
                                         $signature['job_title_id'] = $this->get_job_title($approval['role']);
@@ -410,7 +437,7 @@ class StoreImport
                 // Create blank one
                 $project_variant_model = ProjectVariant::Create(
                     [
-                        'added_by'       => \Auth::id(),
+                        'added_by'       => $me->id,
                         'description'    => '',
                         'name'           => 'Default',
                         'project_id'     => $project_model->id,
@@ -419,9 +446,17 @@ class StoreImport
                         'variant_number' => 0,
                     ],
                 );
+                CauserResolver::setCauser($me);
+                $project_variant_model->log(
+                    'aegis::messages.added-project-phase',
+                    [
+                        'phase'   => $project_variant_model->name,
+                        'project' => $project_model->reference,
+                    ]
+                );
             }
             $this->stream->send([
-                'percentage' => number_format(($i ++) / $project_count * 100, 2),
+                'percentage' => number_format(($i ++) /  $limit * 100, 2),
             ]);
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($errors, JSON_PRETTY_PRINT));
@@ -430,12 +465,20 @@ class StoreImport
     {
         $group_name = ucwords($group).'s';
         if (!in_array($user_id, $this->groups[$group_name]['users'])) {
-            UserGroup::firstOrCreate(
+            $user_group = UserGroup::firstOrCreate(
                 [
                     'group_id' => $this->groups[$group_name]['id'],
                     'user_id'  => $user_id,
                 ],
                 []
+            );
+            CauserResolver::setCauser(\Auth::user());
+            $user_group->group->log(
+                'documents::messages.added-user-to-approval-group',
+                [
+                    'group' => $user_group->group->name,
+                    'user'  => $user_group->user->name,
+                ]
             );
             $this->groups[$group_name]['users'][] = $user_id;
         }
@@ -459,19 +502,21 @@ class StoreImport
     }
     private function get_category($name, $prefix)
     {
-        $name = trim($name);
+        $name = trim($name ?? 'Other');
         if (array_key_exists($name, $this->categories)) {
             $category_id = $this->categories[$name];
         } else {
             $category  = Category::firstOrCreate(
                 [
-                    'name' => $name ?? 'Other',
+                    'name' => $name,
                 ],
                 [
                     'prefix'              => $prefix ?? 'O',
-                    'approval_process_id' => $this->get_approval_process($name ?? 'Other'),
+                    'approval_process_id' => $this->get_approval_process($name),
                 ]
             );
+            CauserResolver::setCauser(\Auth::user());
+            $category->log('messages.added.x-to-y', ['x' => $name, 'y' => 'documents::phrases.approval-groups']);
             $this->categories[$name] = $category->id;
         }
         return $this->categories[$name];
@@ -491,6 +536,8 @@ class StoreImport
                     'name' => $name,
                 ]
             );
+            CauserResolver::setCauser(\Auth::user());
+            $fbl_type->log('messages.added.x-to-y', ['x' => $name, 'y' => 'aegis::phrases.feedback-list-types']);
             $this->feedback_list_types[$reference] = $fbl_type->id;
         }
         return $this->feedback_list_types[$reference];
@@ -505,6 +552,8 @@ class StoreImport
                 ],
                 []
             );
+            CauserResolver::setCauser(\Auth::user());
+            $group_model->log('messages.added.x-to-y', ['x' => $group_name, 'y' => 'documents::phrases.approval-groups']);
             $this->groups[$group_name] = [
                 'id'    => $group_model->id,
                 'users' => [],
@@ -520,6 +569,8 @@ class StoreImport
                 'status' => 0,
             ]);
             $this->job_titles[$title] = $title_model->id;
+            CauserResolver::setCauser(\Auth::user());
+            $title_model->log('messages.added.x-to-y', ['x' => $title, 'y' => 'aegis::phrases.job-titles']);
         }
         return $this->job_titles[$title];
     }
@@ -530,6 +581,7 @@ class StoreImport
         } else {
             $j         = 1;
             $reference = substr(str_replace(' ', '', $customer), 0, 3);
+            $user      = \Auth::user();
             while (Customer::where(['reference' => $reference.$j])->first()) {
                 $j++;
             }
@@ -539,11 +591,13 @@ class StoreImport
                 ],
                 [
                     'reference' => strtoupper($reference.$j),
-                    'added_by'  => \Auth::id(),
+                    'added_by'  => $user->id,
                 ]
             );
             $customer_id                = $customer_model->id;
             $this->customers[$customer] = $customer_id;
+            CauserResolver::setCauser($user);
+            $customer_model->log('messages.added.x-to-y', ['x' => $customer, 'y' => 'dictionary.customers']);
         }
         return $customer_id;
     }
@@ -553,14 +607,18 @@ class StoreImport
             $type_id = $this->types[$type];
         } else {
             $name       = $type ?? 'Other';
+            $user       = \Auth::user();
+
             $type_model = Type::firstOrCreate(
                 [
                     'name' => $name,
                 ],
                 [
-                    'added_by' => \Auth::id(),
+                    'added_by' => $user->id,
                 ]
             );
+            CauserResolver::setCauser($user);
+            $type_model->log('messages.added.x-to-y', ['x' => $name, 'y' => 'aegis::phrases.project-types']);
             foreach ($this->companies as $id) {
                 CompanyType::firstOrCreate(
                     [
@@ -615,6 +673,8 @@ class StoreImport
                         'email'      => $new_user_data['email'],
                         'status'     => false,
                     ]);
+                    CauserResolver::setCauser(\Auth::user());
+                    $user->log('messages.added.x-to-y', ['x' => $user->name, 'y' => 'dictionary.users']);
 
                     $i              = 1;
                     $user_reference = $first_name.ucwords(substr($last_name, 0, 1));

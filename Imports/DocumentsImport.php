@@ -51,7 +51,7 @@ class DocumentsImport implements ToCollection
                     unset($debug['created_at']);
                     $debug = array_filter($debug);
                     if ($debug) {
-                        $this->errors['Projects']['N/a #'. (++$j)] = 'Could not process row: '.json_encode($debug);
+                        $this->errors['Projects']['N/a #'. (++$j)] = 'Could not process row: '.json_encode($debug).' (L'.__LINE__.')';
                         $this->stream->send([
                             'message' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Could not process row: '
                                 .json_encode($debug),

@@ -1,8 +1,9 @@
-let importer = {
+window.importer = {
+    stream: null,
     init: function() {
         let ol       = document.querySelector('ol.js-messages');
         let progress = document.querySelector('.progress-bar');
-        app.stream(
+        this.stream = app.stream(
             'm/AEGIS/management/import',
             {},
             function(json) {
@@ -22,5 +23,5 @@ let importer = {
     }
 };
 document.addEventListener('DOMContentLoaded', function() {
-    importer.init();
+    window.importer.init();
 }, false);

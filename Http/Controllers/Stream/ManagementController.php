@@ -27,9 +27,9 @@ class ManagementController extends Controller
 
     public function import(SSEStream $stream, Request $request)
     {
-        // $mode = 'collect';
-        $mode = 'store';
-        // $mode = 'both';
+        // Import stages. From: 'collect', 'store' or 'both'
+        $mode = 'both';
+        // Start
         ini_set('max_execution_time', 0);
         $stream->send([
             'percentage' => 0,
@@ -132,13 +132,13 @@ class ManagementController extends Controller
             ]);
         }
         if (in_array($mode, ['both', 'store'])) {
-            // $this->store($stream);
+            $this->store($stream);
         }
         $stream->stop([
             'message'    => 'Finished importing data',
             'percentage' => 100,
-            // 'redirect'   => '/a/m/AEGIS/management/import-errors',
-            'redirect'   => '/a/m/AEGIS/management/import-testing',
+            'redirect'   => '/a/m/AEGIS/management/import-errors',
+            // 'redirect'   => '/a/m/AEGIS/management/import-testing',
         ]);
     }
     private function users($stream, $file)

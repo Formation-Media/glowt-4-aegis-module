@@ -1,7 +1,8 @@
 <?php
 
 return array(
-    'add-document' => [
+    'added-project-phase' => 'Added phase ":Phase" to the project ":Project"',
+    'add-document'        => [
         'title'   => 'Added Document',
         'message' => 'Added Document ":name"',
     ],

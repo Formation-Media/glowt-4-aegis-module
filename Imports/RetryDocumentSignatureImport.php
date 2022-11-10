@@ -32,7 +32,7 @@ class RetryDocumentSignatureImport
         foreach ($rows as $i => $row) {
             extract($row);
             if (!isset($projects[$project_reference])) {
-                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found';
+                $this->errors['Document Signatures'][$document_reference] = 'Project '.$project_reference.' not Found (L'.__LINE__.')';
                 \Debug::debug('Project '.$project_reference.' not Found');
                 $stream->stop();
             }
