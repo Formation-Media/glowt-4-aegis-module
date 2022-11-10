@@ -245,7 +245,7 @@ class SignatureImport implements ToCollection
                                                         .'\' from signature code data');
                                                 }
 
-                                            $user_key = $user_reference;
+                                                $user_key = $user_reference;
                                         }
                                         if ($user_key === false) {
                                             \Debug::debug($role, $document_reference);

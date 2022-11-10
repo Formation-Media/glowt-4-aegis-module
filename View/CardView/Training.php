@@ -65,7 +65,6 @@ class Training
             'color' => $color,
             'value' => 100 - (min($before_start_date, 30) / 30 * 100),
         );
-        return $result->id % 100;
     }
     public function reference($result, Request $request, $row)
     {

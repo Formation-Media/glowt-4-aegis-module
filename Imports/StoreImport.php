@@ -238,7 +238,6 @@ class StoreImport
                                 $comment_model->save(['timestamps' => false]);
 
                                 $document_model->updated_by = $comment_model->user_id;
-
                             }
                         }
                         // Loop through approval if there are any
@@ -456,7 +455,7 @@ class StoreImport
                 );
             }
             $this->stream->send([
-                'percentage' => number_format(($i ++) /  $limit * 100, 2),
+                'percentage' => number_format(($i ++) / $limit * 100, 2),
             ]);
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($errors, JSON_PRETTY_PRINT));
