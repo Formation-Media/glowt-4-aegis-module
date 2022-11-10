@@ -5,9 +5,11 @@ namespace Modules\AEGIS\Imports;
 use App\Helpers\SSEStream;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Modules\AEGIS\Models\Company;
 
 class SignatureImport implements ToCollection
 {
+    private $companies;
     private $stream;
 
     public function __construct(SSEStream $stream)
@@ -20,7 +22,8 @@ class SignatureImport implements ToCollection
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
         ]);
-        $this->errors = json_decode(
+        $this->companies = Company::withTrashed()->pluck('abbreviation')->toArray();
+        $this->errors    = json_decode(
             \Storage::get('modules/aegis/import/errors.json'),
             true
         );
@@ -47,7 +50,7 @@ class SignatureImport implements ToCollection
 
             if ($company === null) {
                 $this->errors['Signatures'][$document_reference] = 'Company does not exist (tried from "'
-                    .$document_reference.'" and "'.$user_reference.'").';
+                    .$document_reference.'" and "'.$user_reference.'"). (L'.__LINE__.')';
                 \Debug::debug('Company does not exist (tried from "'.$document_reference.'" and "'.$user_reference.'").');
                 $this->stream->stop();
                 continue;
@@ -64,6 +67,7 @@ class SignatureImport implements ToCollection
                         if ($role === 'author') {
                             $variant['documents'][$document_reference]['author']['reference']       = $signature_reference;
                             $variant['documents'][$document_reference]['approval'][$role][$issue][] = [
+                                'comments'            => '',
                                 'company'             => $company,
                                 'increment'           => $progressive_number,
                                 'signature_reference' => $signature_reference,
@@ -119,11 +123,11 @@ class SignatureImport implements ToCollection
 
                                     'created_at' => date(
                                         'Y-m-d H:i:s',
-                                        min(strtotime($date), strtotime($user['created_at']))
+                                        min(strtotime($date), strtotime($user['created_at'] ?? time()))
                                     ),
                                     'updated_at' => date(
                                         'Y-m-d H:i:s',
-                                        max(strtotime($date), strtotime($user['updated_at']))
+                                        max(strtotime($date), strtotime($user['updated_at'] ?? time()))
                                     ),
                                 ]
                             );
@@ -138,9 +142,9 @@ class SignatureImport implements ToCollection
                 }
             }
             if (!$found) {
-                $old_document_id = explode('/', $document_reference)[1];
+                $exploded_document_reference = explode('/', $document_reference);
+                $old_document_id             = $exploded_document_reference[1];
                 if (strlen($old_document_id) > 3 && $old_document_id < 9900) {
-                    $exploded_document_reference = explode('/', $document_reference);
                     $project_id                  = implode('/', array_slice($exploded_document_reference, 0, 2));
                     $variant                     = false;
 
@@ -152,6 +156,29 @@ class SignatureImport implements ToCollection
                                 ) {
                                     $variant = $variant_number;
                                     break;
+                                }
+                            }
+                            // Attempt with other companies
+                            if ($variant === false) {
+                                $old_abbreviation = explode('/', $project_id);
+                                foreach ($this->companies as $abbreviation) {
+                                    $abbreviation = strtoupper($abbreviation);
+                                    if ($old_abbreviation[0] === $abbreviation) {
+                                        continue;
+                                    }
+                                    $old_abbreviation[0] = $abbreviation;
+                                    $new_project_id      = implode('/', $old_abbreviation);
+                                    if (array_key_exists($new_project_id, $this->projects)) {
+                                        foreach ($this->projects[$new_project_id]['phases'] as $variant_number => $variant_details) {
+                                            if (array_key_exists('documents', $variant_details)
+                                                && array_key_exists($document_reference, $variant_details['documents'])
+                                            ) {
+                                                $project_id = $new_project_id;
+                                                $variant    = $variant_number;
+                                                break 2;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             if ($variant !== false) {
@@ -212,10 +239,13 @@ class SignatureImport implements ToCollection
                                                     'updated_at'          => $date,
                                                 ];
 
-                                                \Debug::info('Creating Document Signature for Document \''.$document_reference
-                                                    .'\', Issue \''.$issue.'\', Role \''.$role.'\', User \''.$user_reference
-                                                    .'\' from signature code data');
-                                            $user_key = $user_reference;
+                                                if ($role !== 'author') {
+                                                    \Debug::info('Creating Document Signature for Document \''.$document_reference
+                                                        .'\', Issue \''.$issue.'\', Role \''.$role.'\', User \''.$user_reference
+                                                        .'\' from signature code data');
+                                                }
+
+                                                $user_key = $user_reference;
                                         }
                                         if ($user_key === false) {
                                             \Debug::debug($role, $document_reference);
@@ -232,15 +262,16 @@ class SignatureImport implements ToCollection
                                 }
                             } else {
                                 $this->errors['Signatures'][$document_reference] = 'Project '.$project_id
-                                    .' does not have a document with this reference';
+                                    .' does not have a document with this reference (L'.__LINE__.')';
                             }
                         } else {
-                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any phases.';
+                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any phases. (L'
+                                .__LINE__.')';
                             \Debug::debug('Project '.$project_id.' does not have any phases.');
                             $this->stream->stop();
                         }
                     } else {
-                        $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not exist.';
+                        $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not exist. (L'.__LINE__.')';
                         \Debug::debug('Project '.$project_id.' does not exist.');
                         $this->stream->stop();
                     }

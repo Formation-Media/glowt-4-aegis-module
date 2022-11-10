@@ -20,6 +20,7 @@ class Project extends Model
         'name',
         'reference',
         'scope_id',
+        'status',
         'type_id',
     ];
     protected $table = 'm_aegis_projects';

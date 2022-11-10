@@ -41,16 +41,18 @@ class ProjectsImport implements ToCollection
                 && array_key_exists($phase_number, $this->projects[$reference]['phases'])
             ) {
                 $this->errors['Projects'][$reference] = 'Project '.$reference.', Phase '.$phase_number
-                    .' is a duplicate, skipping additional projects';
+                    .' is a duplicate, skipping additional projects (L'.__LINE__.')';
                 continue;
             }
             if (!array_key_exists($reference, $this->projects)) {
                 $this->projects[$reference]['added_by']    = $user_id;
                 $this->projects[$reference]['company']     = $company;
+                $this->projects[$reference]['customer']    = $customer;
                 $this->projects[$reference]['description'] = $description;
                 $this->projects[$reference]['name']        = $name;
-                $this->projects[$reference]['customer']    = $customer;
+                $this->projects[$reference]['status']      = !($company === 'AES' && $id > 3000);
                 $this->projects[$reference]['type']        = $type;
+                $this->projects[$reference]['phases']      = [];
             }
 
             $this->projects[$reference]['phases'][$phase_number]['name']        = $phase_name;
@@ -89,6 +91,7 @@ class ProjectsImport implements ToCollection
 
         $data = [
             'company'           => null,
+            'id'                => null,
             'reference'         => $row['PROJECT IDENTIFICATION'],
             'name'              => $row['PROJECT NAME'],
             'customer'          => $row['CUSTOMER/SCOPE'],
@@ -98,7 +101,11 @@ class ProjectsImport implements ToCollection
             'phase_number'      => $row['VARIANT NUMBER'],
             'phase_description' => $row['VARIANT DESCRIPTION'],
         ];
-        $data['company'] = explode('/', $data['reference'])[0];
+
+        $exploded_reference = explode('/', $data['reference']);
+
+        $data['company'] = $exploded_reference[0];
+        $data['id']      = $exploded_reference[1];
 
         if (strlen($data['name']) > 191) {
             $data['name']        = substr($data['name'], 0, 188).'...';

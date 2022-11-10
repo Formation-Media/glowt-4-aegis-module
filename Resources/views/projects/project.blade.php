@@ -9,7 +9,13 @@
     )
 )
 @section('content')
-    <x-card :details="$project->details" />
+    <x-card>
+        <x-details :details="$project->details">
+            <x-slot name="after">
+                <x-status :status="$project->status"/>
+            </x-slot>
+        </x-details>
+    </x-card>
     <x-tabs name="project" :tabs="$tabs">
         <x-tab target="details">
             <x-form name="project">

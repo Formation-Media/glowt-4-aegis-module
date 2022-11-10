@@ -18,6 +18,7 @@ class ProjectsController extends Controller
         $return = array();
         if ($projects = Project
             ::with('phases')
+            ->enabled()
             ->search(
                 array(
                     'name',
