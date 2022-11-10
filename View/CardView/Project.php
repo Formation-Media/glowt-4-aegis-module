@@ -2,10 +2,20 @@
 
 namespace Modules\AEGIS\View\CardView;
 
+use Illuminate\Http\Request;
 use Modules\AEGIS\Helpers\Icons;
 
 class Project
 {
+    public function actions($result, Request $request, $row)
+    {
+        return [
+            [
+                'href'  => '/a/m/AEGIS/projects/project/'.$result->id,
+                'name'  => 'dictionary.view',
+            ],
+        ];
+    }
     public function details($result)
     {
         return [
@@ -22,10 +32,6 @@ class Project
                 'value' => $result->phases->count(),
             ],
         ];
-    }
-    public function href($result)
-    {
-        return '/a/m/AEGIS/projects/project/'.$result->id;
     }
     public function reference($result)
     {
@@ -49,6 +55,10 @@ class Project
                 'translation' => 'dictionary.title',
             ],
         ];
+    }
+    public function status($result)
+    {
+        return 'status';
     }
     public function title($result)
     {

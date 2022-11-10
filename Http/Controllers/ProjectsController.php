@@ -32,7 +32,7 @@ class ProjectsController extends Controller
             'details' => ['name' => 'dictionary.details'],
         ];
 
-        if ($documents_module_enabled) {
+        if ($documents_module_enabled && $project->status) {
             $page_menu[] = array(
                 'class' => 'js-add-document',
                 'icon'  => 'file-plus',
@@ -52,11 +52,13 @@ class ProjectsController extends Controller
                 $tabs['phase-'.$i]    = ['name' => ___('aegis::dictionary.phase').' '.$variant->title];
             }
         }
-        $page_menu[] = array(
-            'href'  => '/a/m/AEGIS/projects/add-phase/'.$project->id,
-            'icon'  => Icons::phase(),
-            'title' => ['phrases.add', ['item' => 'aegis::dictionary.phase']],
-        );
+        if ($project->status) {
+            $page_menu[] = array(
+                'href'  => '/a/m/AEGIS/projects/add-phase/'.$project->id,
+                'icon'  => Icons::phase(),
+                'title' => ['phrases.add', ['item' => 'aegis::dictionary.phase']],
+            );
+        }
 
         return parent::view(compact(
             'default_variant',
