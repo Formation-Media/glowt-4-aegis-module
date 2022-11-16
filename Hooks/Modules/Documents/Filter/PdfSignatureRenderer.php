@@ -59,7 +59,6 @@ class PdfSignatureRenderer
                 'aegis::phrases.document-id'        => $variant_document->reference,
                 'dictionary.issue'                  => $variant_document->issue,
                 'documents::phrases.signature-date' => $pdf->document->nice_date('submitted_at'),
-                'dictionary.stage'                  => ___('dictionary.author'),
                 'documents::phrases.signatory-name' => $pdf->document->created_by->name,
                 'aegis::phrases.job-title'          => $job_title,
             ];
@@ -109,7 +108,6 @@ class PdfSignatureRenderer
                         'aegis::phrases.document-id'        => $variant_document->reference,
                         'dictionary.issue'                  => $variant_document->issue,
                         'documents::phrases.signature-date' => $item->nice_date('updated_at'),
-                        'dictionary.stage'                  => $item->approval_process_item->approval_stage->name,
                         'documents::phrases.signatory-name' => $item->agent->name,
                     ];
 
