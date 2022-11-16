@@ -50,7 +50,7 @@ class StoreImport
         ]);
 
         $this->approval_processes  = ApprovalProcess::pluck('id', 'name')->toArray();
-        $this->categories          = Category::pluck('id', 'name')->toArray();
+        $this->categories          = Category::all();
         $this->companies           = Company::withTrashed()->pluck('id', 'abbreviation')->toArray();
         $this->feedback_list_types = FeedbackListType::pluck('id', 'reference')->toArray();
         $this->job_titles          = JobTitle::pluck('id', 'name')->toArray();
@@ -63,7 +63,7 @@ class StoreImport
         $limit_percent = 3;
         $me            = \Auth::user();
         $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
-        $users         = User::withTrashed()->get();
+        $users         = User::withTrashed()->with(['metas'])->get();
 
         $project_count = count($projects);
 
@@ -75,7 +75,7 @@ class StoreImport
         foreach ($users as $user) {
             $meta = $user->getMeta();
             if ($meta->count()) {
-                $this->users[$meta['aegis.user-reference']] = [
+                $this->users[$meta['aegis.import-reference']] = [
                     'id'    => $user->id,
                     'email' => $user->email,
                 ];
@@ -458,7 +458,13 @@ class StoreImport
                 'percentage' => number_format(($i ++) / $limit * 100, 2),
             ]);
         }
+        if ($categories = $this->categories->where('prefix', '...')) {
+            foreach ($categories as $category) {
+                Category::find($category->id)->update(['prefix' => 'O']);
+            }
+        }
         \Storage::put('modules/aegis/import/errors.json', json_encode($errors, JSON_PRETTY_PRINT));
+        \Debug::info('All Done!');
     }
     private function check_user_group($group, $user_id)
     {
@@ -501,9 +507,13 @@ class StoreImport
     }
     private function get_category($name, $prefix)
     {
-        $name = trim($name ?? 'Other');
-        if (array_key_exists($name, $this->categories)) {
-            $category_id = $this->categories[$name];
+        $name = trim($name);
+
+        $category = $this->categories->where('name', $name)->first();
+        if ($category) {
+            if ($category->prefix === '...') {
+                $category->update(['prefix' => $prefix]);
+            }
         } else {
             $category  = Category::firstOrCreate(
                 [
@@ -516,9 +526,8 @@ class StoreImport
             );
             CauserResolver::setCauser(\Auth::user());
             $category->log('messages.added.x-to-y', ['x' => $name, 'y' => 'documents::phrases.approval-groups']);
-            $this->categories[$name] = $category->id;
         }
-        return $this->categories[$name];
+        return $category->id;
     }
     private function get_company($abbreviation)
     {
@@ -637,14 +646,12 @@ class StoreImport
             if (!$this->user_references) {
                 $this->user_references = \DB::table('users_meta')->where('key', 'aegis.user-reference')->pluck('value');
             }
-
             $user_emails = array_column($this->users, 'email');
 
             $new_user_data = [
                 'id'    => null,
                 'email' => $reference.'@aegisengineering.co.uk',
             ];
-
             if (($email_position = array_search($new_user_data['email'], $user_emails)) !== false) {
                 $user = $this->users[array_keys($this->users)[$email_position]];
             } else {
@@ -653,6 +660,7 @@ class StoreImport
                     'aegis-cert.co.uk',
                     'aegisengineering.co.uk',
                 ] as $email_domain) {
+                    \Debug::debug($reference.'@'.$email_domain);
                     if ($db_user = User::firstWhere('email', $reference.'@'.$email_domain)) {
                         $this->users[$reference] = [
                             'id'    => $db_user->id,
@@ -660,44 +668,79 @@ class StoreImport
                         ];
                         $found = true;
                         $user  = $this->users[$reference];
+                        break;
                     }
                 }
                 if (!$found) {
-                    $first_name   = ucwords(substr($reference, 0, 1));
-                    $last_name    = ucwords(substr($reference, 1));
-                    $user         = User::create([
-                        'title'      => '',
-                        'first_name' => $first_name,
-                        'last_name'  => $last_name,
-                        'email'      => $new_user_data['email'],
-                        'status'     => false,
-                    ]);
-                    CauserResolver::setCauser(\Auth::user());
-                    $user->log('messages.added.x-to-y', ['x' => $user->name, 'y' => 'dictionary.users']);
-
-                    $i              = 1;
-                    $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
-
-                    while (in_array($user_reference.$i, $this->user_references->toArray())) {
-                        $i++;
-                    }
-                    $user->setMeta([
-                        'aegis.type'             => 1,
-                        'aegis.import-reference' => $reference,
-                        'aegis.user-reference'   => $user_reference.$i,
-                    ]);
-                    $user->roles()->sync([config('roles.by_name.core.staff')]);
-                    $user->save();
-                    $new_user_data['id']     = $user->id;
-                    $this->users[$reference] = $new_user_data;
-                    $this->stream->send([
-                        'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
-                    ]);
+                    \Debug::debug();
+                    $this->stream->stop();
                 }
             }
         } else {
             $user = $this->users[$reference];
         }
+        \Debug::debug($user);
+        $this->stream->stop();
+        // if (!array_key_exists($reference, $this->users)) {
+        //     if (!$this->user_references) {
+        //         $this->user_references = \DB::table('users_meta')->where('key', 'aegis.user-reference')->pluck('value');
+        //     }
+
+        //     $user_emails = array_column($this->users, 'email');
+
+        //     if (($email_position = array_search($new_user_data['email'], $user_emails)) !== false) {
+        //         $user = $this->users[array_keys($this->users)[$email_position]];
+        //     } else {
+        //         $found = false;
+        //         foreach ([
+        //             'aegis-cert.co.uk',
+        //             'aegisengineering.co.uk',
+        //         ] as $email_domain) {
+        //             if ($db_user = User::firstWhere('email', $reference.'@'.$email_domain)) {
+        //                 $this->users[$reference] = [
+        //                     'id'    => $db_user->id,
+        //                     'email' => $db_user->email,
+        //                 ];
+        //                 $found = true;
+        //                 $user  = $this->users[$reference];
+        //             }
+        //         }
+        //         if (!$found) {
+        //             $first_name   = ucwords(substr($reference, 0, 1));
+        //             $last_name    = ucwords(substr($reference, 1));
+        //             $user         = User::create([
+        //                 'title'      => '',
+        //                 'first_name' => $first_name,
+        //                 'last_name'  => $last_name,
+        //                 'email'      => $new_user_data['email'],
+        //                 'status'     => false,
+        //             ]);
+        //             CauserResolver::setCauser(\Auth::user());
+        //             $user->log('messages.added.x-to-y', ['x' => $user->name, 'y' => 'dictionary.users']);
+
+        //             $i              = 1;
+        //             $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
+
+        //             while (in_array($user_reference.$i, $this->user_references->toArray())) {
+        //                 $i++;
+        //             }
+        //             $user->setMeta([
+        //                 'aegis.type'             => 1,
+        //                 'aegis.import-reference' => $reference,
+        //                 'aegis.user-reference'   => $user_reference.$i,
+        //             ]);
+        //             $user->roles()->sync([config('roles.by_name.core.staff')]);
+        //             $user->save();
+        //             $new_user_data['id']     = $user->id;
+        //             $this->users[$reference] = $new_user_data;
+        //             $this->stream->send([
+        //                 'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+        //             ]);
+        //         }
+        //     }
+        // } else {
+        //     $user = $this->users[$reference];
+        // }
         return $user['id'];
     }
     private function get_variant_reference($variant_number)
