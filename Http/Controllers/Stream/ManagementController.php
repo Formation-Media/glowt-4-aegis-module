@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Http\Controllers\Stream;
 
 use App\Helpers\SSEStream;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Modules\AEGIS\Imports\DocumentSignatureImport;
@@ -27,8 +28,8 @@ class ManagementController extends Controller
 
     public function import(SSEStream $stream, Request $request)
     {
-        // Import stages. From: 'collect', 'store' or 'both'
-        $mode = 'both';
+        // Import stages. From: 'none', 'collect', 'store' or 'both'
+        $mode = 'store';
         // Start
         ini_set('max_execution_time', 0);
         $stream->send([
@@ -219,7 +220,7 @@ class ManagementController extends Controller
                             'name' => $type,
                         ],
                         [
-                            'prefix' => 'O',
+                            'prefix' => '...',
                         ]
                     );
                     CategoryApprovalProcess::firstOrCreate(
