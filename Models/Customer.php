@@ -18,6 +18,8 @@ class Customer extends Model
     ];
     protected $table = 'm_aegis_scopes';
 
+    public $model_link = '/a/m/AEGIS/customers/customer/{{id}}';
+
     public function projects()
     {
         return $this->hasMany(Project::class, 'scope_id', 'id');
