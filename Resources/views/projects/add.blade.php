@@ -19,6 +19,14 @@
                 type="select"
             />
             <x-field
+                disabled
+                label="aegis::phrases.project-type"
+                name="type"
+                :options="[]"
+                required
+                type="select"
+            />
+            <x-field
                 label="aegis::phrases.project-title"
                 name="name"
                 required
@@ -39,19 +47,6 @@
                 ]"
             />
             <x-field
-                label="dictionary.description"
-                name="description"
-                type="textarea"
-            />
-            <x-field
-                disabled
-                label="dictionary.type"
-                name="type"
-                :options="[]"
-                required
-                type="select"
-            />
-            <x-field
                 label="aegis::phrases.project-number"
                 max="{{ str_pad('', config('settings.aegis.project.character-limit'), 9) }}"
                 min="0"
@@ -59,6 +54,20 @@
                 prefield="{!! $customer ? $customer->reference : '&hellip;' !!}/"
                 type="number"
                 required
+            />
+            <x-field
+                label="dictionary.status"
+                name="status"
+                :options="\App\Helpers\Selects::binary('dictionary.enabled', 'dictionary.disabled')"
+                required
+                type="select"
+                value="1"
+            />
+            <x-field
+                label="dictionary.description"
+                name="description"
+                type="textarea"
+                wrapclass="span-2"
             />
         </x-card>
         <x-field type="actions">
