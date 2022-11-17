@@ -74,7 +74,7 @@ class StoreImport
 
         foreach ($users as $user) {
             $meta = $user->getMeta();
-            if ($meta->count()) {
+            if ($meta->count() && array_key_exists('aegis.import-reference', $meta->toArray())) {
                 $this->users[$meta['aegis.import-reference']] = [
                     'id'    => $user->id,
                     'email' => $user->email,
@@ -91,7 +91,7 @@ class StoreImport
         $limit = min($project_count, ceil($project_count / 100 * $limit_percent));
         if ($project_count > $limit) {
             $message = '----- LIMITING TO FIRST '.number_format($limit).'/'.number_format($project_count).' PROJECTS -----';
-            \Debug::critical($message);
+            \Debug::info($message);
             $stream->send([
                 'percentage' => 0,
                 'message'    => '&nbsp;&nbsp;&nbsp;'.$message,
@@ -99,8 +99,8 @@ class StoreImport
             $projects = array_slice($projects, 0, $limit);
         }
         foreach ($projects as $project_reference => $project) {
-            $customer_id   = $this->get_customer($project['customer']);
-            $type_id       = $this->get_type($project['type']);
+            $customer_id = $this->get_customer($project['customer']);
+            $type_id     = $this->get_type($project['type']);
 
             // Create/Load Project
             $project_model = Project::firstOrNew([
@@ -227,15 +227,27 @@ class StoreImport
                             $this->stream->stop();
                         } elseif ($document['comments']) {
                             foreach ($document['comments'] as $comment) {
+                                $commenter     = $this->get_user($comment['author']);
                                 $comment_model = Comment::firstOrNew([
                                     'content'                   => $comment['content'],
                                     'document_approval_item_id' => null,
                                     'document_id'               => $document_model->id,
-                                    'user_id'                   => $this->get_user($comment['author']),
+                                    'user_id'                   => $commenter,
                                 ]);
+                                $is_new                    = $comment_model->id ? false : true;
                                 $comment_model->created_at = $comment['created_at'];
                                 $comment_model->updated_at = $comment['updated_at'];
                                 $comment_model->save(['timestamps' => false]);
+
+                                if ($is_new) {
+                                    CauserResolver::setCauser(User::find($commenter));
+                                    $comment_model->log(
+                                        'documents::messages.commented-on-document',
+                                        [
+                                            'document' => $variant_model->reference.' - '.$document_model->name,
+                                        ]
+                                    );
+                                }
 
                                 $document_model->updated_by = $comment_model->user_id;
                             }
@@ -402,7 +414,6 @@ class StoreImport
                                         // \Debug::debug($project_reference, $document_reference);
                                         $approval_process_item->save(['timestamps' => false]);
 
-
                                         if ($approval['comments']) {
                                             $comment = Comment::firstOrNew([
                                                 'content'                   => $approval['comments'],
@@ -410,9 +421,19 @@ class StoreImport
                                                 'document_id'               => $document_model->id,
                                                 'user_id'                   => $approval_process_item->agent_id,
                                             ]);
+                                            $is_new              = $comment->id ? false : true;
                                             $comment->created_at = $approval['created_at'];
                                             $comment->updated_at = $approval['updated_at'];
                                             $comment->save(['timestamps' => false]);
+                                            if ($is_new) {
+                                                CauserResolver::setCauser(User::find($commenter));
+                                                $comment->log(
+                                                    'documents::messages.commented-on-document',
+                                                    [
+                                                        'document' => $variant_model->reference.' - '.$document_model->name,
+                                                    ]
+                                                );
+                                            }
                                         }
 
                                         $document_model->updated_by = $approval_process_item->agent_id;
@@ -672,75 +693,41 @@ class StoreImport
                     }
                 }
                 if (!$found) {
-                    \Debug::debug();
-                    $this->stream->stop();
+                    $first_name = ucwords(substr($reference, 0, 1));
+                    $last_name  = ucwords(substr($reference, 1));
+                    $user       = User::create([
+                        'title'      => '',
+                        'first_name' => $first_name,
+                        'last_name'  => $last_name,
+                        'email'      => $new_user_data['email'],
+                        'status'     => false,
+                    ]);
+                    CauserResolver::setCauser(\Auth::user());
+                    $user->log('messages.added.x-to-y', ['x' => $user->name, 'y' => 'dictionary.users']);
+
+                    $i              = 1;
+                    $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
+
+                    while (in_array($user_reference.$i, $this->user_references->toArray())) {
+                        $i++;
+                    }
+                    $user->setMeta([
+                        'aegis.import-reference' => $reference,
+                        'aegis.type'             => 1,
+                        'aegis.user-reference'   => $user_reference.$i,
+                    ]);
+                    $user->roles()->sync([config('roles.by_name.core.staff')]);
+                    $user->save();
+                    $new_user_data['id']     = $user->id;
+                    $this->users[$reference] = $new_user_data;
+                    $this->stream->send([
+                        'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
+                    ]);
                 }
             }
         } else {
             $user = $this->users[$reference];
         }
-        \Debug::debug($user);
-        $this->stream->stop();
-        // if (!array_key_exists($reference, $this->users)) {
-        //     if (!$this->user_references) {
-        //         $this->user_references = \DB::table('users_meta')->where('key', 'aegis.user-reference')->pluck('value');
-        //     }
-
-        //     $user_emails = array_column($this->users, 'email');
-
-        //     if (($email_position = array_search($new_user_data['email'], $user_emails)) !== false) {
-        //         $user = $this->users[array_keys($this->users)[$email_position]];
-        //     } else {
-        //         $found = false;
-        //         foreach ([
-        //             'aegis-cert.co.uk',
-        //             'aegisengineering.co.uk',
-        //         ] as $email_domain) {
-        //             if ($db_user = User::firstWhere('email', $reference.'@'.$email_domain)) {
-        //                 $this->users[$reference] = [
-        //                     'id'    => $db_user->id,
-        //                     'email' => $db_user->email,
-        //                 ];
-        //                 $found = true;
-        //                 $user  = $this->users[$reference];
-        //             }
-        //         }
-        //         if (!$found) {
-        //             $first_name   = ucwords(substr($reference, 0, 1));
-        //             $last_name    = ucwords(substr($reference, 1));
-        //             $user         = User::create([
-        //                 'title'      => '',
-        //                 'first_name' => $first_name,
-        //                 'last_name'  => $last_name,
-        //                 'email'      => $new_user_data['email'],
-        //                 'status'     => false,
-        //             ]);
-        //             CauserResolver::setCauser(\Auth::user());
-        //             $user->log('messages.added.x-to-y', ['x' => $user->name, 'y' => 'dictionary.users']);
-
-        //             $i              = 1;
-        //             $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
-
-        //             while (in_array($user_reference.$i, $this->user_references->toArray())) {
-        //                 $i++;
-        //             }
-        //             $user->setMeta([
-        //                 'aegis.type'             => 1,
-        //                 'aegis.import-reference' => $reference,
-        //                 'aegis.user-reference'   => $user_reference.$i,
-        //             ]);
-        //             $user->roles()->sync([config('roles.by_name.core.staff')]);
-        //             $user->save();
-        //             $new_user_data['id']     = $user->id;
-        //             $this->users[$reference] = $new_user_data;
-        //             $this->stream->send([
-        //                 'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
-        //             ]);
-        //         }
-        //     }
-        // } else {
-        //     $user = $this->users[$reference];
-        // }
         return $user['id'];
     }
     private function get_variant_reference($variant_number)
