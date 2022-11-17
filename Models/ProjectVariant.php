@@ -24,6 +24,8 @@ class ProjectVariant extends Model
     ];
     protected $table = 'm_aegis_project_variants';
 
+    public $model_link = '/a/m/AEGIS/projects/project/{{id}}';
+
     public function title(): Attribute
     {
         return new Attribute(

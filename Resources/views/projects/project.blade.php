@@ -41,13 +41,7 @@
                         required
                     />
                     <x-field
-                        label="dictionary.description"
-                        name="description"
-                        type="textarea"
-                        value="{{$project->description}}"
-                    />
-                    <x-field
-                        label="dictionary.type"
+                        label="aegis::phrases.project-type"
                         name="type"
                         type="select"
                         :options="$types"
@@ -61,6 +55,21 @@
                         required="{{ $auth_user->is_administrator || $auth_user->is_manager }}"
                         type="text"
                         value="{{ $project->reference }}"
+                    />
+                    <x-field
+                        label="dictionary.status"
+                        name="status"
+                        :options="\App\Helpers\Selects::binary('dictionary.enabled', 'dictionary.disabled')"
+                        required
+                        type="select"
+                        :value="$project->status"
+                    />
+                    <x-field
+                        label="dictionary.description"
+                        name="description"
+                        type="textarea"
+                        value="{{$project->description}}"
+                        wrapclass="span-2"
                     />
                 </x-card>
                 <x-field type="actions">

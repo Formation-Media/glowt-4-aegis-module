@@ -25,6 +25,8 @@ class Project extends Model
     ];
     protected $table = 'm_aegis_projects';
 
+    public $model_link = '/a/m/AEGIS/projects/project/{{id}}';
+
     public function getDetailsAttribute()
     {
         return [

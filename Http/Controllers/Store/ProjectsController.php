@@ -28,7 +28,8 @@ class ProjectsController extends Controller
                     'numeric',
                     'required',
                 ],
-                'type' => 'required|exists:'.Type::class.',id',
+                'status' => 'required|boolean',
+                'type'   => 'required|exists:'.Type::class.',id',
             )
         );
         if ($validator->fails()) {
@@ -60,6 +61,7 @@ class ProjectsController extends Controller
         $new_project->company_id  = $validated['company_id'];
         $new_project->scope_id    = $validated['customer'];
         $new_project->name        = $validated['name'];
+        $new_project->status      = true;
         $new_project->type_id     = $validated['type'];
         $new_project->added_by    = $user->id;
         $new_project->description = $validated['description'] ?? '';
@@ -122,7 +124,8 @@ class ProjectsController extends Controller
                     'required',
                     Rule::unique('m_aegis_projects')->ignore($project),
                 ] : 'nullable',
-                'type' => 'required|exists:m_aegis_types,id',
+                'status' => 'required|boolean',
+                'type'   => 'required|exists:m_aegis_types,id',
             ],
             function ($validated) use ($project, $user) {
                 $redirect = url('a/m/AEGIS/projects/project/'.$project->id);
@@ -131,6 +134,7 @@ class ProjectsController extends Controller
                 $project->scope_id    = $validated['customer'];
                 $project->type_id     = $validated['type'];
                 $project->description = $validated['description'] ?? '';
+                $project->status      = $validated['status'] ?? '';
                 if ($user->is_administrator || $user->is_manager) {
                     $project->reference = $validated['reference'];
                 }
