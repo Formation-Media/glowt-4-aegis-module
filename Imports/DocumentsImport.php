@@ -9,12 +9,16 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 class DocumentsImport implements ToCollection
 {
     private $errors;
+    private $m_aegis_projects;
+    private $m_aegis_project_variants;
     private $projects;
     private $stream;
+    private $user_id;
 
     public function __construct(SSEStream $stream)
     {
-        $this->stream = $stream;
+        $this->stream  = $stream;
+        $this->user_id = \Auth::id();
     }
     public function collection(Collection $rows)
     {
@@ -22,7 +26,15 @@ class DocumentsImport implements ToCollection
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
         ]);
-        $user_id = \Auth::id();
+
+        $this->m_aegis_projects = collect(json_decode(
+            \Storage::get('modules/aegis/import/databases/m_aegis_projects.json'),
+            true
+        ));
+        $this->m_aegis_project_variants = collect(json_decode(
+            \Storage::get('modules/aegis/import/databases/m_aegis_project_variants.json'),
+            true
+        ));
         if (\Storage::exists('modules/aegis/import/projects_and_documents.json')) {
             $this->projects = json_decode(
                 \Storage::get('modules/aegis/import/projects_and_documents.json'),
@@ -60,7 +72,7 @@ class DocumentsImport implements ToCollection
                     continue;
                 } else {
                     $this->projects[$project_reference] = [
-                        'added_by'    => $user_id,
+                        'added_by'    => $this->user_id,
                         'company'     => explode('/', $project_reference)[0],
                         'customer'    => 'Other',
                         'description' => '',
@@ -88,14 +100,13 @@ class DocumentsImport implements ToCollection
                 ]);
             }
 
-            $this->projects[$project_reference]['phases'][$phase_number]['documents'][$reference] = [
+            $this->projects[$project_reference]['phases'][$phase_number]['documents'][$reference][$issue] = [
                 'category'        => $type,
                 'category_prefix' => $prefix,
                 'created_at'      => $created_at,
                 'created_by'      => $created_by,
                 'created_by_role' => null,
                 'feedback_list'   => $fbl,
-                'issue'           => $issue,
                 'name'            => $name,
                 'statuses'        => [],
                 'approval' => [
@@ -208,7 +219,7 @@ class DocumentsImport implements ToCollection
             'description'       => $row['DOC-DESCRIPTION'],
             'project_reference' => $row['PROJECT-IDENTIFICATION'],
             'project_name'      => $row['PROJECT NAME'],
-            'issue'             => $row['ISSUE'],
+            'issue'             => max((int) $row['ISSUE'], 1),
             'prefix'            => $row['DOC-LETTER'],
             'fbl'               => null,
 

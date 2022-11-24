@@ -47,7 +47,6 @@ class ManagementController extends Controller
                 '\Modules\AEGIS\Models\CompanyType',
                 '\Modules\AEGIS\Models\DocumentApprovalItemDetails',
                 '\Modules\AEGIS\Models\FeedbackListType',
-                '\Modules\AEGIS\Models\JobTitle',
                 '\Modules\AEGIS\Models\Project',
                 '\Modules\AEGIS\Models\ProjectVariant',
                 '\Modules\AEGIS\Models\Scope',
@@ -77,6 +76,8 @@ class ManagementController extends Controller
                 'modules/aegis/import/projects_and_documents.json',
                 'modules/aegis/import/projects_and_document_signatures.json',
                 'modules/aegis/import/project_data.json',
+                'modules/aegis/import/databases/m_aegis_projects.json',
+                'modules/aegis/import/databases/m_aegis_project_variants.json',
             ]);
             \Storage::put('modules/aegis/import/errors.json', json_encode([]));
             \Storage::put('modules/aegis/import/projects.json', json_encode([]));

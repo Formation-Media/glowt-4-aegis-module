@@ -9,16 +9,23 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 class ProjectsImport implements ToCollection
 {
     private $errors;
+    private $m_aegis_projects;
+    private $m_aegis_project_variants;
     private $projects;
     private $stream;
+    private $user_id;
 
     public function __construct(SSEStream $stream)
     {
-        $this->stream = $stream;
+        $this->stream  = $stream;
+        $this->user_id = \Auth::id();
     }
     public function collection(Collection $rows)
     {
-        $user_id        = \Auth::id();
+        $this->stream->send([
+            'percentage' => 0,
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loading data',
+        ]);
         $this->errors = json_decode(
             \Storage::get('modules/aegis/import/errors.json'),
             true
@@ -27,6 +34,14 @@ class ProjectsImport implements ToCollection
             \Storage::get('modules/aegis/import/projects.json'),
             true
         );
+        $this->m_aegis_projects = collect(json_decode(
+            \Storage::get('modules/aegis/import/databases/m_aegis_projects.json'),
+            true
+        ));
+        $this->m_aegis_project_variants = collect(json_decode(
+            \Storage::get('modules/aegis/import/databases/m_aegis_project_variants.json'),
+            true
+        ));
         $this->stream->send([
             'percentage' => 0,
             'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Processing import file',
@@ -45,7 +60,7 @@ class ProjectsImport implements ToCollection
                 continue;
             }
             if (!array_key_exists($reference, $this->projects)) {
-                $this->projects[$reference]['added_by']    = $user_id;
+                $this->projects[$reference]['added_by']    = $this->user_id;
                 $this->projects[$reference]['company']     = $company;
                 $this->projects[$reference]['customer']    = $customer;
                 $this->projects[$reference]['description'] = $description;
