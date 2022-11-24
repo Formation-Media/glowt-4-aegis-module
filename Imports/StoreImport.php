@@ -179,9 +179,18 @@ class StoreImport
                                 $meta['author_role'] = $this->get_job_title($document['created_by_role']);
                             }
                             // Create/Load Document
-                            $document_model = Document::firstOrNew([
-                                'name' => trim($document['name']),
-                            ]);
+
+                            $document_model = Document
+                                ::whereHas('metas', function ($query) use ($document_reference, $issue_number) {
+                                    $query
+                                        ->where([
+                                            'm_documents_meta.key'   => 'document_reference_issue',
+                                            'm_documents_meta.value' => $document_reference.$issue_number,
+                                        ]);
+                                })
+                                ->firstOrNew([
+                                    'name' => trim($document['name']),
+                                ]);
                             $is_new                           = $document_model->id ? false : true;
                             $document_model->author_reference = $document['author']['reference'];
                             $document_model->category_id      = $category_id;
@@ -189,6 +198,7 @@ class StoreImport
                             $document_model->process_id       = $process_id;
                             $document_model->status           = isset($document['submitted_at']) ? 'Approved' : 'In Approval';
                             $document_model->submitted_at     = isset($document['submitted_at']) ? $document['submitted_at'] : null;
+                            $document_model->setMeta('document_reference_issue', $document_reference.$issue_number);
                             $document_model->save(['timestamps' => false]);
                             // Log "New Document"
                             if ($is_new) {
