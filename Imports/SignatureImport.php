@@ -60,13 +60,14 @@ class SignatureImport implements ToCollection
                 foreach ($project['phases'] as $variant_number => $variant) {
                     if (array_key_exists('documents', $variant)
                         && array_key_exists($document_reference, $variant['documents'])
-                        && array_key_exists('approval', $variant['documents'][$document_reference])
-                        && array_key_exists($role, $variant['documents'][$document_reference]['approval'])
-                        && array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])
+                        && array_key_exists($issue, $variant['documents'][$document_reference])
+                        && array_key_exists('approval', $variant['documents'][$document_reference][$issue])
+                        && array_key_exists($role, $variant['documents'][$document_reference][$issue]['approval'])
+                        && array_key_exists($issue, $variant['documents'][$document_reference][$issue]['approval'][$role])
                     ) {
                         if ($role === 'author') {
-                            $variant['documents'][$document_reference]['author']['reference']       = $signature_reference;
-                            $variant['documents'][$document_reference]['approval'][$role][$issue][] = [
+                            $variant['documents'][$document_reference][$issue]['author']['reference']       = $signature_reference;
+                            $variant['documents'][$document_reference][$issue]['approval'][$role][$issue][] = [
                                 'comments'            => '',
                                 'company'             => $company,
                                 'increment'           => $progressive_number,
@@ -83,22 +84,19 @@ class SignatureImport implements ToCollection
                                 ),
                             ];
                         } else {
-                            $variant['documents'][$document_reference]['issue'] = max(
-                                $variant['documents'][$document_reference]['issue'],
-                                array_keys($variant['documents'][$document_reference]['approval'][$role])
-                            );
-
                             $user_key = false;
 
-                            if (array_key_exists($issue, $variant['documents'][$document_reference]['approval'][$role])) {
-                                foreach ($variant['documents'][$document_reference]['approval'][$role][$issue] as $key => $item) {
+                            if (array_key_exists($issue, $variant['documents'][$document_reference][$issue]['approval'][$role])) {
+                                foreach ($variant['documents'][$document_reference][$issue]['approval'][$role]
+                                    [$issue] as $key => $item
+                                ) {
                                     if (array_search($user_reference, array_keys($item)) !== false) {
                                         $user_key = $key;
                                         break;
                                     }
                                 }
                             } else {
-                                foreach ($variant['documents'][$document_reference]['approval'][$role] as $approval_issue => $items) {
+                                foreach ($variant['documents'][$document_reference][$issue]['approval'][$role] as $items) {
                                     foreach ($items as $key => $item) {
                                         if (array_search($user_reference, array_keys($item)) !== false) {
                                             $user_key = $key;
@@ -111,7 +109,8 @@ class SignatureImport implements ToCollection
                                 continue;
                             }
 
-                            $user = $variant['documents'][$document_reference]['approval'][$role][$issue][$user_key][$user_reference];
+                            $user = $variant['documents'][$document_reference][$issue]['approval'][$role][$issue][$user_key]
+                                [$user_reference];
 
                             $user = array_merge(
                                 $user,
@@ -131,7 +130,7 @@ class SignatureImport implements ToCollection
                                     ),
                                 ]
                             );
-                            $this->projects[$project_reference]['phases'][$variant_number]['documents'][$document_reference]
+                            $this->projects[$project_reference]['phases'][$variant_number]['documents'][$document_reference][$issue]
                                 ['approval'][$role][$issue][$user_key][$user_reference] = $user;
                         }
 
@@ -145,135 +144,155 @@ class SignatureImport implements ToCollection
                 $exploded_document_reference = explode('/', $document_reference);
                 $old_document_id             = $exploded_document_reference[1];
                 if (strlen($old_document_id) > 3 && $old_document_id < 9900) {
-                    $project_id                  = implode('/', array_slice($exploded_document_reference, 0, 2));
-                    $variant                     = false;
+                    $project_id = implode('/', array_slice($exploded_document_reference, 0, 2));
+                    $variant    = false;
 
-                    if (array_key_exists($project_id, $this->projects)) {
-                        if (array_key_exists('phases', $this->projects[$project_id])) {
-                            foreach ($this->projects[$project_id]['phases'] as $variant_number => $variant_details) {
-                                if (array_key_exists('documents', $variant_details)
-                                    && array_key_exists($document_reference, $variant_details['documents'])
-                                ) {
-                                    $variant = $variant_number;
+                    if (!array_key_exists($project_id, $this->projects)) {
+                        $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not exist. (L'.__LINE__.')';
+                        \Debug::debug('Project '.$project_id.' does not exist.');
+                        $this->stream->stop();
+                        continue;
+                    }
+                    if (!array_key_exists('phases', $this->projects[$project_id])) {
+                        $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any phases. (L'
+                            .__LINE__.')';
+                        \Debug::debug('Project '.$project_id.' does not have any phases.');
+                        $this->stream->stop();
+                        continue;
+                    }
+                    foreach ($this->projects[$project_id]['phases'] as $variant_number => $variant_details) {
+                        if (array_key_exists('documents', $variant_details)
+                            && array_key_exists($document_reference, $variant_details['documents'])
+                        ) {
+                            $variant = $variant_number;
+                            break;
+                        }
+                    }
+                    // Attempt with other companies
+                    if ($variant === false) {
+                        $old_abbreviation = explode('/', $project_id);
+                        foreach ($this->companies as $abbreviation) {
+                            $abbreviation = strtoupper($abbreviation);
+                            if ($old_abbreviation[0] === $abbreviation) {
+                                continue;
+                            }
+                            $old_abbreviation[0] = $abbreviation;
+                            $new_project_id      = implode('/', $old_abbreviation);
+                            if (array_key_exists($new_project_id, $this->projects)) {
+                                foreach ($this->projects[$new_project_id]['phases'] as $variant_number => $variant_details) {
+                                    if (array_key_exists('documents', $variant_details)
+                                        && array_key_exists($document_reference, $variant_details['documents'])
+                                    ) {
+                                        $project_id = $new_project_id;
+                                        $variant    = $variant_number;
+                                        break 2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if ($variant !== false) {
+                        if (!array_key_exists(
+                            $issue,
+                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                        )) {
+                            // If the issue doesn't exist...
+                            $previous_issue = false;
+                            // ...See if previous issues exist...
+                            for ($j = $issue - 1; $j !== 0; $j--) {
+                                if (array_key_exists(
+                                    $j,
+                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                                )) {
+                                    $previous_issue = $j;
+                                    // ...Use the latest version...
                                     break;
                                 }
                             }
-                            // Attempt with other companies
-                            if ($variant === false) {
-                                $old_abbreviation = explode('/', $project_id);
-                                foreach ($this->companies as $abbreviation) {
-                                    $abbreviation = strtoupper($abbreviation);
-                                    if ($old_abbreviation[0] === $abbreviation) {
-                                        continue;
+                            if ($previous_issue !== false) {
+                                // ...to assign to the current issue
+                                $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                    = $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                                        [$previous_issue];
+                            } else {
+                                // No previous issue
+                                \Debug::debug($document_reference, $issue);
+                                $this->stream->stop();
+                            }
+                        }
+                        if (array_key_exists(
+                            'approval',
+                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                        )) {
+                            if (array_key_exists(
+                                $role,
+                                $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                    ['approval']
+                            )) {
+                                $user_key  = false;
+                                if (array_key_exists($issue, $this->projects[$project_id]['phases'][$variant]['documents']
+                                    [$document_reference][$issue]['approval'][$role])
+                                ) {
+                                    foreach ($this->projects[$project_id]['phases'][$variant]['documents']
+                                        [$document_reference][$issue]['approval'][$role][$issue] as $key => $item
+                                    ) {
+                                        if (array_search($user_reference, array_keys($item)) !== false) {
+                                            $issue_key = $issue;
+                                            $user_key  = $key;
+                                            break;
+                                        }
                                     }
-                                    $old_abbreviation[0] = $abbreviation;
-                                    $new_project_id      = implode('/', $old_abbreviation);
-                                    if (array_key_exists($new_project_id, $this->projects)) {
-                                        foreach ($this->projects[$new_project_id]['phases'] as $variant_number => $variant_details) {
-                                            if (array_key_exists('documents', $variant_details)
-                                                && array_key_exists($document_reference, $variant_details['documents'])
-                                            ) {
-                                                $project_id = $new_project_id;
-                                                $variant    = $variant_number;
+                                } else {
+                                    if (array_key_exists($issue, $this->projects[$project_id]['phases'][$variant]['documents']
+                                    [$document_reference][$issue]['approval'][$role])) {
+                                        foreach ($this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
+                                            [$issue]['approval'][$role][$issue] as $key => $item
+                                        ) {
+                                            if (array_search($user_reference, array_keys($item)) !== false) {
+                                                $issue_key = $issue;
+                                                $user_key  = $key;
                                                 break 2;
                                             }
                                         }
                                     }
                                 }
-                            }
-                            if ($variant !== false) {
-                                if (array_key_exists(
-                                    'approval',
-                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
-                                )) {
-                                    if (array_key_exists(
-                                        $role,
-                                        $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
-                                            ['approval']
-                                    )) {
-                                        $issue_key = false;
-                                        $user_key  = false;
-                                        if (array_key_exists($issue, $this->projects[$project_id]['phases'][$variant]['documents']
-                                            [$document_reference]['approval'][$role])
-                                        ) {
-                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
-                                                ['issue'] = max(
-                                                    $this->projects[$project_id]['phases'][$variant]['documents']
-                                                        [$document_reference]['issue'],
-                                                    array_keys($this->projects[$project_id]['phases'][$variant]['documents']
-                                                            [$document_reference]['approval'][$role])
-                                                );
+                                if ($user_key === false) {
+                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                        ['author']['reference'] = $signature_reference;
+                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                        ['approval'][$role][$issue][0][$user_reference] = [
+                                            'comments'            => '',
+                                            'created_at'          => $date,
+                                            'role'                => $user_role,
+                                            'signature_reference' => $signature_reference,
+                                            'status'              => 'Approved',
+                                            'updated_at'          => $date,
+                                        ];
 
-                                            foreach ($this->projects[$project_id]['phases'][$variant]['documents']
-                                                [$document_reference]['approval'][$role][$issue] as $key => $item
-                                            ) {
-                                                if (array_search($user_reference, array_keys($item)) !== false) {
-                                                    $issue_key = $issue;
-                                                    $user_key  = $key;
-                                                    break;
-                                                }
-                                            }
-                                        } else {
-                                            foreach ($this->projects[$project_id]['phases'][$variant]['documents']
-                                                [$document_reference]['approval'][$role] as $approval_issue => $items
-                                            ) {
-                                                foreach ($items as $key => $item) {
-                                                    if (array_search($user_reference, array_keys($item)) !== false) {
-                                                        $issue_key = $approval_issue;
-                                                        $user_key  = $key;
-                                                        break 2;
-                                                    }
-                                                }
-                                            }
+                                        if ($role !== 'author') {
+                                            \Debug::info('Creating Document Signature for Document \''.$document_reference
+                                                .'\', Issue \''.$issue.'\', Role \''.$role.'\', User \''.$user_reference
+                                                .'\' from signature code data');
                                         }
-                                        if ($user_key === false) {
-                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
-                                                ['author']['reference'] = $signature_reference;
-                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
-                                                ['approval'][$role][$issue][0][$user_reference] = [
-                                                    'comments'            => '',
-                                                    'created_at'          => $date,
-                                                    'role'                => $user_role,
-                                                    'signature_reference' => $signature_reference,
-                                                    'status'              => 'Approved',
-                                                    'updated_at'          => $date,
-                                                ];
 
-                                                if ($role !== 'author') {
-                                                    \Debug::info('Creating Document Signature for Document \''.$document_reference
-                                                        .'\', Issue \''.$issue.'\', Role \''.$role.'\', User \''.$user_reference
-                                                        .'\' from signature code data');
-                                                }
-
-                                                $user_key = $user_reference;
-                                        }
-                                        if ($user_key === false) {
-                                            \Debug::debug($role, $document_reference);
-                                            $this->stream->stop();
-                                        } else {
-                                            $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]
-                                                ['approval'][$role][$issue][$user_key][$user_reference]['signature_reference']
-                                                     = $signature_reference;
-                                        }
-                                    }
-                                } else {
-                                    \Debug::debug($this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]);
-                                    $this->stream->stop();
+                                        $user_key = $user_reference;
                                 }
-                            } else {
-                                $this->errors['Signatures'][$document_reference] = 'Project '.$project_id
-                                    .' does not have a document with this reference (L'.__LINE__.')';
+                                if ($user_key === false) {
+                                    \Debug::debug($role, $document_reference);
+                                    $this->stream->stop();
+                                } else {
+                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                        ['approval'][$role][$issue][$user_key][$user_reference]['signature_reference']
+                                                = $signature_reference;
+                                }
                             }
                         } else {
-                            $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not have any phases. (L'
-                                .__LINE__.')';
-                            \Debug::debug('Project '.$project_id.' does not have any phases.');
+                            \Debug::debug($this->projects[$project_id]['phases'][$variant]['documents'][$document_reference]);
                             $this->stream->stop();
                         }
                     } else {
-                        $this->errors['Signatures'][$document_reference] = 'Project '.$project_id.' does not exist. (L'.__LINE__.')';
-                        \Debug::debug('Project '.$project_id.' does not exist.');
-                        $this->stream->stop();
+                        $this->errors['Signatures'][$document_reference] = 'Project '.$project_id
+                            .' does not have a document with this reference (L'.__LINE__.')';
                     }
                 }
             }

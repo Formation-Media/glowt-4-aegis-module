@@ -114,14 +114,13 @@ class DocumentSignatureImport implements ToCollection
                     }
                 }
                 if ($variant === false) {
-                    $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = [
+                    $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference][$document_issue] = [
                         'category'        => $document_type,
                         'category_prefix' => $document_prefix,
                         'created_at'      => $created_at,
                         'created_by'      => $document_created_by,
                         'created_by_role' => null,
                         'feedback_list'   => null,
-                        'issue'           => $document_issue,
                         'name'            => $document_name,
                         'statuses'        => [],
                         'approval' => [
@@ -135,7 +134,17 @@ class DocumentSignatureImport implements ToCollection
                 }
             }
 
-            $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference];
+            $previous_issue = max(array_keys(
+                $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference]
+            ));
+
+            if (!$previous_issue) {
+                \Debug::debug();
+                $this->stream->stop();
+            }
+
+            $document = $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference]
+                [$previous_issue];
 
             if ($reviewer['author']) {
                 $document['approval']['reviewer'][$document_issue][0][$reviewer['author']] = [
@@ -188,7 +197,6 @@ class DocumentSignatureImport implements ToCollection
             }
 
             $document['comments']        = $comments;
-            $document['issue']           = max($document['issue'], $document_issue);
             $document['statuses'][]      = $status;
             $document['submitted_at']    = $submitted['date'];
             $document['submitted_by']    = $submitted['author'];
@@ -198,7 +206,8 @@ class DocumentSignatureImport implements ToCollection
                 $document['feedback_list']['final'] = $fbl_final;
             }
 
-            $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference] = $document;
+            $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference][$document_issue]
+                = $document;
 
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 2),

@@ -14,6 +14,7 @@ class VariantDocument extends Model
     protected $fillable = [
         'created_at',
         'document_id',
+        'issue',
         'reference',
         'variant_id',
     ];
