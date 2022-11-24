@@ -204,7 +204,6 @@ class StoreImport
                             $variant_model->created_at = $document['created_at'];
                             $variant_model->reference  = $document_reference;
                             $variant_model->save(['timestamps' => false]);
-                            \Debug::debug($variant_model->toArray());
 
                             // If FBL
                             if ($document['category_prefix'] === 'FBL') {
