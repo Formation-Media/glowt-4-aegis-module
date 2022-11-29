@@ -14,13 +14,16 @@ class PdfSignatureRenderer
     {
         $pdf = function ($pdf) {
             $author           = $pdf->document->created_by;
-            $author_reference = $pdf->document->metas->firstWhere('key', 'author_reference');
             $author_signature = File::where('hex_id', $author->getMeta('documents.signature'))->first();
             $company          = null;
+            $center_x         = $pdf->getUsableWidth() * .6;
             $document_details = [];
             $document_meta    = $pdf->document->getMeta()->toArray();
             $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
             $job_title        = null;
+            $reference_width  = isset($document_meta['author_reference'])
+                ? $pdf->GetStringWidth($document_meta['author_reference']) + 5
+                : 0;
             $signature_height = 35;
             $spacer           = [0, 5];
             $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
@@ -73,20 +76,24 @@ class PdfSignatureRenderer
 
             if (isset($author_signature) && $author_signature->is_file) {
                 list($width, $height) = getimagesize($author_signature->absolute_path);
-                $ratio = $height / $width;
+                $ratio = $width / $height;
                 $pdf->Image(
                     $author_signature->absolute_path,
-                    $pdf->getUsableWidth() / 2,
+                    $center_x,
                     $top,
-                    $signature_height,
-                    $signature_height * $ratio
+                    $signature_height * $ratio,
+                    $signature_height
                 );
                 $top += $pdf->px2mm($signature_height);
+                $pdf->setXY($center_x + (($signature_height * $ratio) / 2) - ($reference_width / 2), $top);
+            } else {
+                $pdf->setXY($center_x, $top);
             }
 
-            $pdf->setXY($pdf->getUsableWidth() / 2, $top);
             if (isset($document_meta['author_reference'])) {
-                $pdf->p($document_meta['author_reference']);
+                $pdf->SetDrawColor(0);
+                $pdf->MultiCell($reference_width, 5, $document_meta['author_reference'], true, 'C', true);
+                $pdf->resetDrawColor();
             }
 
             $pdf->setY($bottom);
@@ -96,9 +103,10 @@ class PdfSignatureRenderer
             if ($items) {
                 foreach ($items as $item) {
                     $pdf->CheckPageBreak(50);
-                    $item_details = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
-                    $job_title    = $item_details->job_title->name ?? null;
-                    $signature    = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+                    $item_details    = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
+                    $job_title       = $item_details->job_title->name ?? null;
+                    $reference_width = $pdf->GetStringWidth($item->reference) + 5;
+                    $signature       = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
 
                     $pdf->h4($item->approval_process_item->approval_stage->name);
                     $pdf->ln(2);
@@ -124,20 +132,22 @@ class PdfSignatureRenderer
 
                     if ($signature && $signature->is_file) {
                         list($width, $height) = getimagesize($signature->absolute_path);
-                        $ratio = $height / $width;
+                        $ratio = $width / $height;
                         $pdf->Image(
                             $signature->absolute_path,
-                            $pdf->getUsableWidth() / 2,
+                            $center_x,
                             $top,
-                            $signature_height,
-                            $signature_height * $ratio
+                            $signature_height * $ratio,
+                            $signature_height
                         );
-                        $top += $pdf->px2mm($signature_height);
+                        $top += $signature_height - 5;
                     }
 
-                    $pdf->setXY($pdf->getUsableWidth() / 2, $top);
+                    $pdf->setXY($center_x + (($signature_height * $ratio) / 2) - ($reference_width / 2), $top);
 
-                    $pdf->p($item->reference);
+                    $pdf->SetDrawColor(0);
+                    $pdf->MultiCell($reference_width, 5, $item->reference, true, 'C', true);
+                    $pdf->resetDrawColor();
 
                     $pdf->setY($bottom);
 
