@@ -4,6 +4,7 @@ namespace Modules\AEGIS\Imports;
 
 use App\Helpers\SSEStream;
 use App\Models\User;
+use App\Models\UserDashboardConfiguration;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\CompanyType;
 use Modules\AEGIS\Models\Customer;
@@ -14,6 +15,7 @@ use Modules\AEGIS\Models\Project;
 use Modules\AEGIS\Models\ProjectVariant;
 use Modules\AEGIS\Models\Type;
 use Modules\AEGIS\Models\VariantDocument;
+use Modules\Documents\Hooks\Core\Collect\Snippets;
 use Modules\Documents\Models\ApprovalItemGroup;
 use Modules\Documents\Models\ApprovalProcess;
 use Modules\Documents\Models\ApprovalProcessItem;
@@ -743,7 +745,6 @@ class StoreImport
                     'aegis-cert.co.uk',
                     'aegisengineering.co.uk',
                 ] as $email_domain) {
-                    \Debug::debug($reference.'@'.$email_domain);
                     if ($db_user = User::firstWhere('email', $reference.'@'.$email_domain)) {
                         $this->users[$reference] = [
                             'id'    => $db_user->id,
@@ -764,6 +765,25 @@ class StoreImport
                         'email'      => $new_user_data['email'],
                         'status'     => false,
                     ]);
+                    foreach (Snippets::run(null, null) as $snippet) {
+                        if (UserDashboardConfiguration
+                            ::where([
+                                'method'  => $snippet['method'],
+                                'module'  => 'Documents',
+                                'user_id' => $user->id,
+                            ])
+                            ->count() === 0
+                        ) {
+                            UserDashboardConfiguration::create([
+                                'user_id'  => $user->id,
+                                'type'     => 'snippet',
+                                'module'   => 'Documents',
+                                'method'   => $snippet['method'],
+                                'order'    => 0,
+                                'settings' => '{}',
+                            ]);
+                        }
+                    }
                     $user->log(
                         'messages.added.x-to-y',
                         [
