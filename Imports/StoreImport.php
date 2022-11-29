@@ -60,7 +60,7 @@ class StoreImport
 
         $errors        = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
         $groups        = Group::all();
-        $limit_percent = 1;
+        $limit_percent = 25;
         $me            = \Auth::user();
         $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
         $users         = User::withTrashed()->with(['metas'])->get();
@@ -117,12 +117,14 @@ class StoreImport
             $project_model->save(['timestamps' => false]);
 
             if ($is_new_project) {
-                CauserResolver::setCauser($me);
                 $project_model->log(
                     'messages.added.x-to-y',
                     [
                         'x' => $project_model->reference,
                         'y' => 'dictionary.projects',
+                    ],
+                    [
+                        'causedBy' => $me,
                     ]
                 );
             }
@@ -151,12 +153,14 @@ class StoreImport
                     $project_variant_model->save(['timestamps' => false]);
 
                     if ($is_new_phase) {
-                        CauserResolver::setCauser($me);
                         $project_variant_model->log(
                             'aegis::messages.added-project-phase',
                             [
                                 'phase'   => $project_variant_model->name,
                                 'project' => $project_model->reference,
+                            ],
+                            [
+                                'causedBy' => $me,
                             ]
                         );
                     }
@@ -182,11 +186,10 @@ class StoreImport
 
                             $document_model = Document
                                 ::whereHas('metas', function ($query) use ($document_reference, $issue_number) {
-                                    $query
-                                        ->where([
-                                            'm_documents_meta.key'   => 'document_reference_issue',
-                                            'm_documents_meta.value' => $document_reference.$issue_number,
-                                        ]);
+                                    $query->where([
+                                        'm_documents_meta.key'   => 'document_reference_issue',
+                                        'm_documents_meta.value' => $document_reference.$issue_number,
+                                    ]);
                                 })
                                 ->firstOrNew([
                                     'name' => trim($document['name']),
@@ -202,8 +205,16 @@ class StoreImport
                             $document_model->save(['timestamps' => false]);
                             // Log "New Document"
                             if ($is_new) {
-                                CauserResolver::setCauser($document_model->created_by);
-                                $document_model->log('documents::phrases.created-document', ['document' => $document_model->name]);
+                                $document_model->log(
+                                    'documents::phrases.created-document',
+                                    [
+                                        'document' => $document_model->name,
+                                    ],
+                                    [
+                                        'causedBy'  => $document_model->created_by,
+                                        'createdAt' => now()->parse($document['created_at']),
+                                    ]
+                                );
                             }
                             // Create/Load Document Variant
                             $variant_model = VariantDocument::firstOrNew([
@@ -251,11 +262,14 @@ class StoreImport
                                     $comment_model->save(['timestamps' => false]);
 
                                     if ($is_new) {
-                                        CauserResolver::setCauser(User::find($commenter));
                                         $comment_model->log(
                                             'documents::messages.commented-on-document',
                                             [
                                                 'document' => $variant_model->reference.' - '.$document_model->name,
+                                            ],
+                                            [
+                                                'causedBy'  => User::find($commenter),
+                                                'createdAt' => $comment_model->created_at,
                                             ]
                                         );
                                     }
@@ -419,10 +433,39 @@ class StoreImport
                                                 'reference'        => $approval['signature_reference'],
                                             ]);
                                             $approval_process_item->created_at  = $approval['created_at'];
+                                            if (in_array($approval['status'], ['Approved', 'Awaiting Decision', 'Rejected'])) {
+                                                if ($approval['status'] === 'Approved') {
+                                                    $document_model->log(
+                                                        'documents::messages.approved-approval-item',
+                                                        [
+                                                            'document' => $variant_model->reference.' - '.$document_model->name,
+                                                        ],
+                                                        [
+                                                            'causedBy'  => User::find($commenter),
+                                                            'createdAt' => now()->parse($approval['updated_at']),
+                                                        ]
+                                                    );
+                                                } else {
+                                                    if ($approval['status'] === 'Rejected') {
+                                                        $document_model->log(
+                                                            'documents::messages.denied-approval-item',
+                                                            [
+                                                                'document' => $variant_model->reference.' - '.$document_model->name,
+                                                            ],
+                                                            [
+                                                                'causedBy'  => User::find($commenter),
+                                                                'createdAt' => now()->parse($approval['updated_at']),
+                                                            ]
+                                                        );
+                                                    }
+                                                }
+                                            } else {
+                                                \Debug::debug($approval['status']);
+                                                $this->stream->stop();
+                                            }
                                             $approval_process_item->status      = $approval['status'];
                                             $approval_process_item->updated_at  = $approval['updated_at'];
 
-                                            // \Debug::debug($project_reference, $document_reference);
                                             $approval_process_item->save(['timestamps' => false]);
 
                                             if ($approval['comments']) {
@@ -437,11 +480,14 @@ class StoreImport
                                                 $comment->updated_at = $approval['updated_at'];
                                                 $comment->save(['timestamps' => false]);
                                                 if ($is_new) {
-                                                    CauserResolver::setCauser(User::find($commenter));
                                                     $comment->log(
                                                         'documents::messages.commented-on-document',
                                                         [
                                                             'document' => $variant_model->reference.' - '.$document_model->name,
+                                                        ],
+                                                        [
+                                                            'causedBy'  => User::find($commenter),
+                                                            'createdAt' => now()->parse($approval['created_at']),
                                                         ]
                                                     );
                                                 }
@@ -478,27 +524,30 @@ class StoreImport
                         'variant_number' => 0,
                     ],
                 );
-                CauserResolver::setCauser($me);
                 $project_variant_model->log(
                     'aegis::messages.added-project-phase',
                     [
                         'phase'   => $project_variant_model->name,
                         'project' => $project_model->reference,
+                    ],
+                    [
+                        'causedBy'  => $me,
                     ]
                 );
             }
             $percent = number_format((++$i) / $limit * 100, 2);
-            \Debug::notice($percent.'%');
             $this->stream->send([
                 'percentage' => $percent,
             ]);
         }
+        \Debug::notice('Tidying up');
         if ($categories = $this->categories->where('prefix', '...')) {
             foreach ($categories as $category) {
                 Category::find($category->id)->update(['prefix' => 'O']);
             }
         }
         \Storage::put('modules/aegis/import/errors.json', json_encode($errors, JSON_PRETTY_PRINT));
+        \Debug::notice('All Done');
     }
     private function check_user_group($group, $user_id)
     {
@@ -715,8 +764,16 @@ class StoreImport
                         'email'      => $new_user_data['email'],
                         'status'     => false,
                     ]);
-                    CauserResolver::setCauser(\Auth::user());
-                    $user->log('messages.added.x-to-y', ['x' => $user->name, 'y' => 'dictionary.users']);
+                    $user->log(
+                        'messages.added.x-to-y',
+                        [
+                            'x' => $user->name,
+                            'y' => 'dictionary.users',
+                        ],
+                        [
+                            'causedBy' => \Auth::user(),
+                        ]
+                    );
 
                     $i              = 1;
                     $user_reference = $first_name.ucwords(substr($last_name, 0, 1));
