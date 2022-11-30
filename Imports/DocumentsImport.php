@@ -60,7 +60,10 @@ class DocumentsImport implements ToCollection
             if (!isset($this->projects[$project_reference])) {
                 if (!$project_reference) {
                     $debug = $this->row($row);
-                    unset($debug['created_at']);
+                    unset(
+                        $debug['created_at'],
+                        $debug['issue']
+                    );
                     $debug = array_filter($debug);
                     if ($debug) {
                         $this->errors['Projects']['N/a #'. (++$j)] = 'Could not process row: '.json_encode($debug).' (L'.__LINE__.')';

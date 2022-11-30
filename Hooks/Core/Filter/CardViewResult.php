@@ -22,6 +22,10 @@ class CardViewResult
                 ])
                 ->firstWhere('document_id', $data['result']->id);
             if ($variant_document) {
+                $additional_details['dictionary.customer'] = [
+                    'icon'  => Icons::customer(),
+                    'value' => $variant_document->project_variant->project->customer->name ?? null,
+                ];
                 $additional_details['dictionary.project'] = [
                     'icon'  => Icons::project(),
                     'value' => $variant_document->project_variant->project->reference ?? null,

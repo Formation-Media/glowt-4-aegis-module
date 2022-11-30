@@ -4,7 +4,7 @@ namespace Modules\AEGIS\Http\Controllers\Stream;
 
 use App\Helpers\SSEStream;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Modules\AEGIS\Imports\DocumentSignatureImport;
@@ -41,9 +41,10 @@ class ManagementController extends Controller
 
         if (in_array($mode, ['both', 'store'])) {
             Schema::disableForeignKeyConstraints();
+            if (is_dev()) {
+                Activity::truncate();
+            }
             foreach ([
-                '\App\Models\Activity',
-
                 '\Modules\AEGIS\Models\CompanyType',
                 '\Modules\AEGIS\Models\DocumentApprovalItemDetails',
                 '\Modules\AEGIS\Models\FeedbackListType',
