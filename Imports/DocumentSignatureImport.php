@@ -329,8 +329,8 @@ class DocumentSignatureImport implements ToCollection
         $data = [
             'approver'    => [
                 'author'   => strtolower(str_replace('---', '', $row['APPROVER'])),
-                'date'     => $row['APPROVAL-DATE'] && $row['APPROVAL-DATE'] !== '---'
-                    ? $this->date_convert($row['APPROVAL-DATE'], $row['APP-TIME'])
+                'date'     => $row['SUBMIT-DATE'] && $row['SUBMIT-DATE'] !== '---'
+                    ? $this->date_convert($row['SUBMIT-DATE'], $row['SUB-TIME'])
                     : null,
                 'comments' => str_replace('---', '', $row['COMMENT-APPROVER']),
                 'role'     => str_replace('---', '', $row['APPROVER-ROLE']),

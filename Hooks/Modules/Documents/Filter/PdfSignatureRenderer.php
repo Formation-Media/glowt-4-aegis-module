@@ -141,9 +141,10 @@ class PdfSignatureRenderer
                             $signature_height
                         );
                         $top += $signature_height - 5;
+                        $pdf->setXY($center_x + (($signature_height * $ratio) / 2) - ($reference_width / 2), $top);
+                    } else {
+                        $pdf->setXY($center_x, $top);
                     }
-
-                    $pdf->setXY($center_x + (($signature_height * $ratio) / 2) - ($reference_width / 2), $top);
 
                     $pdf->SetDrawColor(0);
                     $pdf->MultiCell($reference_width, 5, $item->reference, true, 'C', true);

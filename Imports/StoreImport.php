@@ -62,7 +62,7 @@ class StoreImport
 
         $errors        = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
         $groups        = Group::all();
-        $limit_percent = 25;
+        $limit_percent = 30;
         $me            = \Auth::user();
         $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
         $users         = User::withTrashed()->with(['metas'])->get();
