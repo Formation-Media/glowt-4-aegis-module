@@ -16,9 +16,6 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('m_aegis_types', function (Blueprint $table) {
-            $table->softDeletes();
-        });
         Schema::create('m_aegis_company_types', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->references('id')->on('m_aegis_companies');
@@ -48,8 +45,5 @@ return new class extends Migration
         Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('m_aegis_company_types');
         Schema::enableForeignKeyConstraints();
-        Schema::table('m_aegis_types', function (Blueprint $table) {
-            $table->dropSoftDeletes();
-        });
     }
 };
