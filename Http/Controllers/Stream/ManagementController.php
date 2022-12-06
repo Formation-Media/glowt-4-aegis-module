@@ -40,6 +40,11 @@ class ManagementController extends Controller
         $this->import_file_path = \Module::getModulePath('AEGIS').'/Resources/files/import/';
 
         if (in_array($mode, ['both', 'store'])) {
+            $stream->send([
+                'percentage' => 0,
+                'message'    => 'Deleting existing data project/document data',
+            ]);
+            \Debug::critical('Deleting existing data project/document data');
             Schema::disableForeignKeyConstraints();
             if (is_dev()) {
                 Activity::truncate();
@@ -92,23 +97,24 @@ class ManagementController extends Controller
             ],
         ];
         if (in_array($mode, ['both', 'collect'])) {
+            \Debug::emergency('Skipping ACS Projects');
             $steps = array_merge(
                 $steps,
                 [
                     'projects' => [
-                        'acs/ALL_PROJECTS.xlsx',
+                        // 'acs/ALL_PROJECTS.xlsx',
                         'aes/ALL_PROJECTS.xlsx',
                     ],
                     'documents' => [
-                        'acs/DOCUMENTS.xlsx',
+                        // 'acs/DOCUMENTS.xlsx',
                         'aes/DOCUMENTS.xlsx',
                     ],
                     'document_signatures' => [
-                        'acs/DOCUMENTS_Signature.xlsx',
+                        // 'acs/DOCUMENTS_Signature.xlsx',
                         'aes/DOCUMENTS_Signature.xlsx',
                     ],
                     'signatures' => [
-                        'acs/SIGNATURE_CODE.xlsx',
+                        // 'acs/SIGNATURE_CODE.xlsx',
                         'aes/SIGNATURE_CODE.xlsx',
                     ],
                 ]
