@@ -62,7 +62,7 @@ class StoreImport
 
         $errors        = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
         $groups        = Group::all();
-        $limit_percent = 30;
+        $limit_percent = 100;
         $me            = \Auth::user();
         $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
         $users         = User::withTrashed()->with(['metas'])->get();
@@ -356,17 +356,17 @@ class StoreImport
                                         if (array_key_exists($approval_process->name, $numbers)
                                             && array_key_exists(ucwords($role), $numbers[$approval_process->name])
                                         ) {
-                                            $number = $numbers[$approval_process->name][ucwords($role)];
-                                            $stage  = ApprovalProcessStage::firstOrNew([
+                                            $number          = $numbers[$approval_process->name][ucwords($role)];
+                                            $approval_stage  = ApprovalProcessStage::firstOrNew([
                                                 'approval_process_id' => $approval_process->id,
                                                 'name'                => ucwords($role),
                                             ]);
-                                            $stage->approvals_until_progressed = 0;
-                                            $stage->number                     = $number;
-                                            $stage->save(['timestamps' => false]);
+                                            $approval_stage->approvals_until_progressed = 0;
+                                            $approval_stage->number                     = $number;
+                                            $approval_stage->save(['timestamps' => false]);
 
                                             ApprovalProcessItem::firstOrCreate([
-                                                'approval_stage_id'    => $stage->id,
+                                                'approval_stage_id'    => $approval_stage->id,
                                                 'required_to_progress' => false,
                                             ]);
                                         } elseif (ucwords($role) !== 'Author') {
@@ -375,6 +375,8 @@ class StoreImport
                                                 'role'                  => ucwords($role),
                                             ]);
                                             $this->stream->stop();
+                                        } else {
+                                            continue;
                                         }
                                     } else {
                                         // there's more than one approval process stage
@@ -434,7 +436,16 @@ class StoreImport
                                                 'document_id'      => $document_model->id,
                                                 'reference'        => $approval['signature_reference'],
                                             ]);
-                                            $approval_process_item->created_at  = $approval['created_at'];
+
+                                            if (str_contains($approval['created_at'], '1970')) {
+                                                $previous_document = $this->get_previous_document(
+                                                    $document_reference,
+                                                    $issue_number
+                                                );
+                                                $approval['created_at'] = $previous_document->created_at;
+                                            }
+
+                                            $approval_process_item->created_at = $approval['created_at'];
                                             if (in_array($approval['status'], ['Approved', 'Awaiting Decision', 'Rejected'])) {
                                                 if ($approval['status'] === 'Approved') {
                                                     $document_model->log(
@@ -443,7 +454,7 @@ class StoreImport
                                                             'document' => $variant_model->reference.' - '.$document_model->name,
                                                         ],
                                                         [
-                                                            'causedBy'  => User::find($commenter),
+                                                            'causedBy'  => User::find($signature['user_id']),
                                                             'createdAt' => now()->parse($approval['updated_at']),
                                                         ]
                                                     );
@@ -455,7 +466,7 @@ class StoreImport
                                                                 'document' => $variant_model->reference.' - '.$document_model->name,
                                                             ],
                                                             [
-                                                                'causedBy'  => User::find($commenter),
+                                                                'causedBy'  => User::find($signature['user_id']),
                                                                 'createdAt' => now()->parse($approval['updated_at']),
                                                             ]
                                                         );
@@ -488,7 +499,7 @@ class StoreImport
                                                             'document' => $variant_model->reference.' - '.$document_model->name,
                                                         ],
                                                         [
-                                                            'causedBy'  => User::find($commenter),
+                                                            'causedBy'  => User::find($signature['user_id']),
                                                             'createdAt' => now()->parse($approval['created_at']),
                                                         ]
                                                     );
@@ -616,7 +627,42 @@ class StoreImport
     }
     private function get_company($abbreviation)
     {
-        return $this->companies[$abbreviation];
+        if (array_key_exists($abbreviation, $this->companies)) {
+            return $this->companies[$abbreviation];
+        }
+        $temp_abbreviation = substr($abbreviation, 0, 3);
+        if (array_key_exists($temp_abbreviation, $this->companies)) {
+            return $this->companies[$temp_abbreviation];
+        }
+        \Debug::debug($abbreviation, $temp_abbreviation);
+        $this->stream->stop();
+    }
+    private function get_customer($customer)
+    {
+        if (array_key_exists($customer, $this->customers)) {
+            $customer_id = $this->customers[$customer];
+        } else {
+            $j         = 1;
+            $reference = substr(str_replace(' ', '', $customer), 0, 3);
+            $user      = \Auth::user();
+            while (Customer::where(['reference' => $reference.$j])->first()) {
+                $j++;
+            }
+            $customer_model = Customer::firstOrCreate(
+                [
+                    'name' => $customer,
+                ],
+                [
+                    'reference' => strtoupper($reference.$j),
+                    'added_by'  => $user->id,
+                ]
+            );
+            $customer_id                = $customer_model->id;
+            $this->customers[$customer] = $customer_id;
+            CauserResolver::setCauser($user);
+            $customer_model->log('messages.added.x-to-y', ['x' => $customer, 'y' => 'dictionary.customers']);
+        }
+        return $customer_id;
     }
     private function get_feedback_list_type($reference, $name, $document)
     {
@@ -667,32 +713,57 @@ class StoreImport
         }
         return $this->job_titles[$title];
     }
-    private function get_customer($customer)
+    private function get_previous_document($reference, $issue)
     {
-        if (array_key_exists($customer, $this->customers)) {
-            $customer_id = $this->customers[$customer];
-        } else {
-            $j         = 1;
-            $reference = substr(str_replace(' ', '', $customer), 0, 3);
-            $user      = \Auth::user();
-            while (Customer::where(['reference' => $reference.$j])->first()) {
-                $j++;
+        $previous_documents = VariantDocument
+            ::where([
+                'reference' => $reference,
+                ['issue', '<', $issue],
+            ])
+            ->orderBy('created_at', 'desc');
+
+        if ($previous_documents->count() === 0) {
+            $exploded_reference = explode('/', $reference);
+            $last_reference     = count($exploded_reference) - 1;
+            $reference_letter   = preg_replace('/[0-9]/', '', $exploded_reference[$last_reference]);
+            $reference_number   = (int) preg_replace('/[A-Za-z]/', '', $exploded_reference[$last_reference]);
+            if ($reference_number > 1) {
+                for ($i = $reference_number - 1; $i > 0; $i--) {
+                    $exploded_reference[$last_reference] = $reference_letter.'#'.$i;
+                    \Debug::debug($reference, implode('/', $exploded_reference));
+                    $this->stream->stop();
+                }
+            } else {
+                $project_number[$last_reference] = '%';
+                $previous_documents = VariantDocument
+                    ::where([
+                        ['reference', 'LIKE', implode('/', $exploded_reference)],
+                        ['reference', '<>', $reference],
+                    ])
+                    ->orderBy('created_at', 'desc');
+                if ($previous_documents->count()) {
+                    $previous_document = $previous_documents->first();
+                } else {
+                    $project_number = $exploded_reference[1];
+                    if ($project_number > 1) {
+                        for ($i = $project_number - 1; $i > 0; $i++) {
+                            $exploded_reference[1] = $i;
+                            $previous_documents    = VariantDocument::where('reference', 'LIKE', implode('/', $exploded_reference));
+                            if ($previous_documents->count() > 0) {
+                                $previous_document = $previous_documents->first();
+                                break;
+                            }
+                        }
+                    } else {
+                        \Debug::debug($reference, $project_number);
+                        $this->stream->stop();
+                    }
+                }
             }
-            $customer_model = Customer::firstOrCreate(
-                [
-                    'name' => $customer,
-                ],
-                [
-                    'reference' => strtoupper($reference.$j),
-                    'added_by'  => $user->id,
-                ]
-            );
-            $customer_id                = $customer_model->id;
-            $this->customers[$customer] = $customer_id;
-            CauserResolver::setCauser($user);
-            $customer_model->log('messages.added.x-to-y', ['x' => $customer, 'y' => 'dictionary.customers']);
+        } else {
+            $previous_document = $previous_documents->first();
         }
-        return $customer_id;
+        return $previous_document;
     }
     private function get_type($type)
     {
