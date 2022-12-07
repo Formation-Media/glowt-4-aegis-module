@@ -12,7 +12,6 @@ use Modules\AEGIS\Models\Type;
 
 class ManagementController extends Controller
 {
-    // Ajax
     public function add_job_title(Request $request)
     {
         $grade         = new JobTitle();
@@ -52,6 +51,20 @@ class ManagementController extends Controller
                 }
                 return $type;
             },
+        );
+    }
+    public function check_import_data(Request $request)
+    {
+        $percentage = $request->session()->get('aegis.import.percentage');
+        $messages   = $request->session()->get('aegis.import.messages');
+        $redirect   = $request->session()->get('aegis.import.redirect');
+        $request->session()->forget('aegis.import.messages');
+        $request->session()->forget('aegis.import.redirect');
+        \Session::save();
+        return compact(
+            'messages',
+            'percentage',
+            'redirect',
         );
     }
     public function delete_job_title(Request $request)
