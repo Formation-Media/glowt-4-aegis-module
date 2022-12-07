@@ -46,10 +46,7 @@ class StoreImport
     {
         $this->stream = $stream;
 
-        $this->stream->send([
-            'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Loading data',
-        ]);
+        $this->send_update(0, '&nbsp;&nbsp;&nbsp;Loading data');
 
         $this->approval_processes  = ApprovalProcess::pluck('id', 'name')->toArray();
         $this->categories          = Category::all();
@@ -64,6 +61,7 @@ class StoreImport
         $groups        = Group::all();
         $limit_percent = 100;
         $me            = \Auth::user();
+        $percent       = 0;
         $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
         $users         = User::withTrashed()->with(['metas'])->get();
 
@@ -84,23 +82,18 @@ class StoreImport
             }
         }
 
-        $stream->send([
-            'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;Processing data',
-        ]);
+        $this->send_update(0, '&nbsp;&nbsp;&nbsp;Processing data');
         // Loop through Projects
         $i     = 0;
         $limit = min($project_count, ceil($project_count / 100 * $limit_percent));
         if ($project_count > $limit) {
             $message = '----- LIMITING TO FIRST '.number_format($limit).'/'.number_format($project_count).' PROJECTS -----';
-            \Debug::info($message);
-            $stream->send([
-                'percentage' => 0,
-                'message'    => '&nbsp;&nbsp;&nbsp;'.$message,
-            ]);
+            \Debug::critical($message);
+            $this->send_update(0, '&nbsp;&nbsp;&nbsp;'.$message);
             $projects = array_slice($projects, 0, $limit);
         }
         foreach ($projects as $project_reference => $project) {
+            $this->send_update($percent, $project_reference);
             $customer_id = $this->get_customer($project['customer']);
             $type_id     = $this->get_type($project['type']);
 
@@ -549,9 +542,7 @@ class StoreImport
                 );
             }
             $percent = number_format((++$i) / $limit * 100, 2);
-            $this->stream->send([
-                'percentage' => $percent,
-            ]);
+            $this->send_update($percent);
         }
         \Debug::notice('Tidying up');
         if ($categories = $this->categories->where('prefix', '...')) {
@@ -881,9 +872,7 @@ class StoreImport
                     $user->save();
                     $new_user_data['id']     = $user->id;
                     $this->users[$reference] = $new_user_data;
-                    $this->stream->send([
-                        'message' => '&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'',
-                    ]);
+                    $this->send_update('&nbsp;&nbsp;&nbsp;Created User \''.$first_name.' '.$last_name.'\'');
                 }
             }
         } else {
@@ -903,5 +892,15 @@ class StoreImport
         $reference = strtoupper($reference.$j);
         $this->variant_references[] = $reference.$j;
         return $reference;
+    }
+    private function send_update($percentage = null, $message = null)
+    {
+        if ($percentage) {
+            session()->put('aegis.import.percentage', $percentage);
+        }
+        if ($message) {
+            session()->push('aegis.import.messages', $message);
+        }
+        \Session::save();
     }
 }

@@ -32,6 +32,9 @@ class ManagementController extends Controller
         $mode = 'store';
         // Start
         ini_set('max_execution_time', 0);
+        ini_set('memory_limit', -1);
+        session()->put('aegis.import.redirect', false);
+        \Session::save();
         $stream->send([
             'percentage' => 0,
             'message'    => 'Loading required information',
@@ -141,14 +144,12 @@ class ManagementController extends Controller
             ]);
         }
         if (in_array($mode, ['both', 'store'])) {
+            // $stream->stop();
             $this->store($stream);
         }
-        $stream->stop([
-            'message'    => 'Finished importing data',
-            'percentage' => 100,
-            'redirect'   => '/a/m/AEGIS/management/import-errors',
-            // 'redirect'   => '/a/m/AEGIS/management/import-testing',
-        ]);
+        $request->session()->put('aegis.import.redirect', '/a/m/AEGIS/management/import-errors');
+        // session()->put('aegis.import.redirect', '/a/m/AEGIS/management/import-testing');
+        \Session::save();
     }
     private function users($stream, $file)
     {
