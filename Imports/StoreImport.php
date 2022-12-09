@@ -33,9 +33,11 @@ class StoreImport
     private $approval_processes;
     private $approval_process_lookup;
     private $categories;
-    private $groups;
-    private $job_titles;
     private $customers;
+    private $groups;
+    private $last_message = 0;
+    private $job_titles;
+    private $projects;
     private $stream;
     private $types;
     private $user_references;
@@ -57,15 +59,15 @@ class StoreImport
         $this->types               = Type::pluck('id', 'name')->toArray();
         $this->variant_references  = ProjectVariant::pluck('reference')->toArray();
 
-        $errors        = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
-        $groups        = Group::all();
-        $limit_percent = 100;
-        $me            = \Auth::user();
-        $percent       = 0;
-        $projects      = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
-        $users         = User::withTrashed()->with(['metas'])->get();
+        $errors         = json_decode(\Storage::get('modules/aegis/import/errors.json'), true);
+        $groups         = Group::all();
+        $limit_percent  = 100;
+        $me             = \Auth::user();
+        $percent        = 0;
+        $this->projects = json_decode(\Storage::get('modules/aegis/import/project_data.json'), true);
+        $users          = User::withTrashed()->with(['metas'])->get();
 
-        $project_count = count($projects);
+        $project_count = count($this->projects);
 
         foreach ($groups as $group) {
             $this->groups[$group->name]['id']    = $group->id;
@@ -90,10 +92,9 @@ class StoreImport
             $message = '----- LIMITING TO FIRST '.number_format($limit).'/'.number_format($project_count).' PROJECTS -----';
             \Debug::critical($message);
             $this->send_update(0, '&nbsp;&nbsp;&nbsp;'.$message);
-            $projects = array_slice($projects, 0, $limit);
+            $this->projects = array_slice($this->projects, 0, $limit);
         }
-        foreach ($projects as $project_reference => $project) {
-            $this->send_update($percent, $project_reference);
+        foreach ($this->projects as $project_reference => $project) {
             $customer_id = $this->get_customer($project['customer']);
             $type_id     = $this->get_type($project['type']);
 
@@ -107,7 +108,7 @@ class StoreImport
             $project_model->description = $project['description'] ?? '';
             $project_model->name        = $project['name'];
             $project_model->scope_id    = $customer_id;
-            $project_model->status      = $project['status'];
+            $project_model->status      = $project['status'] ?? true;
             $project_model->type_id     = $type_id;
             $project_model->save(['timestamps' => false]);
 
@@ -431,11 +432,11 @@ class StoreImport
                                             ]);
 
                                             if (str_contains($approval['created_at'], '1970')) {
-                                                $previous_document = $this->get_previous_document(
+                                                $approval['created_at'] = $this->get_previous_creation(
+                                                    $project_reference,
                                                     $document_reference,
                                                     $issue_number
                                                 );
-                                                $approval['created_at'] = $previous_document->created_at;
                                             }
 
                                             $approval_process_item->created_at = $approval['created_at'];
@@ -542,6 +543,7 @@ class StoreImport
                 );
             }
             $percent = number_format((++$i) / $limit * 100, 2);
+            \Debug::info($percent);
             $this->send_update($percent);
         }
         \Debug::notice('Tidying up');
@@ -704,57 +706,66 @@ class StoreImport
         }
         return $this->job_titles[$title];
     }
-    private function get_previous_document($reference, $issue)
+    private function get_previous_creation($project, $document, $issue)
     {
         $previous_documents = VariantDocument
             ::where([
-                'reference' => $reference,
+                'reference' => $document,
                 ['issue', '<', $issue],
             ])
             ->orderBy('created_at', 'desc');
 
         if ($previous_documents->count() === 0) {
-            $exploded_reference = explode('/', $reference);
-            $last_reference     = count($exploded_reference) - 1;
-            $reference_letter   = preg_replace('/[0-9]/', '', $exploded_reference[$last_reference]);
-            $reference_number   = (int) preg_replace('/[A-Za-z]/', '', $exploded_reference[$last_reference]);
-            if ($reference_number > 1) {
-                for ($i = $reference_number - 1; $i > 0; $i--) {
-                    $exploded_reference[$last_reference] = $reference_letter.'#'.$i;
-                    \Debug::debug($reference, implode('/', $exploded_reference));
-                    $this->stream->stop();
-                }
-            } else {
-                $project_number[$last_reference] = '%';
-                $previous_documents = VariantDocument
-                    ::where([
-                        ['reference', 'LIKE', implode('/', $exploded_reference)],
-                        ['reference', '<>', $reference],
-                    ])
-                    ->orderBy('created_at', 'desc');
-                if ($previous_documents->count()) {
-                    $previous_document = $previous_documents->first();
-                } else {
-                    $project_number = $exploded_reference[1];
-                    if ($project_number > 1) {
-                        for ($i = $project_number - 1; $i > 0; $i++) {
-                            $exploded_reference[1] = $i;
-                            $previous_documents    = VariantDocument::where('reference', 'LIKE', implode('/', $exploded_reference));
-                            if ($previous_documents->count() > 0) {
-                                $previous_document = $previous_documents->first();
-                                break;
-                            }
+            $exploded_document = explode('/', $document);
+            $last_document     = count($exploded_document) - 1;
+            $document_letter   = preg_replace('/[0-9]/', '', $exploded_document[$last_document]);
+            $document_number   = (int) preg_replace('/[A-Za-z]/', '', $exploded_document[$last_document]);
+
+            if ($document_number > 1) {
+                // Look for lower documents
+                for ($i = $document_number - 1; $i > 0; $i--) {
+                    $exploded_document[$last_document] = $document_letter.'#'.$i;
+
+                    $previous_documents = VariantDocument
+                        ::where([
+                            ['reference', 'LIKE', implode('/', $exploded_document)],
+                            ['reference', '<>', $document],
+                        ])
+                        ->orderBy('created_at', 'desc');
+
+                    if ($previous_documents->count() === 0) {
+                        // There's no previous document in this document type, try the project
+                        $previous_documents = VariantDocument
+                            ::where([
+                                ['reference', 'LIKE', $project.'%'],
+                                ['reference', '<>', $document],
+                            ])
+                            ->orderBy('created_at', 'desc');
+
+                        if ($previous_documents->count()) {
+                            return $previous_documents->first()->created_at;
                         }
                     } else {
-                        \Debug::debug($reference, $project_number);
-                        $this->stream->stop();
+                        return $previous_documents->first()->created_at;
                     }
                 }
             }
         } else {
-            $previous_document = $previous_documents->first();
+            return $previous_documents->first()->created_at;
         }
-        return $previous_document;
+        foreach ($this->projects as $project_number => $project_data) {
+            if ($project_number === $project) {
+                foreach ($project_data['phases'] as $phase => $phase_details) {
+                    foreach ($phase_details['documents'] as $document_reference => $issues) {
+                        if ($document_reference !== $document) {
+                            foreach ($issues as $issue) {
+                                return $issue['created_at'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     private function get_type($type)
     {
@@ -895,11 +906,13 @@ class StoreImport
     }
     private function send_update($percentage = null, $message = null)
     {
-        if ($percentage) {
-            session()->put('aegis.import.percentage', $percentage);
-        }
-        if ($message) {
-            session()->push('aegis.import.messages', $message);
+        if (time() > $this->last_message + 60) {
+            if ($percentage) {
+                session()->put('aegis.import.percentage', $percentage);
+            }
+            if ($message) {
+                session()->push('aegis.import.messages', $message);
+            }
         }
         \Session::save();
     }
