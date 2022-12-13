@@ -66,7 +66,7 @@ class SignatureImport implements ToCollection
                         && array_key_exists($issue, $variant['documents'][$document_reference][$issue]['approval'][$role])
                     ) {
                         if ($role === 'author') {
-                            $variant['documents'][$document_reference][$issue]['author']['reference']       = $signature_reference;
+                            // $variant['documents'][$document_reference][$issue]['author']['reference']       = $signature_reference;
                             $variant['documents'][$document_reference][$issue]['approval'][$role][$issue][] = [
                                 'comments'            => '',
                                 'company'             => $company,
@@ -257,8 +257,8 @@ class SignatureImport implements ToCollection
                                     }
                                 }
                                 if ($user_key === false) {
-                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
-                                        ['author']['reference'] = $signature_reference;
+                                    // $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                    //     ['author']['reference'] = $signature_reference;
                                     $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
                                         ['approval'][$role][$issue][0][$user_reference] = [
                                             'comments'            => '',
@@ -280,10 +280,6 @@ class SignatureImport implements ToCollection
                                 if ($user_key === false) {
                                     \Debug::debug($role, $document_reference);
                                     $this->stream->stop();
-                                } else {
-                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
-                                        ['approval'][$role][$issue][$user_key][$user_reference]['signature_reference']
-                                                = $signature_reference;
                                 }
                             }
                         } else {

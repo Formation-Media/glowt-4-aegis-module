@@ -223,7 +223,7 @@ class DocumentsImport implements ToCollection
             'project_reference' => $row['PROJECT-IDENTIFICATION'],
             'project_name'      => $row['PROJECT NAME'],
             'issue'             => max((int) $row['ISSUE'], 1),
-            'prefix'            => $row['DOC-LETTER'],
+            'prefix'            => $row['GEN_LETTER'],
             'fbl'               => null,
 
             'created_at' => $row['CREATION-DATE']
