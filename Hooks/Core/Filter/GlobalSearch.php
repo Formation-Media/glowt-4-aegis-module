@@ -31,6 +31,7 @@ class GlobalSearch
             'name'   => 'dictionary.document',
             'fields' => [
                 'm_documents_documents.name',
+                'issue',
                 'reference',
             ],
             'joins' => [
@@ -38,6 +39,7 @@ class GlobalSearch
             ],
             'output' => [
                 'reference',
+                'issue',
                 'name',
             ],
         ];
