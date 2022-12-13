@@ -100,24 +100,23 @@ class ManagementController extends Controller
             ],
         ];
         if (in_array($mode, ['both', 'collect'])) {
-            \Debug::emergency('Skipping ACS Projects');
             $steps = array_merge(
                 $steps,
                 [
                     'projects' => [
-                        // 'acs/ALL_PROJECTS.xlsx',
+                        'acs/ALL_PROJECTS.xlsx',
                         'aes/ALL_PROJECTS.xlsx',
                     ],
                     'documents' => [
-                        // 'acs/DOCUMENTS.xlsx',
+                        'acs/DOCUMENTS.xlsx',
                         'aes/DOCUMENTS.xlsx',
                     ],
                     'document_signatures' => [
-                        // 'acs/DOCUMENTS_Signature.xlsx',
+                        'acs/DOCUMENTS_Signature.xlsx',
                         'aes/DOCUMENTS_Signature.xlsx',
                     ],
                     'signatures' => [
-                        // 'acs/SIGNATURE_CODE.xlsx',
+                        'acs/SIGNATURE_CODE.xlsx',
                         'aes/SIGNATURE_CODE.xlsx',
                     ],
                 ]
@@ -144,12 +143,12 @@ class ManagementController extends Controller
             ]);
         }
         if (in_array($mode, ['both', 'store'])) {
-            // $stream->stop();
             $this->store($stream);
         }
         $request->session()->put('aegis.import.redirect', '/a/m/AEGIS/management/import-errors');
         // session()->put('aegis.import.redirect', '/a/m/AEGIS/management/import-testing');
         \Session::save();
+        $stream->stop();
     }
     private function users($stream, $file)
     {

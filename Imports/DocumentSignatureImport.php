@@ -42,7 +42,7 @@ class DocumentSignatureImport implements ToCollection
         }
         $this->stream->send([
             'percentage' => 0,
-            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Updating data with document signatures',
+            'message'    => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Updating data with document signature references',
         ]);
         foreach ($rows as $i => $row) {
             if ($i === 0 || !isset($row[1])) {
@@ -209,8 +209,9 @@ class DocumentSignatureImport implements ToCollection
             $this->projects[$project_reference]['phases'][$phase_number]['documents'][$document_reference][$document_issue]
                 = $document;
 
+            $percentage = round(($i + 1) / count($rows) * 100, 2);
             $this->stream->send([
-                'percentage' => round(($i + 1) / count($rows) * 100, 2),
+                'percentage' => $percentage,
             ]);
         }
         \Storage::put('modules/aegis/import/retry_document_signatures.json', json_encode($to_retry, JSON_PRETTY_PRINT));
