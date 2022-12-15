@@ -5,7 +5,8 @@
     "keywords": [],
     "priority": 100,
     "providers": [
-        "Modules\\AEGIS\\Providers\\AEGISServiceProvider"
+        "Modules\\AEGIS\\Providers\\AEGISServiceProvider",
+        "Modules\\AEGIS\\Providers\\ScheduleServiceProvider"
     ],
     "aliases": {},
     "files": [],

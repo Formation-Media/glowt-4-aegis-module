@@ -398,16 +398,9 @@ class StoreImport
                                         ]
                                     );
                                 }
-                                foreach ($approval_issues as $approval_users) {
-                                    // if ($role === 'author') {
-                                    //     \Debug::debug($approval_users);
-                                    //     $errors['Document Signatures'][$document_reference] = 'Project '.$project_reference
-                                    //         .', Phase '.$variant_number.', Document '.$document_reference.', Role '.$role
-                                    //         .' needs processing (L'.__LINE__.')';
-                                    //     continue;
-                                    // }
-                                    foreach ($approval_users as $approval_references) {
-                                        foreach ($approval_references as $user_reference => $approval) {
+                                if (array_key_exists($issue_number, $approval_issues)) {
+                                    foreach ($approval_issues[$issue_number] as $approval_users) {
+                                        foreach ($approval_users as $user_reference => $approval) {
                                             if (!isset($approval['company'])) {
                                                 $approval['company'] = $project['company'];
                                             }
@@ -512,7 +505,9 @@ class StoreImport
                                             );
                                         }
                                     }
-                                }
+                                }/* else {
+                                    \Debug::debug($issue_number);
+                                }*/
                             }
                             $document_model->save();
                         }
@@ -772,8 +767,8 @@ class StoreImport
         if (array_key_exists($type, $this->types)) {
             $type_id = $this->types[$type];
         } else {
-            $name       = $type ?? 'Other';
-            $user       = \Auth::user();
+            $name = trim($type) ?? 'Other';
+            $user = \Auth::user();
 
             $type_model = Type::firstOrCreate(
                 [

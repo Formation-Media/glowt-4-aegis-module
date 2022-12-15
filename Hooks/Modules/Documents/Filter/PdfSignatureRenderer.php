@@ -55,6 +55,8 @@ class PdfSignatureRenderer
             $pdf->columns($document_details, 1);
             $pdf->hr(1, 5);
 
+            $top = $pdf->getY();
+
             $pdf->h4(___('dictionary.author'));
             $pdf->ln(2);
 
@@ -68,7 +70,6 @@ class PdfSignatureRenderer
             if ($company) {
                 $author_data['dictionary.company'] = $company;
             }
-            $top = $pdf->getY();
 
             $pdf->columns($author_data, 1);
 
@@ -76,16 +77,10 @@ class PdfSignatureRenderer
 
             if (isset($author_signature) && $author_signature->is_file) {
                 list($width, $height) = getimagesize($author_signature->absolute_path);
-                $ratio = $width / $height;
-                $pdf->Image(
-                    $author_signature->absolute_path,
-                    $center_x,
-                    $top,
-                    $signature_height * $ratio,
-                    $signature_height
-                );
-                $top += $pdf->px2mm($signature_height);
-                $pdf->setXY($center_x + (($signature_height * $ratio) / 2) - ($reference_width / 2), $top);
+                $ratio      = $width / $height;
+                $new_height = $signature_height;
+                $new_width  = $signature_height * $ratio;
+                $pdf->setXY($center_x + ($new_width / 2) - ($reference_width / 2), $top);
             } else {
                 $pdf->setXY($center_x, $top);
             }
@@ -96,7 +91,19 @@ class PdfSignatureRenderer
                 $pdf->resetDrawColor();
             }
 
-            $pdf->setY($bottom);
+            if (isset($author_signature) && $author_signature->is_file) {
+                list($width, $height) = getimagesize($author_signature->absolute_path);
+                $ratio = $width / $height;
+                $pdf->Image(
+                    $author_signature->absolute_path,
+                    $center_x,
+                    $top,
+                    $new_width,
+                    $new_height
+                );
+            }
+
+            $pdf->setY(max($bottom, $top + $new_height));
 
             $pdf->hr(...$spacer);
 
@@ -108,9 +115,10 @@ class PdfSignatureRenderer
                     $reference_width = $pdf->GetStringWidth($item->reference) + 5;
                     $signature       = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
 
+                    $top = $pdf->getY();
+
                     $pdf->h4($item->approval_process_item->approval_stage->name);
                     $pdf->ln(2);
-                    $top = $pdf->getY();
 
                     $details = [
                         'aegis::phrases.document-id'        => $variant_document->reference,
@@ -132,16 +140,10 @@ class PdfSignatureRenderer
 
                     if ($signature && $signature->is_file) {
                         list($width, $height) = getimagesize($signature->absolute_path);
-                        $ratio = $width / $height;
-                        $pdf->Image(
-                            $signature->absolute_path,
-                            $center_x,
-                            $top,
-                            $signature_height * $ratio,
-                            $signature_height
-                        );
-                        $top += $signature_height - 5;
-                        $pdf->setXY($center_x + (($signature_height * $ratio) / 2) - ($reference_width / 2), $top);
+                        $ratio      = $width / $height;
+                        $new_height = $signature_height;
+                        $new_width  = $signature_height * $ratio;
+                        $pdf->setXY($center_x + ($new_width / 2) - ($reference_width / 2), $top);
                     } else {
                         $pdf->setXY($center_x, $top);
                     }
@@ -150,7 +152,20 @@ class PdfSignatureRenderer
                     $pdf->MultiCell($reference_width, 5, $item->reference, true, 'C', true);
                     $pdf->resetDrawColor();
 
-                    $pdf->setY($bottom);
+                    if ($signature && $signature->is_file) {
+                        list($width, $height) = getimagesize($signature->absolute_path);
+                        $ratio = $width / $height;
+                        $pdf->Image(
+                            $signature->absolute_path,
+                            $center_x,
+                            $top,
+                            $new_width,
+                            $new_height
+                        );
+                        $top += $signature_height - 5;
+                    }
+
+                    $pdf->setY(max($bottom, $top + $new_height));
 
                     $pdf->hr(...$spacer);
                 }
