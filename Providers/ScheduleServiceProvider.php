@@ -4,8 +4,8 @@ namespace Modules\AEGIS\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
-use Modules\AEGIS\Console\Commands\ExportSignatures;
-use Modules\AEGIS\Console\Commands\ImportSignatures;
+use Modules\AEGIS\Console\Commands\ExportData;
+use Modules\AEGIS\Console\Commands\ImportData;
 
 class ScheduleServiceProvider extends ServiceProvider
 {
@@ -24,8 +24,8 @@ class ScheduleServiceProvider extends ServiceProvider
     public function register()
     {
         $this->commands([
-            ExportSignatures::class,
-            ImportSignatures::class,
+            ExportData::class,
+            ImportData::class,
         ]);
     }
 }

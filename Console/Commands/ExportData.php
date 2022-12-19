@@ -4,16 +4,16 @@ namespace Modules\AEGIS\Console\Commands;
 
 use App\Models\File;
 use App\Models\User;
-use Illuminate\Console\Command;
+use Modules\Documents\Models\Group;
 
-class ExportSignatures extends Command
+class ExportData extends ImportExportData
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'signatures:export';
+    protected $signature = 'aegis:export';
 
     /**
      * The console command description.
@@ -21,6 +21,11 @@ class ExportSignatures extends Command
      * @var string
      */
     protected $description = 'Exports user signatures';
+
+    private $data      = [
+        'signatures'  => [],
+        'user_groups' => [],
+    ];
 
     /**
      * Create a new command instance.
@@ -39,8 +44,26 @@ class ExportSignatures extends Command
      */
     public function handle()
     {
-        $base_path  = 'modules/aegis/signatures/';
-        $db         = [];
+        $this->export_user_groups();
+        $this->export_signatures();
+
+        \Storage::put($this->base_path.'export-data.json', json_encode($this->data, JSON_PRETTY_PRINT));
+        $this->info('Finished exporting data to `/storage/'.$this->base_path.'`');
+    }
+    private function export_user_groups()
+    {
+        if ($user_groups = Group::all()) {
+            foreach ($user_groups as $user_group) {
+                $this->data['user_groups'][$user_group->name] = [];
+                foreach ($user_group->users as $user) {
+                    $this->data['user_groups'][$user_group->name][] = $user->email;
+                }
+            }
+            \Debug::debug($this->data['user_groups']);
+        }
+    }
+    private function export_signatures()
+    {
         $signatures = File::where('fileable_type', User::class);
         if ($signatures->count() > 0) {
             foreach ($signatures->get() as $signature) {
@@ -54,9 +77,9 @@ class ExportSignatures extends Command
                         $db_entry['id']
                     );
 
-                    $db[]      = $db_entry;
-                    $path      = $base_path.str_replace('files/', '', $signature->path);
-                    $directory = dirname($path);
+                    $this->data['signatures'][] = $db_entry;
+                    $path                       = $this->base_path.str_replace('files/', '', $signature->path);
+                    $directory                  = dirname($path);
                     \Storage::makeDirectory($directory);
                     if ($signature->version === '2a') {
                         \Debug::debug();
@@ -77,7 +100,5 @@ class ExportSignatures extends Command
                 }
             }
         }
-        \Storage::put($base_path.'db.json', json_encode($db, JSON_PRETTY_PRINT));
-        $this->info('Finished exporting signatures to `/storage/'.$base_path.'`');
     }
 }
