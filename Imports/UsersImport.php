@@ -55,9 +55,15 @@ class UsersImport implements ToCollection
                     'email'      => $this->column('email'),
                     'status'     => $status,
                 ]);
+                if ($is_external) {
+                    $roles[] = config('roles.by_name.core.staff');
+                } else {
+                    $roles[] = config('roles.by_name.core.user');
+                }
+                $user->roles()->sync($roles);
             }
 
-            $disciplines   = $user->getMeta('aegis.discipline');
+            $disciplines   = (array) $user->getMeta('aegis.discipline');
             $disciplines[] = array_search($job_title, $job_titles->toArray());
 
             $user->setMeta([
@@ -69,12 +75,6 @@ class UsersImport implements ToCollection
             ]);
             $user->save();
 
-            if ($is_external) {
-                $roles[] = config('roles.by_name.core.staff');
-            } else {
-                $roles[] = config('roles.by_name.core.user');
-            }
-            $user->roles()->sync($roles);
             $this->stream->send([
                 'percentage' => round(($i + 1) / count($rows) * 100, 1),
             ]);
