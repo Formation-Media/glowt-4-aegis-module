@@ -24,9 +24,11 @@ class PdfSignatureRenderer
             $reference_width  = isset($document_meta['author_reference'])
                 ? $pdf->GetStringWidth($document_meta['author_reference']) + 5
                 : 0;
-            $signature_height = 35;
-            $spacer           = [0, 5];
-            $variant_document = VariantDocument::firstWhere('document_id', $pdf->document->id);
+            $max_signature_width = $pdf->getUsableWidth() - $center_x;
+            $signature_height    = 35;
+            $spacer              = [0, 5];
+            $text_shadow_width   = .35;
+            $variant_document    = VariantDocument::firstWhere('document_id', $pdf->document->id);
 
             if (isset($document_meta['author_company'])) {
                 $company = Company::withTrashed()->find($document_meta['author_company'])->name;
@@ -80,20 +82,11 @@ class PdfSignatureRenderer
                 $ratio      = $width / $height;
                 $new_height = $signature_height;
                 $new_width  = $signature_height * $ratio;
-                $pdf->setXY($center_x + ($new_width / 2) - ($reference_width / 2), $top);
-            } else {
-                $pdf->setXY($center_x, $top);
-            }
+                if ($new_width > $max_signature_width) {
+                    $new_height = $max_signature_width / $ratio;
+                    $new_width  = $max_signature_width;
+                }
 
-            if (isset($document_meta['author_reference'])) {
-                $pdf->SetDrawColor(0);
-                $pdf->MultiCell($reference_width, 5, $document_meta['author_reference'], true, 'C', true);
-                $pdf->resetDrawColor();
-            }
-
-            if (isset($author_signature) && $author_signature->is_file) {
-                list($width, $height) = getimagesize($author_signature->absolute_path);
-                $ratio = $width / $height;
                 $pdf->Image(
                     $author_signature->absolute_path,
                     $center_x,
@@ -101,6 +94,22 @@ class PdfSignatureRenderer
                     $new_width,
                     $new_height
                 );
+
+                $y = $top + ($new_height / 2);    // Top + (signature height/2)
+            } else {
+                $y = $top;
+            }
+
+            if (isset($document_meta['author_reference'])) {
+                $pdf->setFont('', 'B', 14);
+                $pdf->brandDrawColor();
+                $pdf->strokeText(
+                    $pdf->getPageWidth() - $pdf->getRightMargin() - $reference_width,
+                    $y,
+                    $document_meta['author_reference'],
+                    $text_shadow_width
+                );
+                $pdf->resetDrawColor();
             }
 
             $pdf->setY(max($bottom, $top + $new_height));
@@ -143,18 +152,11 @@ class PdfSignatureRenderer
                         $ratio      = $width / $height;
                         $new_height = $signature_height;
                         $new_width  = $signature_height * $ratio;
-                        $pdf->setXY($center_x + ($new_width / 2) - ($reference_width / 2), $top);
-                    } else {
-                        $pdf->setXY($center_x, $top);
-                    }
+                        if ($new_width > $max_signature_width) {
+                            $new_height = $max_signature_width / $ratio;
+                            $new_width  = $max_signature_width;
+                        }
 
-                    $pdf->SetDrawColor(0);
-                    $pdf->MultiCell($reference_width, 5, $item->reference, true, 'C', true);
-                    $pdf->resetDrawColor();
-
-                    if ($signature && $signature->is_file) {
-                        list($width, $height) = getimagesize($signature->absolute_path);
-                        $ratio = $width / $height;
                         $pdf->Image(
                             $signature->absolute_path,
                             $center_x,
@@ -162,8 +164,21 @@ class PdfSignatureRenderer
                             $new_width,
                             $new_height
                         );
-                        $top += $signature_height - 5;
+
+                        $y = $top + ($new_height / 2);    // Top + (signature height/2)
+                    } else {
+                        $y = $top;
                     }
+
+                    $pdf->setFont('', 'B', 16);
+                    $pdf->brandDrawColor();
+                    $pdf->strokeText(
+                        $pdf->getPageWidth() - $pdf->getRightMargin() - $reference_width,
+                        $y,
+                        $item->reference,
+                        $text_shadow_width
+                    );
+                    $pdf->resetDrawColor();
 
                     $pdf->setY(max($bottom, $top + $new_height));
 
