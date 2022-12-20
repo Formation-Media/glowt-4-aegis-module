@@ -100,7 +100,6 @@ class PdfSignatureRenderer
                 $y = $top;
             }
 
-            $document_meta['author_reference'] = '###-###-###';
             if (isset($document_meta['author_reference'])) {
                 $pdf->setFont('', 'B', 16);
                 $reference_width = $pdf->GetStringWidth($document_meta['author_reference']);
