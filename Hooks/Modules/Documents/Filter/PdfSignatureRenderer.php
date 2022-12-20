@@ -21,13 +21,9 @@ class PdfSignatureRenderer
             $document_meta    = $pdf->document->getMeta()->toArray();
             $items            = $pdf->document->document_approval_process_items->where('status', 'Approved');
             $job_title        = null;
-            $reference_width  = isset($document_meta['author_reference'])
-                ? $pdf->GetStringWidth($document_meta['author_reference']) + 5
-                : 0;
             $max_signature_width = $pdf->getUsableWidth() - $center_x;
             $signature_height    = 35;
             $spacer              = [0, 5];
-            $text_shadow_width   = .35;
             $variant_document    = VariantDocument::firstWhere('document_id', $pdf->document->id);
 
             if (isset($document_meta['author_company'])) {
@@ -80,39 +76,41 @@ class PdfSignatureRenderer
             if (isset($author_signature) && $author_signature->is_file) {
                 list($width, $height) = getimagesize($author_signature->absolute_path);
                 $ratio      = $width / $height;
-                $new_height = $signature_height;
                 $new_width  = $signature_height * $ratio;
                 if ($new_width > $max_signature_width) {
-                    $new_height = $max_signature_width / $ratio;
-                    $new_width  = $max_signature_width;
+                    $signature_height = $max_signature_width / $ratio;
+                    $new_width        = $max_signature_width;
                 }
 
+
+                $tmp = '/tmp/aegis-mdss-signature-'.__LINE__.'.png';
+
+                \Image::make($author_signature->absolute_path)->greyscale()->save($tmp);
+
                 $pdf->Image(
-                    $author_signature->absolute_path,
+                    $tmp,
                     $center_x,
                     $top,
                     $new_width,
-                    $new_height
+                    $signature_height
                 );
 
-                $y = $top + ($new_height / 2);    // Top + (signature height/2)
+                $y = $top + ($signature_height / 2);    // Top + (signature height/2)
             } else {
                 $y = $top;
             }
 
             if (isset($document_meta['author_reference'])) {
-                $pdf->setFont('', 'B', 14);
-                $pdf->brandDrawColor();
-                $pdf->strokeText(
-                    $pdf->getPageWidth() - $pdf->getRightMargin() - $reference_width,
-                    $y,
-                    $document_meta['author_reference'],
-                    $text_shadow_width
-                );
-                $pdf->resetDrawColor();
+                $pdf->setFont('', 'B', 16);
+                $reference_width = $pdf->GetStringWidth($document_meta['author_reference']);
+
+                $pdf->setXY(max($center_x, $center_x + $new_width - $reference_width), $y);
+                $pdf->setTextColor(7, 76, 141);
+                $pdf->Cell(0, 5, $document_meta['author_reference']);
+                $pdf->resetTextColor();
             }
 
-            $pdf->setY(max($bottom, $top + $new_height));
+            $pdf->setXY($pdf->getLeftMargin(), max($bottom, $top + $signature_height));
 
             $pdf->hr(...$spacer);
 
@@ -121,7 +119,6 @@ class PdfSignatureRenderer
                     $pdf->CheckPageBreak(50);
                     $item_details    = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
                     $job_title       = $item_details->job_title->name ?? null;
-                    $reference_width = $pdf->GetStringWidth($item->reference) + 5;
                     $signature       = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
 
                     $top = $pdf->getY();
@@ -147,6 +144,7 @@ class PdfSignatureRenderer
 
                     $bottom = $pdf->getY();
 
+
                     if ($signature && $signature->is_file) {
                         list($width, $height) = getimagesize($signature->absolute_path);
                         $ratio      = $width / $height;
@@ -157,8 +155,12 @@ class PdfSignatureRenderer
                             $new_width  = $max_signature_width;
                         }
 
+                        $tmp = '/tmp/aegis-mdss-signature-'.__LINE__.'.png';
+
+                        \Image::make($signature->absolute_path)->greyscale()->save($tmp);
+
                         $pdf->Image(
-                            $signature->absolute_path,
+                            $tmp,
                             $center_x,
                             $top,
                             $new_width,
@@ -171,14 +173,11 @@ class PdfSignatureRenderer
                     }
 
                     $pdf->setFont('', 'B', 16);
-                    $pdf->brandDrawColor();
-                    $pdf->strokeText(
-                        $pdf->getPageWidth() - $pdf->getRightMargin() - $reference_width,
-                        $y,
-                        $item->reference,
-                        $text_shadow_width
-                    );
-                    $pdf->resetDrawColor();
+                    $reference_width = $pdf->GetStringWidth($item->reference);
+                    $pdf->setTextColor(7, 76, 141);
+                    $pdf->setXY(max($center_x, $center_x + $new_width - $reference_width), $y);
+                    $pdf->Cell(0, 5, $item->reference);
+                    $pdf->resetTextColor();
 
                     $pdf->setY(max($bottom, $top + $new_height));
 
