@@ -56,10 +56,15 @@ class ExportData extends ImportExportData
             foreach ($user_groups as $user_group) {
                 $this->data['user_groups'][$user_group->name] = [];
                 foreach ($user_group->users as $user) {
-                    $this->data['user_groups'][$user_group->name][] = $user->email;
+                    $this->data['user_groups'][$user_group->name][] = [
+                        $user->email,
+                        $user->first_name.$user->last_name.'@aegisengineering.co.uk',
+                        substr($user->first_name, 0, 1).'.'.$user->last_name.'@aegisengineering.co.uk',
+                        substr($user->first_name, 0, 1).'.'.$user->last_name.'@aegiseng.co.uk',
+                        substr($user->first_name, 0, 1).'.'.$user->last_name.'@aegis-cert.co.uk',
+                    ];
                 }
             }
-            \Debug::debug($this->data['user_groups']);
         }
     }
     private function export_signatures()
@@ -70,8 +75,14 @@ class ExportData extends ImportExportData
                 if ($signature->fileable) {
                     $db_entry = $signature->toArray();
                     $db_entry['fileable_id']       = null;
-                    $db_entry['fileable_id_email'] = $signature->fileable->email;
-                    $db_entry['path']              = $signature->getRawOriginal('path');
+                    $db_entry['fileable_id_email'] = [
+                        $signature->fileable->email,
+                        $signature->fileable->first_name.$signature->fileable->last_name.'@aegisengineering.co.uk',
+                        substr($signature->fileable->first_name, 0, 1).'.'.$signature->fileable->last_name.'@aegisengineering.co.uk',
+                        substr($signature->fileable->first_name, 0, 1).'.'.$signature->fileable->last_name.'@aegiseng.co.uk',
+                        substr($signature->fileable->first_name, 0, 1).'.'.$signature->fileable->last_name.'@aegis-cert.co.uk',
+                    ];
+                    $db_entry['path'] = $signature->getRawOriginal('path');
                     unset(
                         $db_entry['fileable'],
                         $db_entry['id']

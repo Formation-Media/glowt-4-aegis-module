@@ -47,10 +47,12 @@ class ImportData extends ImportExportData
      */
     public function handle()
     {
-        \Storage::put($this->log, 'Started: '.Dates::datetime());
+        \Storage::put($this->log, '> Started: '.Dates::datetime());
+        \Storage::append($this->log, '');
         $this->import_signatures();
         $this->import_user_groups();
-        \Storage::append($this->log, 'Finished: '.Dates::datetime());
+        \Storage::append($this->log, '');
+        \Storage::append($this->log, '> Finished: '.Dates::datetime());
     }
 
     private function import_signatures()
@@ -63,18 +65,19 @@ class ImportData extends ImportExportData
             \Storage::append($this->log, '| # | Source Email | Reason');
             \Storage::append($this->log, '| - | - | -');
             foreach ($this->data['signatures'] as $row) {
-                if ($user = User::firstWhere('email', $row['fileable_id_email'])) {
+                foreach ($row['fileable_id_email'] as $email) {
+                    $user = User::withTrashed()->firstWhere('email', $email);
+                    if ($user) {
+                        break;
+                    }
+                }
+                if ($user) {
                     $row['fileable_id'] = $user->id;
                     $existing_signatures = File::where([
                         'fileable_id'   => $row['fileable_id'],
                         'fileable_type' => $row['fileable_type'],
                     ])->count();
-                    if ($existing_signatures) {
-                        \Storage::append(
-                            $this->log,
-                            '| '.number_format(++$errors).' | '.$row['fileable_id_email'].' | Signature already exists'
-                        );
-                    } else {
+                    if (!$existing_signatures) {
                         unset($row['fileable_id_email']);
                         $file = new File();
                         foreach ($row as $field => $value) {
@@ -98,8 +101,10 @@ class ImportData extends ImportExportData
                         );
                     }
                 } else {
-                    \Storage::append($this->log, '| '.number_format(++$errors).' | '.$row['fileable_id_email'].' | User not found');
-                    $errors++;
+                    \Storage::append(
+                        $this->log,
+                        '| '.number_format(++$errors).' | '.implode('<br>', $row['fileable_id_email']).' | User not found'
+                    );
                 }
             }
             $this->info('Finished importing signatures with '.number_format($errors).' errors');
@@ -117,12 +122,17 @@ class ImportData extends ImportExportData
             $group = Group::firstOrCreate([
                 'name' => $group,
             ]);
-            foreach ($users as $user) {
-                $user = User::firstWhere('email', $user);
+            foreach ($users as $email) {
+                foreach ($email as $address) {
+                    $user = User::withTrashed()->firstWhere('email', $address);
+                    if ($user) {
+                        break;
+                    }
+                }
                 if (!$user) {
                     \Storage::append(
                         $this->log,
-                        '| '.number_format(++$errors).' | '.$user.' | User not found'
+                        '| '.number_format(++$errors).' | '.implode('<br>', $email).' | User not found'
                     );
                 } else {
                     UserGroup::firstOrCreate([
