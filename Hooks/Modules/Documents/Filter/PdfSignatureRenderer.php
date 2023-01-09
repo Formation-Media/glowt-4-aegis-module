@@ -120,73 +120,75 @@ class PdfSignatureRenderer
 
             if ($items) {
                 foreach ($items as $item) {
-                    $pdf->CheckPageBreak(50);
-                    $item_details    = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
-                    $job_title       = $item_details->job_title->name ?? null;
-                    $signature       = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
-                    $signature_width = 0;
+                    if ($item->approval_process_item) {
+                        $pdf->CheckPageBreak(50);
+                        $item_details    = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
+                        $job_title       = $item_details->job_title->name ?? null;
+                        $signature       = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+                        $signature_width = 0;
 
-                    $top = $pdf->getY();
+                        $top = $pdf->getY();
 
-                    $pdf->h4($item->approval_process_item->approval_stage->name);
-                    $pdf->ln(2);
+                        $pdf->h4($item->approval_process_item->approval_stage->name);
+                        $pdf->ln(2);
 
-                    $details = [
-                        'aegis::phrases.document-id'        => $variant_document->reference,
-                        'dictionary.issue'                  => $variant_document->issue,
-                        'documents::phrases.signature-date' => $item->nice_date('updated_at'),
-                        'documents::phrases.signatory-name' => $item->agent->name,
-                    ];
+                        $details = [
+                            'aegis::phrases.document-id'        => $variant_document->reference,
+                            'dictionary.issue'                  => $variant_document->issue,
+                            'documents::phrases.signature-date' => $item->nice_date('updated_at'),
+                            'documents::phrases.signatory-name' => $item->agent->name,
+                        ];
 
-                    if ($job_title) {
-                        $details['aegis::phrases.job-title'] = $job_title;
-                    }
-                    if ($company) {
-                        $details['dictionary.company'] = $company;
-                    }
-
-                    $pdf->columns($details, 1);
-
-                    $bottom = $pdf->getY();
-
-
-                    if ($signature && $signature->is_file) {
-                        list($width, $height) = getimagesize($signature->absolute_path);
-                        $ratio            = $width / $height;
-                        $signature_height = $signature_height;
-                        $signature_width  = $signature_height * $ratio;
-                        if ($signature_width > $max_signature_width) {
-                            $signature_height = $max_signature_width / $ratio;
-                            $signature_width  = $max_signature_width;
+                        if ($job_title) {
+                            $details['aegis::phrases.job-title'] = $job_title;
+                        }
+                        if ($company) {
+                            $details['dictionary.company'] = $company;
                         }
 
-                        $tmp = '/tmp/aegis-mdss-signature-'.__LINE__.'.png';
+                        $pdf->columns($details, 1);
 
-                        \Image::make($signature->absolute_path)->greyscale()->save($tmp);
+                        $bottom = $pdf->getY();
 
-                        $pdf->Image(
-                            $tmp,
-                            $center_x,
-                            $top,
-                            $signature_width,
-                            $signature_height
-                        );
 
-                        $y = $top + ($signature_height / 2);    // Top + (signature height/2)
-                    } else {
-                        $y = $top;
+                        if ($signature && $signature->is_file) {
+                            list($width, $height) = getimagesize($signature->absolute_path);
+                            $ratio            = $width / $height;
+                            $signature_height = $signature_height;
+                            $signature_width  = $signature_height * $ratio;
+                            if ($signature_width > $max_signature_width) {
+                                $signature_height = $max_signature_width / $ratio;
+                                $signature_width  = $max_signature_width;
+                            }
+
+                            $tmp = '/tmp/aegis-mdss-signature-'.__LINE__.'.png';
+
+                            \Image::make($signature->absolute_path)->greyscale()->save($tmp);
+
+                            $pdf->Image(
+                                $tmp,
+                                $center_x,
+                                $top,
+                                $signature_width,
+                                $signature_height
+                            );
+
+                            $y = $top + ($signature_height / 2);    // Top + (signature height/2)
+                        } else {
+                            $y = $top;
+                        }
+
+                        $pdf->setFont('', 'B', 16);
+                        $reference_width = $pdf->GetStringWidth($item->reference);
+                        $pdf->setTextColor(7, 76, 141);
+                        $pdf->setXY(max($center_x, $center_x + $signature_width - $reference_width), $y);
+                        $pdf->Cell(0, 5, $item->reference);
+                        $pdf->resetTextColor();
+
+                        $pdf->setY(max($bottom, $top + $signature_height));
+
+                        $pdf->hr(...$spacer);
                     }
-
-                    $pdf->setFont('', 'B', 16);
-                    $reference_width = $pdf->GetStringWidth($item->reference);
-                    $pdf->setTextColor(7, 76, 141);
-                    $pdf->setXY(max($center_x, $center_x + $signature_width - $reference_width), $y);
-                    $pdf->Cell(0, 5, $item->reference);
-                    $pdf->resetTextColor();
-
-                    $pdf->setY(max($bottom, $top + $signature_height));
-
-                    $pdf->hr(...$spacer);
                 }
             }
         };
