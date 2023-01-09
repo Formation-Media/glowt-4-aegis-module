@@ -60,7 +60,8 @@ class ExportData extends ImportExportData
                         $user->email,
                         $user->first_name.$user->last_name.'@aegisengineering.co.uk',
                         substr($user->first_name, 0, 1).'.'.$user->last_name.'@aegisengineering.co.uk',
-                        substr($user->first_name, 0, 1).$user->last_name.'@aegisengineering.co.uk',
+                        substr($user->first_name, 0, 1).'.'.$user->last_name.'@aegiseng.co.uk',
+                        substr($user->first_name, 0, 1).'.'.$user->last_name.'@aegis-cert.co.uk',
                     ];
                 }
             }
@@ -78,9 +79,10 @@ class ExportData extends ImportExportData
                         $signature->fileable->email,
                         $signature->fileable->first_name.$signature->fileable->last_name.'@aegisengineering.co.uk',
                         substr($signature->fileable->first_name, 0, 1).'.'.$signature->fileable->last_name.'@aegisengineering.co.uk',
-                        substr($signature->fileable->first_name, 0, 1).$signature->fileable->last_name.'@aegisengineering.co.uk',
+                        substr($signature->fileable->first_name, 0, 1).'.'.$signature->fileable->last_name.'@aegiseng.co.uk',
+                        substr($signature->fileable->first_name, 0, 1).'.'.$signature->fileable->last_name.'@aegis-cert.co.uk',
                     ];
-                    $db_entry['path']              = $signature->getRawOriginal('path');
+                    $db_entry['path'] = $signature->getRawOriginal('path');
                     unset(
                         $db_entry['fileable'],
                         $db_entry['id']
