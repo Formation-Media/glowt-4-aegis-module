@@ -112,6 +112,7 @@ class PdfSignatureRenderer
                 $pdf->setTextColor(7, 76, 141);
                 $pdf->Cell(0, 5, $document_meta['author_reference']);
                 $pdf->resetTextColor();
+                $pdf->setFont('', '', 16);
             }
 
             $pdf->setXY($pdf->getLeftMargin(), max($bottom, $top + $signature_height));
@@ -184,6 +185,7 @@ class PdfSignatureRenderer
                         $pdf->setXY(max($center_x, $center_x + $signature_width - $reference_width), $y);
                         $pdf->Cell(0, 5, $item->reference);
                         $pdf->resetTextColor();
+                        $pdf->setFont('', '', 16);
 
                         $pdf->setY(max($bottom, $top + $signature_height));
 
