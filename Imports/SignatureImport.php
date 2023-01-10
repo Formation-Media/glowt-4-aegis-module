@@ -257,8 +257,8 @@ class SignatureImport implements ToCollection
                                     }
                                 }
                                 if ($user_key === false) {
-                                    // $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
-                                    //     ['author']['reference'] = $signature_reference;
+                                    $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
+                                        ['author']['reference'] = $signature_reference;
                                     $this->projects[$project_id]['phases'][$variant]['documents'][$document_reference][$issue]
                                         ['approval'][$role][$issue][0][$user_reference] = [
                                             'comments'            => '',
