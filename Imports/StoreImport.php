@@ -519,9 +519,9 @@ class StoreImport
                                                 );
                                             }
                                         }
-                                    } else {
+                                    } /*else {
                                         \Debug::debug($issue_number);
-                                    }
+                                    }*/
                                 }
                             }
                             $document_model->save();
@@ -616,10 +616,10 @@ class StoreImport
         } else {
             $category  = Category::firstOrCreate(
                 [
-                    'name' => $name,
+                    'name' => $name ? $name : 'Other',
                 ],
                 [
-                    'prefix'              => $prefix ?? 'O',
+                    'prefix'              => $prefix ? $prefix : 'O',
                     'approval_process_id' => $this->get_approval_process($name),
                 ]
             );
@@ -779,10 +779,11 @@ class StoreImport
     }
     private function get_type($type)
     {
+        $type = trim($type);
         if (array_key_exists($type, $this->types)) {
             $type_id = $this->types[$type];
         } else {
-            $name = trim($type) ?? 'Other';
+            $name = $type ? $type : 'Other';
             $user = \Auth::user();
 
             $type_model = Type::firstOrCreate(
