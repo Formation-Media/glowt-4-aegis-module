@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Schema;
 use Modules\AEGIS\Imports\DocumentSignatureImport;
 use Modules\AEGIS\Imports\DocumentsImport;
 use Modules\AEGIS\Imports\ProjectsImport;
-use Modules\AEGIS\Imports\RetryDocumentSignatureImport;
 use Modules\AEGIS\Imports\SignatureImport;
 use Modules\AEGIS\Imports\StoreImport;
 use Modules\AEGIS\Imports\UsersImport;

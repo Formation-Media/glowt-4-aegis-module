@@ -10,13 +10,19 @@
     'layouts.account',
     array(
         'breadcrumbs'=>array(
-            'management'=>___('dictionary.management'),
+            'management'=>'dictionary.management',
             $module->getName(),
-            ___('Customers')
+            'dictionary.customers'
         ),
         'page_menu'=> $page_menu
     )
 )
 @section('content')
     <x-table selects controller="customers" method="view" type="classic" module="AEGIS"/>
+    @include(
+        'aegis::_partials.modals.merge',
+        compact(
+            'customers'
+        )
+    )
 @endsection
