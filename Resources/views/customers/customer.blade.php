@@ -1,15 +1,3 @@
-@php
-    $page_menu=array();
-    $page_menu[]=array(
-        'href' =>'/a/m/AEGIS/projects/add/'.$customer->id,
-        'icon' =>'file-plus',
-        'title'=>___('Add Project to Customer')
-    );
-    $tabs = [
-        ['name' => ___('dictionary.details')],
-        ['name' => ___('dictionary.projects')],
-    ]
-@endphp
 @extends(
     'layouts.account',
     array(
@@ -23,9 +11,9 @@
     )
 )
 @section('content')
+    <x-card :details="$customer_details"/>
     <x-tabs name="customer" :tabs="$tabs">
         <x-tab target="{{___('Details')}}">
-            <x-card :details="$customer_details"/>
             <x-form name="customer">
                 <x-card>
                     <x-field
@@ -44,7 +32,18 @@
             </x-form>
         </x-tab>
         <x-tab target="{{___('Projects')}}">
-            <x-table selects controller="Projects" module="AEGIS" method="view" type="classic" id="{{$customer->id}}" />
+            <x-card-view
+                d-customer-id="{{ $customer->id }}"
+                model="Project"
+                module="AEGIS"
+                view="row"
+            />
         </x-tab>
     </x-tabs>
+    @include(
+        'aegis::_partials.modals.merge',
+        compact(
+            'customers'
+        )
+    )
 @endsection

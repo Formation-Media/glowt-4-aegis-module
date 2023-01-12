@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\View\CardView;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Helpers\Icons;
 
@@ -32,6 +33,13 @@ class Project
                 'value' => $result->phases->count(),
             ],
         ];
+    }
+    public function filter(Builder $query, Request $request)
+    {
+        if (isset($request->dataset['customerId'])) {
+            $query->where('scope_id', $request->dataset['customerId']);
+        }
+        return $query;
     }
     public function reference($result)
     {

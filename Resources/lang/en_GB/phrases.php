@@ -32,6 +32,9 @@ return array(
 
     'live-document' => 'Live Document',
 
+    'merge-customer' => 'Merge Customer',
+    'merge-into'     => 'Merge Into',
+
     'pdf-footer'            => 'PDF Footer',
     'phase-name'            => 'Phase Name',
     'phase-number'          => 'Phase Number',

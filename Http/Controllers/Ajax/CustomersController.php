@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\Toast;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Customer;
+use Modules\AEGIS\Models\Scope;
 
 class CustomersController extends Controller
 {
@@ -108,7 +109,24 @@ class CustomersController extends Controller
         }
         return true;
     }
-
+    public function merge(Request $request)
+    {
+        return parent::validate(
+            $request,
+            [
+                'from' => 'required|exists:m_aegis_scopes,id',
+                'to'   => 'required|exists:m_aegis_scopes,id',
+            ],
+            function ($validated, Scope $from, Scope $to) {
+                if ($from->projects->count()) {
+                    $from->projects()->update(['scope_id' => $to->id]);
+                }
+                $from->delete();
+                return $to->id;
+            },
+        );
+    }
+    // Tables
     public function table_view($request)
     {
         $user           = \Auth::user();
@@ -184,10 +202,15 @@ class CustomersController extends Controller
             function ($query) {
                 return $query;
             },
-            function ($in, $out) {
+            function ($in, $out, &$actions) {
                 $customer                = Customer::where('id', $in['id'])->first();
                 $added_by                = User::where('id', $customer->added_by)->first();
                 $out['phrases.added-by'] = $added_by?->name;
+                $actions[]               = [
+                    'class' => 'js-merge',
+                    'id'    => $customer->id,
+                    'name'  => 'dictionary.merge',
+                ];
                 return $out;
             }
         );
