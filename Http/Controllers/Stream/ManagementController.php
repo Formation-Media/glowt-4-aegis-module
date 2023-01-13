@@ -28,7 +28,7 @@ class ManagementController extends Controller
     public function import(SSEStream $stream, Request $request)
     {
         // Import stages. From: 'none', 'collect', 'store' or 'both'
-        $mode = 'store';
+        $mode = 'both';
         // Start
         ini_set('max_execution_time', 0);
         ini_set('memory_limit', -1);

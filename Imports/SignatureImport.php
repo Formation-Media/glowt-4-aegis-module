@@ -66,23 +66,25 @@ class SignatureImport implements ToCollection
                         && array_key_exists($issue, $variant['documents'][$document_reference][$issue]['approval'][$role])
                     ) {
                         if ($role === 'author') {
-                            // $variant['documents'][$document_reference][$issue]['author']['reference']       = $signature_reference;
-                            $variant['documents'][$document_reference][$issue]['approval'][$role][$issue][] = [
-                                'comments'            => '',
-                                'company'             => $company,
-                                'increment'           => $progressive_number,
-                                'signature_reference' => $signature_reference,
-                                'signed_date'         => $date,
+                            $this->projects[$project_reference]['phases'][$variant_number]['documents'][$document_reference][$issue]
+                                ['approval'][$role][$issue][] = [
+                                    $user_reference => [
+                                        'comments'            => '',
+                                        'company'             => $company,
+                                        'increment'           => $progressive_number,
+                                        'signature_reference' => $signature_reference,
+                                        'signed_date'         => $date,
 
-                                'created_at' => date(
-                                    'Y-m-d H:i:s',
-                                    strtotime($date)
-                                ),
-                                'updated_at' => date(
-                                    'Y-m-d H:i:s',
-                                    strtotime($date)
-                                ),
-                            ];
+                                        'created_at' => date(
+                                            'Y-m-d H:i:s',
+                                            strtotime($date)
+                                        ),
+                                        'updated_at' => date(
+                                            'Y-m-d H:i:s',
+                                            strtotime($date)
+                                        ),
+                                    ],
+                                ];
                         } else {
                             $user_key = false;
 

@@ -49,7 +49,7 @@
             <x-field
                 label="aegis::phrases.project-number"
                 max="{{ str_pad('', config('settings.aegis.project.character-limit'), 9) }}"
-                min="10000"
+                min="100000"
                 name="reference"
                 prefield="{!! $customer ? $customer->reference : '&hellip;' !!}/"
                 type="number"

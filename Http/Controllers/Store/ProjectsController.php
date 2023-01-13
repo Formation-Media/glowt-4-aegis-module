@@ -25,7 +25,7 @@ class ProjectsController extends Controller
                 'name'        => 'required',
                 'reference'   => [
                     'max:'.str_pad('', config('settings.aegis.project.character-limit'), 9),
-                    'min:10000',
+                    'min:100000',
                     'numeric',
                     'required',
                 ],
