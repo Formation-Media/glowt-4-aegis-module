@@ -104,13 +104,13 @@ class PdfSignatureRenderer
                 $y = $top;
             }
 
-            if (isset($document_meta['author_reference'])) {
+            if (isset($variant_document->document->author_reference)) {
                 $pdf->setFont('', 'B', 16);
-                $reference_width = $pdf->GetStringWidth($document_meta['author_reference']);
+                $reference_width = $pdf->GetStringWidth($variant_document->document->author_reference);
 
                 $pdf->setXY(max($center_x, $center_x + $signature_width - $reference_width), $y);
                 $pdf->setTextColor(7, 76, 141);
-                $pdf->Cell(0, 5, $document_meta['author_reference']);
+                $pdf->Cell(0, 5, $variant_document->document->author_reference);
                 $pdf->resetTextColor();
                 $pdf->setFont('', '', 16);
             }
