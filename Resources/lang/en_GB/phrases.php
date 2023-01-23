@@ -40,6 +40,7 @@ return array(
     'phase-number'          => 'Phase Number',
     'presentation-links'    => 'Presentation Links',
     'presentation-material' => 'Presentation Material',
+    'project-management'    => 'Project Management',
     'project-number'        => 'Project Number',
     'project-phase'         => 'Project Phase',
     'project-title'         => 'Project Title',

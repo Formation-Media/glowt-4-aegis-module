@@ -16,13 +16,23 @@
         <x-tab target="{{___('Details')}}">
             <x-form name="customer">
                 <x-card>
-                    <x-field
-                        name="name"
-                        label="{{___('Name')}}"
-                        type="text"
-                        value="{{ $customer->name}}"
-                        required
-                    />
+                    <div class="grid-md-2">
+                        <x-field
+                            name="name"
+                            label="dictionary.name"
+                            type="text"
+                            value="{{ $customer->name}}"
+                            required
+                        />
+                        <x-field
+                            label="dictionary.reference"
+                            name="reference"
+                            note="{{ ___('aegis::messages.customer.reference-message') }}"
+                            required
+                            type="text"
+                            value="{{ $customer->reference}}"
+                        />
+                    </div>
                 </x-card>
                 <x-field type="actions">
                     <x-slot name="center">
