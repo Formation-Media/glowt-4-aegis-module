@@ -24,9 +24,18 @@ class EditDocument
                 'final_feedback_list',
             ]);
         }
+
+        if (!isset($args['document']->author_company)) {
+            $vd = VariantDocument::firstWhere('document_id', $args['document']->id);
+            $args['document']->setMeta([
+                'author_company' => $vd->project->company_id,
+            ]);
+        }
+
         $args['document']->setMeta([
             'author_role' => $args['request']->aegis['author-role'],
         ]);
+        $args['document']->save();
         if (isset($args['request']->aegis['project_variant']) || isset($args['request']->aegis['reference'])) {
             $updates = [];
             if (isset($args['request']->aegis['project_variant'])) {
@@ -52,16 +61,14 @@ class EditDocument
                     ::table('m_documents_meta')
                     ->where('key', 'author_reference')
                     ->where('value', 'LIKE', $author_prefix.'%')
-                    ->orderByRaw('LENGTH(`value`) DESC')
-                    ->orderBy('value', 'desc')
+                    ->orderByRaw('CAST(SUBSTRING(`value`, '.(strlen($author_prefix) + 1).') AS UNSIGNED DESC')
                     ->first()
                 ) {
                     $previous_author_reference = $previous_author_reference->value;
                 }
                 if ($previous_approval_reference = DocumentApprovalProcessItem
                     ::where('reference', 'LIKE', $author_prefix.'%')
-                    ->orderByRaw('LENGTH(`reference`) DESC')
-                    ->orderBy('reference', 'desc')
+                    ->orderByRaw('CAST(SUBSTRING(`reference`, '.(strlen($author_prefix) + 1).') AS UNSIGNED DESC')
                     ->first()
                 ) {
                     $previous_approval_reference = $previous_approval_reference->reference;
@@ -82,7 +89,10 @@ class EditDocument
                 }
 
                 list($company_reference, $user, $increment) = explode('-', $previous_reference);
-                $new_reference                              = implode('-', [$company_reference, $user, ++$increment]);
+                $new_reference                              = implode(
+                    '-',
+                    [$company_reference, $user, str_pad(++$increment, 3, '0', STR_PAD_LEFT)]
+                );
                 $args['document']->setMeta('author_reference', $new_reference);
                 $args['document']->save();
             }
