@@ -15,6 +15,7 @@ class Management
             '/a/m/AEGIS/management/import'              => 'dictionary.import',
             '/a/m/AEGIS/management/job-titles'          => 'aegis::phrases.job-titles',
             '/a/m/AEGIS/management/project-types'       => 'aegis::phrases.project-types',
+            '/a/m/AEGIS/management/project-management'  => 'aegis::phrases.project-management',
             '/a/m/AEGIS/management/user-grades'         => 'aegis::phrases.user-grades',
         );
     }

@@ -2,8 +2,11 @@
 
 namespace Modules\AEGIS\Http\Controllers;
 
+use App\Helpers\Composer;
+use App\Helpers\Dates;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use GrahamCampbell\GitHub\Facades\GitHub;
 use Illuminate\Http\Request;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\Type;
@@ -114,6 +117,97 @@ class ManagementController extends Controller
     {
         return parent::view();
     }
+    public function project_management(Request $request)
+    {
+        $cache_location = 'project_management.json';
+        $issue_count    = 0;
+        $return         = [];
+        $composer       = new Composer('aegis');
+        $project_id     = 14660152;
+        $session_key    = 'last-project-management-change';
+
+        $last_change = session()->get($session_key);
+        $project     = GitHub::repo()->projects()->show($project_id);
+
+        list($org, $repo) = explode('/', $composer->getRepository());
+
+        if (!$last_change || strtotime($project['updated_at']) > $last_change) {
+            // Update cache
+            if ($columns = GitHub::repo()->projects()->columns()->all($project_id)) {
+                foreach ($columns as $column) {
+                    if ($cards = GitHub::repo()->projects()->columns()->cards()->all(
+                        $column['id'],
+                        [
+                            'per_page' => $column['name'] === 'Done' ? 0 : 9999,
+                        ]
+                    )) {
+                        foreach ($cards as $card) {
+                            if (array_key_exists('content_url', $card) && str_contains($card['content_url'], '/issues/')) {
+                                $issue = last(explode('/', $card['content_url']));
+                                $return[$column['name']][$issue] = [];
+                                $issue_count ++;
+                            }
+                        }
+                    }
+                }
+            }
+            if ($issue_count > 0) {
+                for ($i = 0; $i < ceil($issue_count / 100); $i++) {
+                    $cards = GitHub::issue()->all(
+                        $org,
+                        $repo,
+                        [
+                            'page'     => $i + 1,
+                            'per_page' => 100,
+                            'state'    => 'open',
+                        ]
+                    );
+                    foreach ($cards as $card) {
+                        foreach ($return as $column => $issues) {
+                            foreach ($issues as $issue_number => $issue) {
+                                if ($card['number'] === $issue_number) {
+                                    $return[$column][$card['number']] = $this->process_github_card($card);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($closed = GitHub::issue()->all(
+                $org,
+                $repo,
+                [
+                    'direction' => 'desc',
+                    'per_page'  => config('settings.core.data.items_per_page'),
+                    'sort'      => 'updated',
+                    'state'     => 'closed',
+                ]
+            )) {
+                foreach ($closed as $card) {
+                    $return['Done'][$card['number']] = $this->process_github_card($card);
+                }
+            }
+            // Save last update
+            \Storage::put($cache_location, json_encode($return, JSON_PRETTY_PRINT));
+            session()->put($session_key, strtotime($project['updated_at']));
+        } else {
+            $return = json_decode(
+                \Storage::get($cache_location),
+                true
+            );
+        }
+
+        $columns = [];
+
+        foreach ($return as $column => $issues) {
+            $columns[$column] = array_filter($issues);
+        }
+
+        return parent::view([
+            'columns' => array_filter($columns),
+        ]);
+    }
     public function project_type(Request $request, $id)
     {
         $breadcrumbs  = [];
@@ -189,5 +283,22 @@ class ManagementController extends Controller
     public function user_grades(Request $request)
     {
         return parent::view();
+    }
+    private function process_github_card($card)
+    {
+        $data = [
+            'body'   => $card['body'],
+            'date'   => Dates::datetime($card['created_at']),
+            'id'     => $card['number'],
+            'labels' => [],
+            'link'   => $card['html_url'],
+            'title'  => $card['title'],
+        ];
+        if ($card['labels']) {
+            foreach ($card['labels'] as $label) {
+                $data['labels'][$label['name']] = $label['color'];
+            }
+        }
+        return $data;
     }
 }

@@ -1,0 +1,9 @@
+@import "../../../../../../../../resources/sass/loader";
+blockquote {
+    color:$brand;
+    font-style: italic;
+    margin:$spacer*.5 0;
+    :last-child {
+        margin-bottom:0;
+    }
+}
