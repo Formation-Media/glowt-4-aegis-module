@@ -11,21 +11,23 @@
 )
 @section('content')
     <x-form name="customer">
-        <x-card >
-            <x-field
-                name="name"
-                label="{{___('dictionary.name')}}"
-                type="text"
-                required
-            />
-            <x-field
-                aria-readonly
-                label="{{___('dictionary.reference')}}"
-                name="reference"
-                note="{{ ___('aegis::messages.customer.reference-message') }}"
-                required
-                type="text"
-            />
+        <x-card>
+            <div class="grid-md-2">
+                <x-field
+                    name="name"
+                    label="{{___('dictionary.name')}}"
+                    type="text"
+                    required
+                />
+                <x-field
+                    aria-readonly
+                    label="{{___('dictionary.reference')}}"
+                    name="reference"
+                    note="{{ ___('aegis::messages.customer.reference-message') }}"
+                    required
+                    type="text"
+                />
+            </div>
         </x-card>
         <x-field type="actions">
             <x-slot name="center">
