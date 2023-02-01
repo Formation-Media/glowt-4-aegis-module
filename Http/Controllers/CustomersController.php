@@ -21,7 +21,7 @@ class CustomersController extends Controller
     public function customer(Request $request, $id)
     {
         $customer         = Customer::findOrFail($id);
-        $customers        = Scope::getOrdered()->pluck('name', 'id');
+        $customers        = Scope::where('id', '<>', $id)->getOrdered()->pluck('name', 'id');
         $customer_details = [
             'dictionary.reference' => $customer->reference,
             'phrases.created-by'   => User::withTrashed()->find($customer->added_by)->name,
