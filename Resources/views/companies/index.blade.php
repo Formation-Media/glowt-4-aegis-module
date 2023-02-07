@@ -4,7 +4,7 @@
         $page_menu[]=array(
             'href'  => 'companies/add',
             'icon'  => 'plus',
-            'title' => 'Add Competency Company'
+            'title' => 'Add AEGIS Company'
         );
     }
 @endphp
