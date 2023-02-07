@@ -61,14 +61,14 @@ class EditDocument
                     ::table('m_documents_meta')
                     ->where('key', 'author_reference')
                     ->where('value', 'LIKE', $author_prefix.'%')
-                    ->orderByRaw('CAST(SUBSTRING(`value`, '.(strlen($author_prefix) + 1).') AS UNSIGNED DESC')
+                    ->orderByRaw('CAST(SUBSTRING(`value`, '.(strlen($author_prefix) + 1).') AS UNSIGNED) DESC')
                     ->first()
                 ) {
                     $previous_author_reference = $previous_author_reference->value;
                 }
                 if ($previous_approval_reference = DocumentApprovalProcessItem
                     ::where('reference', 'LIKE', $author_prefix.'%')
-                    ->orderByRaw('CAST(SUBSTRING(`reference`, '.(strlen($author_prefix) + 1).') AS UNSIGNED DESC')
+                    ->orderByRaw('CAST(SUBSTRING(`reference`, '.(strlen($author_prefix) + 1).') AS UNSIGNED) DESC')
                     ->first()
                 ) {
                     $previous_approval_reference = $previous_approval_reference->reference;

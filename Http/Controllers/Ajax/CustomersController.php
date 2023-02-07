@@ -115,7 +115,7 @@ class CustomersController extends Controller
             $request,
             [
                 'from' => 'required|exists:m_aegis_scopes,id',
-                'to'   => 'required|exists:m_aegis_scopes,id',
+                'to'   => 'required|exists:m_aegis_scopes,id|different:from',
             ],
             function ($validated, Scope $from, Scope $to) {
                 if ($from->projects->count()) {
@@ -124,6 +124,9 @@ class CustomersController extends Controller
                 $from->delete();
                 return $to->id;
             },
+            messages: [
+                'different' => 'Merge Into can\'t be the same as the source customer.',
+            ]
         );
     }
     // Tables

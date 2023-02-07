@@ -55,7 +55,6 @@ var add = {
     },
     get_reference:function() {
         let reference = document.getElementById('aegisreference');
-        console.log(this.category, this.variant);
         if (this.category && this.variant) {
             app.show_loader();
             app.ajax(

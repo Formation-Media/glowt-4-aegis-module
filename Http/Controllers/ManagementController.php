@@ -31,6 +31,7 @@ class ManagementController extends Controller
     }
     public function import(Request $request)
     {
+        return redirect('a/management');
         if (is_formation() || is_dev()) {
             return parent::view();
         }
@@ -38,6 +39,7 @@ class ManagementController extends Controller
     }
     public function import_errors(Request $request)
     {
+        return redirect('a/management');
         $error_file         = 'modules/aegis/import/errors.json';
         $processed_sections = [];
         $section_input      = [];
@@ -82,6 +84,7 @@ class ManagementController extends Controller
     }
     public function import_testing(Request $request)
     {
+        return redirect('a/management');
         $errors      = [];
         $errors_file = 'modules/aegis/import/errors.json';
         $files       = [

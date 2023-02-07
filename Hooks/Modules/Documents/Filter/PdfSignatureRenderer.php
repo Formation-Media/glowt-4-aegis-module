@@ -2,6 +2,7 @@
 
 namespace Modules\AEGIS\Hooks\Modules\Documents\Filter;
 
+use App\Helpers\Conversions;
 use App\Models\File;
 use Modules\AEGIS\Models\Company;
 use Modules\AEGIS\Models\DocumentApprovalItemDetails;
@@ -84,8 +85,7 @@ class PdfSignatureRenderer
                         $signature_width  = $max_signature_width;
                     }
 
-
-                    $tmp = '/tmp/aegis-mdss-signature-'.__LINE__.'.png';
+                    $tmp = '/tmp/aegis-mdss-author-signature-'.$variant_document->id.'.png';
 
                     \Image::make($author_signature->absolute_path)->greyscale()->save($tmp);
 
@@ -126,6 +126,7 @@ class PdfSignatureRenderer
                         $item_details    = DocumentApprovalItemDetails::where('approval_item_id', $item->id)->first();
                         $job_title       = $item_details->job_title->name ?? null;
                         $signature       = File::where('hex_id', $item->agent->getMeta('documents.signature'))->first();
+
                         $signature_width = 0;
 
                         $top = $pdf->getY();
@@ -162,7 +163,8 @@ class PdfSignatureRenderer
                                 $signature_width  = $max_signature_width;
                             }
 
-                            $tmp = '/tmp/aegis-mdss-signature-'.__LINE__.'.png';
+                            $tmp = '/tmp/aegis-mdss-additional-signature-'
+                                .Conversions::to_base_64(str_replace('.', '', microtime(true))).'.png';
 
                             \Image::make($signature->absolute_path)->greyscale()->save($tmp);
 
