@@ -32,13 +32,20 @@ var add = {
                     if (json.status) {
                         add.issue.value = json.data.issue;
                         if (json.data.previous_document) {
+                            let approval_process         = '';
+                            let approval_process_dom     = document.querySelector('[name="approval_process"]');
                             document.querySelector('[name="aegis[feedback-list-type]"]').value  = json.data.previous_document.document.meta_data.feedback_list_type_id;
                             document.querySelector('[name="aegis[final-feedback-list]"]').value = json.data.previous_document.document.meta_data.final_feedback_list;
-                            document.querySelector('[name="approval_process"]').value           = json.data.previous_document.document.process_id;
                             document.querySelector('[name="category"]').value                   = json.data.previous_document.document.category_id;
                             document.querySelector('[name="description"]').value                = json.data.previous_document.document.description;
                             document.querySelector('[name="link"]').value                       = json.data.previous_document.document.link;
                             document.querySelector('[name="name"]').value                       = json.data.previous_document.document.name;
+
+                            let option = approval_process_dom.querySelector('[value="' + json.data.previous_document.document.process_id + '"]');
+                            if (option) {
+                                approval_process = json.data.previous_document.document.process_id;
+                            }
+                            approval_process_dom.value = approval_process;
                         }
                         app.unset_hidden(submit);
                     } else {
