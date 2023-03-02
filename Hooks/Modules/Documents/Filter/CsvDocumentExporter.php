@@ -13,16 +13,19 @@ class CsvDocumentExporter
             $max_activities         = 0;
             $max_approval_processes = 0;
             $max_comments           = 0;
-            if ($csv->exporter->documents_count) {
+            if ($csv->exporter->documents) {
                 $data = [];
 
-                foreach ($csv->exporter->documents_query->get() as $document) {
+                foreach ($csv->exporter->documents as $document) {
                     $variant_document = VariantDocument
                         ::with([
+                            'document',
                             'project',
                             'project.company',
                         ])
                         ->firstWhere('document_id', $document->id);
+
+                    $document = $variant_document->document;
 
                     $document_data = [
                         'activities'       => [],
@@ -82,7 +85,7 @@ class CsvDocumentExporter
                     if ($activities->count()) {
                         foreach ($activities as $activity) {
                             $document_data['activities'][] = [
-                                'user'    => $activity->causer->name,
+                                'user'    => $activity->causer?->name,
                                 'message' => ___($activity->description, $activity->properties->toArray()),
                                 'date'    => $activity->nice_datetime('created_at'),
                             ];
@@ -134,7 +137,7 @@ class CsvDocumentExporter
                             $row[] = $comment['date'];
                         }
                     }
-                    $row       = array_pad($row, $row_count + ($max_comments * 3), '');
+                    $row = array_pad($row, $row_count + ($max_comments * 3), '');
                     if ($d['activities']) {
                         foreach ($d['activities'] as $activity) {
                             $row[] = $activity['message'];

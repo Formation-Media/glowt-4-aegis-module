@@ -13,103 +13,109 @@ class PdfDocumentExporter
             $pdf->h2('dictionary.results');
             $pdf->hr();
             $pdf->ln(2);
-            foreach ($pdf->exporter->documents_query->limit(config('settings.core.data.items_per_page'))->get() as $i => $document) {
-                if ($i !== 0) {
-                    $pdf->addPage();
-                }
+            if ($pdf->exporter->documents) {
+                foreach ($pdf->exporter->documents as $i => $document) {
+                    if ($i !== 0) {
+                        $pdf->addPage();
+                    }
 
-                $variant_document = VariantDocument
-                    ::with([
-                        'project',
-                        'project.company',
-                    ])
-                    ->firstWhere('document_id', $document->id);
+                    $variant_document = VariantDocument
+                        ::with([
+                            'document',
+                            'project',
+                            'project.company',
+                        ])
+                        ->firstWhere('document_id', $document->id);
 
-                $pdf->h3($document->name);
-                $details = [
-                    'dictionary.reference' => $variant_document?->reference,
-                    'dictionary.project'   => $variant_document?->project->reference,
-                    'dictionary.company'   => $variant_document?->project->company->name,
-                    'dictionary.process'   => $document->approval_process?->name,
-                    'dictionary.status'    => $document->status,
-                    'dictionary.added'     => Dates::datetime($document->created_at),
-                    'phrases.added-by'     => $document->created_by->name,
-                    'dictionary.updated'   => Dates::datetime($document->updated_at),
-                    'phrases.updated-by'   => $document->updated_by->name,
-                ];
-                $pdf->columns($details);
-                if ($document->description) {
-                    $pdf->p($document->description);
-                }
+                    $document = $variant_document->document;
 
-                $approval_process = $document->document_approval_process_items();
-                if ($approval_process->count()) {
-                    $data = [];
-                    foreach ($approval_process->get() as $item) {
-                        if ($stage = $item->approval_process_item?->approval_stage) {
-                            if ($stage_number = $stage->number.' of '.$stage->approval_process?->approval_process_stages->count()) {
-                                if ($item->status === 'Approved') {
-                                    $status = ___('dictionary.approved');
-                                } elseif ($item->status === 'Rejected') {
-                                    $status = ___('dictionary.rejected');
-                                } elseif ($item->status === 'Awaiting Decision') {
-                                    $status = ___('documents::phrases.awaiting-decision');
+                    $pdf->h3($document->name);
+                    $details = [
+                        'dictionary.reference' => $variant_document?->reference,
+                        'dictionary.project'   => $variant_document?->project->reference,
+                        'dictionary.company'   => $variant_document?->project->company->name,
+                        'dictionary.process'   => $document->approval_process?->name,
+                        'dictionary.status'    => $document->status,
+                        'dictionary.added'     => Dates::datetime($document->created_at),
+                        'phrases.added-by'     => $document->created_by->name,
+                        'dictionary.updated'   => Dates::datetime($document->updated_at),
+                        'phrases.updated-by'   => $document->updated_by->name,
+                    ];
+                    $pdf->columns($details);
+                    if ($document->description) {
+                        $pdf->p($document->description);
+                    }
+
+                    $approval_process = $document->document_approval_process_items();
+                    if ($approval_process->count()) {
+                        $data = [];
+                        foreach ($approval_process->get() as $item) {
+                            if ($stage = $item->approval_process_item?->approval_stage) {
+                                $stage_number = $stage->number.' of '.$stage->approval_process?->approval_process_stages->count();
+                                if ($stage_number) {
+                                    if ($item->status === 'Approved') {
+                                        $status = ___('dictionary.approved');
+                                    } elseif ($item->status === 'Rejected') {
+                                        $status = ___('dictionary.rejected');
+                                    } elseif ($item->status === 'Awaiting Decision') {
+                                        $status = ___('documents::phrases.awaiting-decision');
+                                    }
+
+                                    $data[]       = [
+                                        $stage->name.' ('.$stage_number.')',
+                                        $item->agent?->name,
+                                        $status,
+                                        Dates::datetime($item->updated_at),
+                                    ];
                                 }
-
-                                $data[]       = [
-                                    $stage->name.' ('.$stage_number.')',
-                                    $item->agent?->name,
-                                    $status,
-                                    Dates::datetime($item->updated_at),
-                                ];
                             }
                         }
+                        if ($data) {
+                            $pdf->h4('documents::phrases.approval-process');
+                            $pdf->table(
+                                $data,
+                                array(
+                                    'dictionary.name',
+                                    'dictionary.approver',
+                                    'dictionary.status',
+                                    'dictionary.updated',
+                                ),
+                            );
+                        }
                     }
-                    if ($data) {
-                        $pdf->h4('documents::phrases.approval-process');
+                    $comments = $document->comments;
+                    if ($comments->count()) {
+                        $pdf->h4('dictionary.comments');
+
+                        foreach ($comments as $comment) {
+                            $pdf->html($comment->content);
+                            $pdf->p(
+                                $comment->user->name.' '.strtolower(___('dictionary.at')).' '.$comment->nice_datetime('created_at'),
+                                'L'
+                            );
+                        }
+                    }
+                    $activities = $document->activity;
+                    if ($activities->count()) {
+                        $pdf->h4('dictionary.log');
+
+                        $data = [];
+                        foreach ($activities as $activity) {
+                            $data[] = [
+                                $activity->nice_datetime('created_at'),
+                                ___($activity->description, $activity->properties->toArray()),
+                                $activity->causer->name,
+                            ];
+                        }
                         $pdf->table(
                             $data,
                             array(
-                                'dictionary.name',
-                                'dictionary.approver',
-                                'dictionary.status',
-                                'dictionary.updated',
+                                'dictionary.date',
+                                'dictionary.message',
+                                'dictionary.user',
                             ),
                         );
                     }
-                }
-                $comments = $document->comments;
-                if ($comments->count()) {
-                    $pdf->h4('dictionary.comments');
-
-                    foreach ($comments as $comment) {
-                        $pdf->html($comment->content);
-                        $pdf->p(
-                            $comment->user->name.' '.strtolower(___('dictionary.at')).' '.$comment->nice_datetime('created_at'),
-                            'L'
-                        );
-                    }
-                }
-                $activities = $document->activity;
-                if ($activities->count()) {
-                    $pdf->h4('dictionary.log');
-
-                    $data = [];
-                    foreach ($activities as $activity) {
-                        $data[] = [
-                            $activity->nice_datetime('created_at'),
-                            ___($activity->description, $activity->properties->toArray()),
-                            $activity->causer->name,
-                        ];
-                    }
-                    $pdf->table(
-                        $data,
-                        array(
-                            'dictionary.date',
-                            'dictionary.message',
-                            'dictionary.user',
-                        ),
-                    );
                 }
             }
 
