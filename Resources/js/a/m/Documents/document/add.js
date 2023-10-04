@@ -173,9 +173,11 @@ var add = {
     watch_reference: function() {
         let reference = document.querySelector('[name="aegis[reference]"]');
         reference.addEventListener('change', function() {
+            add.get_reference();
             add.check_issue(this.value);
         });
         reference.addEventListener('keyup', function() {
+            add.get_reference();
             add.check_issue(this.value);
         });
     },

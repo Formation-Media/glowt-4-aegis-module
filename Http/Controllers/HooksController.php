@@ -172,24 +172,24 @@ class HooksController extends AEGISController
     public static function collect_store_user($args)
     {
         $aegis = $args['request']->aegis;
-        $user  = $args['user'];
+        $user = $args['user'];
         if (!$aegis['user-reference']) {
-            $i                       = 0;
-            $name                    = substr($user->first_name, 0, 1).substr($user->last_name, 0, 1);
-            $aegis['user-reference'] = $name.$i;
-            while (\DB::table('users_meta')->where([
-                'key'   => 'aegis.user-reference',
+            $i = 0;
+            $name = substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1);
+            $aegis['user-reference'] = $name . $i;
+        }
+        if (\DB::table('users_meta')->where([
+                'key' => 'aegis.user-reference',
                 'value' => $aegis['user-reference'],
-            ])->count()) {
-                $aegis['user-reference'] = $name.$i++;
-            }
+            ])->count() >= 1) {
+            return back()->withErrors(['message' => 'Reference already exists. Please try again.']);
         }
         $user->setMeta([
             'aegis.default-sections' => $aegis['default-sections'] ?? null,
-            'aegis.discipline'       => $aegis['discipline'] ?? null,
-            'aegis.grade'            => $aegis['grade'] ?? null,
-            'aegis.type'             => $aegis['type'],
-            'aegis.user-reference'   => $aegis['user-reference'],
+            'aegis.discipline' => $aegis['discipline'] ?? null,
+            'aegis.grade' => $aegis['grade'] ?? null,
+            'aegis.type' => $aegis['type'],
+            'aegis.user-reference' => $aegis['user-reference'],
         ]);
         $user->save();
     }
