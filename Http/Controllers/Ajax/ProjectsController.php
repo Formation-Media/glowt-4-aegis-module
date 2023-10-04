@@ -64,16 +64,6 @@ class ProjectsController extends Controller
         }
 
         $return['issue'] = $issues->count() + 1;
-
-//        if ($return['issue'] > 1) {
-//            $return['previous_document'] = $issues
-//                ->with([
-//                    'document',
-//                    'document.metas',
-//                ])
-//                ->orderBy('issue', 'desc')
-//                ->first();
-//        }
         return $return;
     }
     public function get_project_variants($request)
