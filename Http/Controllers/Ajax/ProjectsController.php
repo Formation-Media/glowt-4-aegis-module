@@ -51,27 +51,19 @@ class ProjectsController extends Controller
         $issues = VariantDocument::where('reference', $reference);
 
         if ($issues->count()) {
-            $last_issue = $issues->with('document')->orderBy('created_at', 'desc')->first();
-            if ($last_issue->document->status !== 'Approved') {
-                \Auth::user()->notify(new Toast(
-                    'aegis::messages.previous-issue-not-approved.title',
-                    'aegis::messages.previous-issue-not-approved.message',
-                ));
-                return false;
+            $issues = $issues->with('document')->orderBy('created_at', 'desc');
+            foreach ($issues as $issue) {
+                if ($issue->document->status !== 'Approved') {
+                    \Auth::user()->notify(new Toast(
+                        'aegis::messages.previous-issue-not-approved.title',
+                        'aegis::messages.previous-issue-not-approved.message',
+                    ));
+                    return false;
+                }
             }
         }
 
         $return['issue'] = $issues->count() + 1;
-
-        if ($return['issue'] > 1) {
-            $return['previous_document'] = $issues
-                ->with([
-                    'document',
-                    'document.metas',
-                ])
-                ->orderBy('issue', 'desc')
-                ->first();
-        }
         return $return;
     }
     public function get_project_variants($request)
