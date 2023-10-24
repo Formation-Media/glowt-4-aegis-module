@@ -185,7 +185,7 @@ class PdfSignatureRenderer
                         $reference_width = $pdf->GetStringWidth($item->reference);
                         $pdf->setTextColor(7, 76, 141);
                         $pdf->setXY(max($center_x, $center_x + $signature_width - $reference_width), $y);
-                        $pdf->Cell(0, 60, $item->reference);
+                        $pdf->Cell(0, 50, $item->reference);
                         $pdf->resetTextColor();
                         $pdf->setFont('', '', 16);
 
