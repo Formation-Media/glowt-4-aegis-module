@@ -110,7 +110,7 @@ class PdfSignatureRenderer
 
                 $pdf->setXY(max($center_x, $center_x + $signature_width - $reference_width), $y);
                 $pdf->setTextColor(7, 76, 141);
-                $pdf->Cell(0, 5, $variant_document->document->author_reference);
+                $pdf->Cell(0, 50, $variant_document->document->author_reference);
                 $pdf->resetTextColor();
                 $pdf->setFont('', '', 16);
             }
